@@ -1,0 +1,32 @@
+BootStrap: docker
+from: nvidia/cuda:11.7.1-cudnn8-devel-ubuntu22.04
+
+%files
+env.yml /opt/
+scripts /opt/
+
+%environment
+    export LANG=C.UTF-8
+    export LC_ALL=C.UTF-8
+    export PATH="/opt/conda/bin:$PATH"
+
+%post
+    export TZ=Europe/Helsinki
+    ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+    export DEBIAN_FRONTEND=noninteractive
+    
+    apt-get update
+    apt-get -y --no-install-recommends install tzdata
+
+    apt-get update && apt-get upgrade -y
+    apt-get install -y --no-install-recommends wget unzip
+    
+    # Download micromamba binary to /opt/micromamba/bin/micromamba
+    mkdir /opt/micromamba
+    wget -qO- https://micromamba.snakepit.net/api/micromamba/linux-64/latest | (cd /opt/micromamba && tar -xvj)
+
+    # Create conda environment to /opt/conda/
+    /opt/micromamba/bin/micromamba create -f /opt/env.yml -p /opt/conda
+
+%runscript
+    python3 /opt/scripts/speech2text.py "$@"

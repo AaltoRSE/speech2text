@@ -1,0 +1,98 @@
+#!/usr/bin/env bash
+
+usage() {                                    
+     cat << EOF
+Aalto speech2text app.
+
+Usage:                             
+
+0) Load the speech2text app
+
+Load the speech2text app with
+
+module load speech2text
+
+This needs to be done once every login.
+
+
+1) Set environment variables
+
+Set email (for Slurm job notifications) and audio language environment variables:
+
+export SPEECH2TEXT_EMAIL=my.name@aalto.fi
+export SPEECH2TEXT_LANGUAGE=my-language
+
+For example:
+
+export SPEECH2TEXT_EMAIL=john.smith@aalto.fi
+export SPEECH2TEXT_LANGUAGE=finnish
+
+The following variables are already set by the lmod .lua script. They can be ignored by user.
+
+HF_HOME
+TORCH_HOME
+WHISPER_CACHE
+PYANNOTE_CONFIG
+NUMBA_CACHE
+MPLCONFIGDIR
+SPEECH2TEXT_TMP
+SPEECH2TEXT_MEM
+SPEECH2TEXT_CPUS_PER_TASK
+SPEECH2TEXT_TIME
+
+
+2a) Process a single audio file
+
+speech2text audio-file
+
+The audio file can be in any common audio (.wav, .mp3, .aff, etc.) or video (.mp4, .mov, etc.) format.
+The transcription and diarization results (.txt and .csv files) corresponding to each audio file 
+will be written to results/ next to the file.
+
+
+2b) Process multiple audio files in a folder
+
+speech2text audio-files/
+
+The audio file can be in any common audio (.wav, .mp3, .aff, etc.) or video (.mp4, .mov, etc.) format.
+The transcription and diarization results (.txt and .csv files) corresponding to each audio file 
+will be written to audio-files/results.
+
+See also: https://github.com/AaltoRSE/speech2text
+EOF
+}
+
+if [[ $# -eq 0 ]]; then
+    usage
+    exit 0
+fi
+
+for ARG in "$@"                              
+do                                         
+     case $ARG in                               
+          -h|--help)                               
+          usage                                                                                       
+          exit 0                                   
+          ;;                                                                                     
+     esac                                       
+done
+
+# Set env variables
+export OMP_NUM_THREADS=$SPEECH2TEXT_CPUS_PER_TASK
+export OMP_PROC_BIND=true
+export KMP_AFFINITY=granularity=fine,compact,1,0
+export KMP_AFFINITY=granularity=fine,compact,1,0
+
+# Folder in which this script is located
+# https://stackoverflow.com/questions/39340169/dir-cd-dirname-bash-source0-pwd-how-does-that-work
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+
+# Submit
+python3 ${SCRIPT_DIR}/../src/submit.py $1
+
+
+
+
+
+
+
