@@ -60,7 +60,7 @@ A few things to note to make processing easier:
   
 - The files can also be of any commonly used video format, e.g. `.mp4`, `.mov`, `.avi`
 
-- Make sure your folder and file names do **not** contain white spaces, that is, use `my-audio-folder` and `my-audio-file.mp3` instead of `my audio folder` and `my audio file.mp3`, respectively. 
+- Make sure your folder and file names do **not** contain white spaces or special characters apart from dash, underscore, and period, that is, use `my-audio-folder` and `my_audio_file.mp3` instead of `my audio folder` and `my"audio"file!.mp3`, respectively.
 
 - It is recommended to divide files into folders according to language, that is, put English interview files in folder `my-english-interviews`, French interviews to `my-french-interviews`, and so forth.
 
