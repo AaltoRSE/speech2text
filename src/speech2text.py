@@ -55,13 +55,13 @@ def get_argument_parser():
         "--AUTH_TOKEN",
         type=str,
         default=os.getenv("AUTH_TOKEN"),
-        help="If not given, either AUTH_TOKEN or PYANNOTE_CONFIG environment variable needs to be set.",
+        help="Either AUTH_TOKEN or PYANNOTE_CONFIG environment variable needs to be set.",
     )
     parser.add_argument(
         "--PYANNOTE_CONFIG",
         type=str,
         default=os.getenv("PYANNOTE_CONFIG"),
-        help="If not given, either AUTH_TOKEN or PYANNOTE_CONFIG environment variable needs to be set.",
+        help="Either AUTH_TOKEN or PYANNOTE_CONFIG environment variable needs to be set.",
     )
     parser.add_argument(
         "--SPEECH2TEXT_LANGUAGE",
