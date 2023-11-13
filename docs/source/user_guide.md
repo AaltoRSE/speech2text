@@ -101,6 +101,8 @@ First, load the speech2text app with
 module load speech2text
 ```
 
+This needs to be done only once in this terminal session. The session ends when you close your terminal tab. However, running it multiple times does not hurt.
+
 Next, replace `my.name@aalto.fi` and `mylanguage` with your email address and the language of the audio files you are about to submit for processing, respectively, as follows:
 
 ```bash
@@ -123,9 +125,9 @@ export SPEECH2TEXT_LANGUAGE=finnish
 
 These commands sets environment variables for
 
-- the email address where to send notifications of started and completed submissions
+- the email address where to send notifications of started and completed submissions (recommended)
 
-- the language of the audio files
+- the language of the audio files (recommended)
 
 These variables are valid until the end of current terminal session.
 
@@ -168,7 +170,7 @@ Submitted batch job 24238902
 
 Alternatively, you can submit a single file instead of a folder simply by replacing the folder name with the file name
 ```bash
-cd $WRKDIR && module load speech2text && speech2text my-audio-folder/test1.mp3
+speech2text my-audio-folder/test1.mp3
 ```
 
 The speech2text job(s) are now in the queue. You will receive email notifications when the jobs have begun and have completed.
@@ -214,15 +216,16 @@ Enter the `results` folder and notice there are two result files corresponding t
 
 - `.txt` files: e.g. `test.txt`
 
-Example of `.csv` output format (computer-friendly format):
+Example of `.csv` output format (computer-friendly):
 ```
 start,end,speaker,transcription
 00:00:00,00:00:05,SPEAKER_00,"This is the first sentence of the first speaker."
 00:00:06,00:00:10,SPEAKER_00,"This is the second sentence of the first speaker."
 00:00:11,00:00:15,SPEAKER_01,"This is a sentence from the second speaker."
+00:00:16,00:00:20,SPEAKER_00,"This is the first speaker speaking again."
 ```
 
-Corresponding example of `.txt` output format (human-friendly format):
+Corresponding example of `.txt` output format (human-friendly):
 ```
 (00:00:00 - 00:00:10) SPEAKER_00
 
@@ -231,6 +234,10 @@ This is the first sentence of the first speaker. This is the second sentence of 
 (00:00:11 - 00:00:15) SPEAKER_01
 
 This is a sentence from the second speaker.
+
+(00:00:16 - 00:00:20) SPEAKER_00
+
+This is the first speaker speaking again.
 ```
 
 The `.txt` files have basic text format and can be opened in a text editor (e.g. Microsoft Word, Google Docs). The `.csv` files have comma separated table format which is easy to read by computers and can be opened in a spreadsheet software (e.g. Microsoft Excel, Google Sheets).
