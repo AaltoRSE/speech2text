@@ -123,6 +123,8 @@ export SPEECH2TEXT_EMAIL=john.smith@aalto.fi
 export SPEECH2TEXT_LANGUAGE=finnish
 ```
 
+>**_IMPORTANT:_** Copy the commands verbatim, that is, make sure the UPPER CASE characters are upper case, lower case characters are lower case, and there are no typos.
+
 These commands sets environment variables for
 
 - the email address where to send notifications of started and completed submissions (recommended)
@@ -167,6 +169,13 @@ Scan input audio files from: /scratch/work/smithj1/my-audio-folder
 /scratch/work/smithj1/my-audio-folder/test2.mp3: Submit
 Submitted batch job 24238902
 ```
+
+>**_IMPORTANT:_** If you made a mistake while submitting, e.g., specified wrong folder, file, or language, you can cancel the submitted job simply with 
+>```
+>scancel JOBID
+>```
+> where the JOBID is printed at the last line of the submission message. (In the above example message, JOBID is 24238902).
+
 
 Alternatively, you can submit a single file instead of a folder simply by replacing the folder name with the file name
 ```bash
