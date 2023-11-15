@@ -6,6 +6,7 @@ import time
 import warnings
 from collections import defaultdict
 from pathlib import Path
+
 import pandas as pd
 import whisper
 from numba.core.errors import (NumbaDeprecationWarning,
