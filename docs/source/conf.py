@@ -25,3 +25,7 @@ exclude_patterns = []
 
 html_theme = 'sphinx_rtd_theme'
 html_static_path = ['_static']
+
+
+# Auto-generated header anchors to level 3 (#, ##, ###) for cross-referencing
+myst_heading_anchors = 3
