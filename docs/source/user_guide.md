@@ -1,6 +1,6 @@
 # User Guide
 
-Aalto speech2text app is available to researchers of Aalto University. The app is run on the [Aalto Triton cluster](https://scicomp.aalto.fi/triton/) and its usage is free for Aalto researchers. The list of supported languages can be found [here](https://github.com/openai/whisper#available-models-and-languages).
+Aalto speech2text app is available to researchers of Aalto University. The app is run on the [Aalto Triton cluster](https://scicomp.aalto.fi/triton/) and its usage is free for all Aalto researchers (bachelor's and master's thesis workers, doctoral students, post docs, visiting researchers). The list of supported languages can be found [here](https://github.com/openai/whisper#available-models-and-languages).
 
 > **_NOTE:_** The service is still under development and available as a preview and for feedback.
 
@@ -16,7 +16,12 @@ In order to transcribe your speech files into text, apply the following steps (d
 
 5. Delete the audio and/or result files from Triton when not needed anymore
 
-**If at any point something doesn't work or you are unsure how to proceed, do not hesitate to contact [the Aalto RSEs](https://scicomp.aalto.fi/rse/). You can visit us at [the daily Zoom help session at 13.00-14.00](https://scicomp.aalto.fi/help/garage/#id1) where we can create e.g. a Triton account for you, walk through the speech2text workflow together, answer questions, help with data analysis, and more.**
+The workflow described here is suitable for processing sensitive and personal data.
+All data uploaded to and processed on Triton are stored on servers managed by Aalto and can only be accessed from within Aalto network. The files and folders on Triton are protected by standard Unix permissions so that only their owner (you) has access to them.
+
+>**_IMPORTANT:_** **If at any point something doesn't work or you are unsure how to proceed, do not hesitate to contact [the Aalto RSEs](https://scicomp.aalto.fi/rse/). You can visit us at [the daily Zoom help session at 13.00-14.00](https://scicomp.aalto.fi/help/garage/#id1) where we can e.g. create a Triton account for you, walk through the speech2text workflow together, answer questions, help with data analysis, and more.**
+>
+>You can also check the list of [known issues and troubleshooting](#known-issues-and-troubleshooting).
 
 ## Create a Triton account
 
@@ -271,22 +276,24 @@ If you do not need your audio and/or result files and/or folders, you can remove
 
 
 
-## Notes and troubleshooting
+
+
+
+
+## Known issues and troubleshooting
 
 **If at any point something doesn't work or you are unsure how to proceed, do not hesitate to contact [the Aalto RSEs](https://scicomp.aalto.fi/rse/). You can visit us at [the daily Zoom help session at 13.00-14.00](https://scicomp.aalto.fi/help/garage/#id1) where we can walk through the speech2text workflow together, debug problems, answer questions, help with data analysis, and more.**
 
-### Processing sensitive and personal data
+### My transcription has a weird segment where a word or two are repeated over and over for a minute.
 
-The workflow described here is suitable for processing sensitive and personal data.
-All data uploaded to and processed on Triton is stored on servers managed by Aalto and can only be accessed from within Aalto network. The files and folders on Triton are protected by standard Unix permissions so that only their owner (you) has access to them.
 
-### My speech2text process ran over night and I got noted that the job failed due to time limit
+### My speech2text process ran over night and I got noted that the job failed due to time limit.
 
 The run time of speech2text on a single audio file is limited to 24 hours by default. If you have very large audio files (several hours), you can try setting the maximum run time to a larger value, e.g. 72 hours, with 
 ```
 export SPEECH2TEXT_TIME=72:00:00
 ```
-Run the speech2text again according to the guide [above](#run-speech2text-on-triton). 
+Run the speech2text on your file/folder again normally according to the guide [above](#run-speech2text-on-triton). 
 
 ### I accidentally closed the browser tab/window when speech2text was still running.
 
