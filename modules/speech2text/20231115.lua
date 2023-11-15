@@ -47,7 +47,6 @@ Requested Slurm resources can be adjusted using the following environment variab
 
 ]]
 
-
 local version = "20231115"
 whatis("Name : Aalto speech2text")
 whatis("Version :" .. version)
