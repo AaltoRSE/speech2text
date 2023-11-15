@@ -284,8 +284,10 @@ If you do not need your audio and/or result files and/or folders, you can remove
 
 **If at any point something doesn't work or you are unsure how to proceed, do not hesitate to contact [the Aalto RSEs](https://scicomp.aalto.fi/rse/). You can visit us at [the daily Zoom help session at 13.00-14.00](https://scicomp.aalto.fi/help/garage/#id1) where we can walk through the speech2text workflow together, debug problems, answer questions, help with data analysis, and more.**
 
-### My transcription has a weird segment where a word or two are repeated over and over for a minute.
+### My transcription has a weird segment where a word or two are repeated over and over.
 
+This is a quite known issues with the OpenAI Whisper speech recognition model. A possible explanation is
+bad audio quality during that segment (background noise, mic issues, people talking over each other). However, sometimes this seems to happen even with good audio quality. Unfortunately, there is nothing we can do about this at the moment: you have to go through that particular audio segment and transcribe it manually.
 
 ### My speech2text process ran over night and I got noted that the job failed due to time limit.
 
