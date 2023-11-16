@@ -131,7 +131,8 @@ def create_sbatch_script_for_array_job(
 
     script = f"""#!/bin/bash
 #SBATCH --array=0-{array_length-1}
-#SBATCH --output="{job_name}_%A_%a.out"
+#SBATCH --output="logs/{job_name}_%A_%a.out"
+#SBATCH --error="logs/{job_name}_%A_%a.err"
 #SBATCH --job-name={job_name}
 #SBATCH --mem={mem} 
 #SBATCH --cpus-per-task={cpus_per_task}
@@ -188,6 +189,8 @@ def create_sbatch_script_for_single_file(
 
     script = f"""#!/bin/bash
 #SBATCH --job-name={job_name}
+#SBATCH --output="logs/{job_name}_%j.out"
+#SBATCH --error="logs/{job_name}_%j.err"
 #SBATCH --mem={mem} 
 #SBATCH --cpus-per-task={cpus_per_task}
 #SBATCH --time={time}
