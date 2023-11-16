@@ -131,8 +131,8 @@ def create_sbatch_script_for_array_job(
 
     script = f"""#!/bin/bash
 #SBATCH --array=0-{array_length-1}
-#SBATCH --output="logs/{job_name}_%A_%a.out"
-#SBATCH --error="logs/{job_name}_%A_%a.err"
+#SBATCH --output="{tmp_dir}/{job_name}_%A_%a.out"
+#SBATCH --error="{tmp_dir}/{job_name}_%A_%a.err"
 #SBATCH --job-name={job_name}
 #SBATCH --mem={mem} 
 #SBATCH --cpus-per-task={cpus_per_task}
@@ -189,8 +189,8 @@ def create_sbatch_script_for_single_file(
 
     script = f"""#!/bin/bash
 #SBATCH --job-name={job_name}
-#SBATCH --output="logs/{job_name}_%j.out"
-#SBATCH --error="logs/{job_name}_%j.err"
+#SBATCH --output="{tmp_dir}/{job_name}_%j.out"
+#SBATCH --error="{tmp_dir}/{job_name}_%j.err"
 #SBATCH --mem={mem} 
 #SBATCH --cpus-per-task={cpus_per_task}
 #SBATCH --time={time}
@@ -287,7 +287,7 @@ where mylanguage is one of:\n\n{' '.join(settings.supported_languages)}
 
     # Notify about temporary folder location
     print(
-        f"Temporary files (submit scripts, .wav conversions) will be written to: {args.SPEECH2TEXT_TMP}"
+        f"Log files (.out and .err) and temporary files (.sh submit scripts, .wav conversions) will be written to: {args.SPEECH2TEXT_TMP}"
     )
 
     # Submit file or directory
