@@ -286,8 +286,8 @@ If you do not need your audio and/or result files and/or folders, you can remove
 
 ### My transcription has a weird segment where a word or two are repeated over and over.
 
-This is a quite known issues with the OpenAI Whisper speech recognition model. A possible explanation is
-bad audio quality during that segment (background noise, mic issues, people talking over each other). However, sometimes this seems to happen even with good audio quality. Unfortunately, there is nothing we can do about this at the moment: you have to go through that particular audio segment and transcribe it manually.
+This is a quite known issue with the OpenAI Whisper speech recognition model. This behavior is sometimes triggered 
+by bad audio quality during that segment (background noise, mic issues, people talking over each other). However, sometimes this seems to happen even with good audio quality. Unfortunately, there is nothing we can do about this at the moment: you have to go through that particular audio segment and transcribe it manually.
 
 ### My speech2text process ran over night and I got noted that the job failed due to time limit.
 
