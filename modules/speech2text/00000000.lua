@@ -60,7 +60,7 @@ prepend_path("PATH", conda_env)
 
 local hf_home = "/scratch/shareddata/speech2text"
 local torch_home = "/scratch/shareddata/speech2text"
-local whisper_cache = "/scratch/shareddata/openai-whisper/envs/venv-2023-03-29/models/"
+local whisper_cache = "/scratch/shareddata/dldata/huggingface-hub-cache/hub/models--openai--whisper-large-v3/"
 local pyannote_config = "/share/apps/manual_installations/speech2text/" .. version .. "/pyannote/config.yml"
 local numba_cache = "/tmp" 
 local mplconfigdir = "/tmp"
