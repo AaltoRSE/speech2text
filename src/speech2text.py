@@ -237,12 +237,12 @@ def write_alignment_to_txt_file(alignment, output_file_stem):
 
 def load_whisper_model(download_root, language):
     if language is None:
-        model_name = "large-v2"
+        model_name = "large-v3"
     elif language.lower() == "english":
         # model_name = "medium.en"
-        model_name = "large-v2"
+        model_name = "large-v3"
     else:
-        model_name = "large-v2"
+        model_name = "large-v3"
 
     logger.info(f".. .. Load model '{model_name}' from '{download_root}'")
     model = whisper.load_model(model_name, download_root=download_root)
