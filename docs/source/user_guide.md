@@ -2,7 +2,7 @@
 
 Aalto speech2text app is available to researchers of Aalto University. The app is run on the [Aalto Triton cluster](https://scicomp.aalto.fi/triton/) and its usage is free for all Aalto researchers (master's thesis workers, doctoral students, post docs, visiting researchers). The list of supported languages can be found [here](https://github.com/openai/whisper#available-models-and-languages).
 
-> **_NOTE:_** The service is still under development and available as a preview and for feedback.
+>**_IMPORTANT:_** If you use speech2text in your research, [remember to acknowledge Triton and the Aalto Science-IT project in your publication](https://scicomp.aalto.fi/triton/acknowledgingtriton/).
 
 In order to transcribe your speech files into text, apply the following steps (detailed instructions below):
 
@@ -22,6 +22,8 @@ All data uploaded to and processed on Triton are stored on servers managed by Aa
 >**_IMPORTANT:_** **If at any point something doesn't work or you are unsure how to proceed, do not hesitate to contact [the Aalto RSEs](https://scicomp.aalto.fi/rse/). You can visit us at [the daily Zoom help session at 13.00-14.00](https://scicomp.aalto.fi/help/garage/#id1) where we can e.g. create a Triton account for you, walk through the speech2text workflow together, answer questions, help with data analysis, and more.**
 >
 >You can also check the list of [known issues and troubleshooting](#known-issues-and-troubleshooting).
+
+
 
 ## Create a Triton account
 
