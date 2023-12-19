@@ -2,7 +2,7 @@
 
 Aalto speech2text app is available to researchers of Aalto University. The app is run on the [Aalto Triton cluster](https://scicomp.aalto.fi/triton/) and its usage is free for all Aalto researchers (master's thesis workers, doctoral students, post docs, visiting researchers). The list of supported languages can be found [here](https://github.com/openai/whisper#available-models-and-languages).
 
-> **_NOTE:_** The service is still under development and available as a preview and for feedback.
+>**_IMPORTANT:_** If you use speech2text in your research, [remember to acknowledge Triton and the Aalto Science-IT project in your publication](https://scicomp.aalto.fi/triton/acknowledgingtriton/).
 
 In order to transcribe your speech files into text, apply the following steps (detailed instructions below):
 
@@ -22,6 +22,8 @@ All data uploaded to and processed on Triton are stored on servers managed by Aa
 >**_IMPORTANT:_** **If at any point something doesn't work or you are unsure how to proceed, do not hesitate to contact [the Aalto RSEs](https://scicomp.aalto.fi/rse/). You can visit us at [the daily Zoom help session at 13.00-14.00](https://scicomp.aalto.fi/help/garage/#id1) where we can e.g. create a Triton account for you, walk through the speech2text workflow together, answer questions, help with data analysis, and more.**
 >
 >You can also check the list of [known issues and troubleshooting](#known-issues-and-troubleshooting).
+
+
 
 ## Create a Triton account
 
@@ -144,16 +146,10 @@ These variables are valid until the end of current terminal session.
 >```
 > This is equal to not running the `export EMAIL=my.name@aalto.fi command` command in the first place. However, receiving the notifications is recommended.
 
-Finally, submit all the audio files in your folder (remember to replace `my-audio-folder` with the name of the folder you just uploaded) with
+Finally, submit all the audio files in your folder to the Triton job queue (remember to replace `my-audio-folder` with the name of the folder you just uploaded) with
 ```
-cd $WRKDIR && speech2text my-audio-folder
+speech2text $WRKDIR/my-audio-folder
 ```
-
-This command
-
-- changes directory to your work directory (if not already there)
-
-- loops through all audio files in the audio folder and submits a speech2text job for each of them to the Triton queue
 
 The command outputs information about the submission, for example:
 
@@ -168,7 +164,7 @@ Submit speech2text jobs with arguments:
 	SPEECH2TEXT_LANGUAGE: finnish
 Given language 'finnish' is supported.
 Email notifications will be sent to: john.smith@aalto.fi
-Input directory: my-audio-folder
+Input directory: /scratch/work/smithj1/my-audio-folder
 Scan input audio files from: /scratch/work/smithj1/my-audio-folder
 /scratch/work/smithj1/my-audio-folder/test1.mp3: Submit
 /scratch/work/smithj1/my-audio-folder/test2.mp3: Submit
@@ -184,7 +180,7 @@ Submitted batch job 24238902
 
 Alternatively, you can submit a single file instead of a folder simply by replacing the folder name with the file name
 ```bash
-speech2text my-audio-folder/test1.mp3
+speech2text $WRKDIR/my-audio-folder/test1.mp3
 ```
 
 The speech2text job(s) are now in the queue. You will receive email notifications when the jobs have begun and have completed.

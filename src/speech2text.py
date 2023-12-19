@@ -235,7 +235,7 @@ def write_alignment_to_txt_file(alignment, output_file_stem):
     logger.info(f".. .. Wrote TXT output to: {output_file}")
 
 
-def load_whisper_model(download_root, language):
+def load_whisper_model(download_root, language):    
     if language is None:
         model_name = "large-v3"
     elif language.lower() == "english":
