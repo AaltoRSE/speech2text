@@ -228,7 +228,10 @@ def load_whisper_model(name: str = "large-v3",
         )
     
     logger.info(f".. .. Load model '{name}' from '{_MODELS[name]}'")
-    model = faster_whisper.WhisperModel(_MODELS[name], device=device)
+    model = faster_whisper.WhisperModel(_MODELS[name], 
+                                        device=device,
+                                        cpu_threads=6,
+                                        compute_type="int8")
 
     return model
 
@@ -295,7 +298,8 @@ def main():
     logger.info(f".. Transcribe input file: {args.INPUT_FILE}")
     t0 = time.time()
     segments, _ = faster_whisper_model.transcribe(args.INPUT_FILE,
-                                                  language=args.SPEECH2TEXT_LANGUAGE)
+                                                  language=args.SPEECH2TEXT_LANGUAGE,
+                                                  beam_size=5)
     segments = list(segments)
     logger.info(f".. .. Transcription finished in {time.time()-t0:.1f} seconds")
 
