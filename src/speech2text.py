@@ -83,6 +83,7 @@ def convert_to_wav(input_file, tmp_dir):
         logger.info(f".. .. File does not exist: {input_file}")
         return None
 
+    Path(tmp_dir).mkdir(exist_ok=True, parents=True)
     converted_file = Path(tmp_dir) / Path(Path(input_file).name).with_suffix(".wav")
     if Path(converted_file).is_file():
         logger.info(f".. .. Converted file {converted_file} already exists.")
