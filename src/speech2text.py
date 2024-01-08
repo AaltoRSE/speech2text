@@ -14,7 +14,6 @@ import faster_whisper
 from numba.core.errors import (NumbaDeprecationWarning,
                                NumbaPendingDeprecationWarning)
 from pyannote.audio import Pipeline
-from pydub import AudioSegment
 
 from submit import parse_output_dir
 from utils import seconds_to_human_readable_format, _MODELS, available_models
