@@ -49,12 +49,6 @@ def get_argument_parser():
         help="Temporary folder. If not given, should be set as an environment variable.",
     )
     parser.add_argument(
-        "--WHISPER_CACHE",
-        type=str,
-        default=os.getenv("WHISPER_CACHE"),
-        help="Whisper cache folder. If not given, should be set as an environment variable.",
-    )
-    parser.add_argument(
         "--AUTH_TOKEN",
         type=str,
         default=os.getenv("AUTH_TOKEN"),
@@ -71,6 +65,12 @@ def get_argument_parser():
         type=str,
         default=os.getenv("SPEECH2TEXT_LANGUAGE"),
         help="Audio language. Optional but recommended.",
+    )
+    parser.add_argument(
+        "--HF_HOME",
+        type=str,
+        default=os.getenv("HF_HOME"),
+        help="Path to local HuggingFace cache folder.",
     )
 
     return parser
@@ -217,6 +217,7 @@ def write_alignment_to_txt_file(alignment, output_file_stem):
 
 def load_whisper_model(name: str = "large-v3",
                        device: Optional[Union[str, torch.device]] = None,
+                       download_root
                        ):    
     if device is None:
         device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -230,7 +231,9 @@ def load_whisper_model(name: str = "large-v3",
     model = faster_whisper.WhisperModel(_MODELS[name], 
                                         device=device,
                                         cpu_threads=6,
-                                        compute_type="int8")
+                                        compute_type="int8",
+                                        download_root=download_root,
+                                        )
 
     return model
 
@@ -291,7 +294,7 @@ def main():
     logging.info(args.PYANNOTE_CONFIG)
     diarization_pipeline = load_pipeline(args.PYANNOTE_CONFIG, args.AUTH_TOKEN)
     t0 = time.time()
-    faster_whisper_model = load_whisper_model()
+    faster_whisper_model = load_whisper_model(args.)
     logger.info(f".. .. Models loaded in {time.time()-t0:.1f} seconds")
 
     logger.info(f".. Transcribe input file: {args.INPUT_FILE}")

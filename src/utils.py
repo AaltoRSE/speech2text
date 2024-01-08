@@ -2,7 +2,7 @@ import numpy as np
 from typing import List
 
 _MODELS = {
-    "large-v3": "/scratch/shareddata/faster-whisper/models--Systran--faster-whisper-large-v3",
+    "large-v3": "" #  "/scratch/shareddata/faster-whisper/models--Systran--faster-whisper-large-v3",
 }
 
 def available_models() -> List[str]:

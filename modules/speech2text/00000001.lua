@@ -47,7 +47,7 @@ Requested Slurm resources can be adjusted using the following environment variab
 
 ]]
 
-local version = "00000000"
+local version = "00000001"
 whatis("Name : Aalto speech2text")
 whatis("Version :" .. version)
 help(help_text)
@@ -58,18 +58,15 @@ local conda_env = "/share/apps/manual_installations/speech2text/" .. version .. 
 prepend_path("PATH", speech2text)
 prepend_path("PATH", conda_env)
 
-local hf_home = "/scratch/shareddata/dldata/huggingface-hub-cache/"
+local hf_home = "/scratch/ruokolt1/huggingface-tmp"
 local torch_home = "/scratch/shareddata/speech2text"
-local whisper_cache = "/scratch/shareddata/dldata/whisper/2023-12-19/models"
 local pyannote_config = "/share/apps/manual_installations/speech2text/" .. version .. "/pyannote/config.yml"
 local numba_cache = "/tmp" 
 local mplconfigdir = "/tmp"
 
-
 pushenv("HF_HOME", hf_home)
 pushenv("TORCH_HOME", torch_home)
 pushenv("XDG_CACHE_HOME", torch_home)
-pushenv("WHISPER_CACHE", whisper_cache)
 pushenv("PYANNOTE_CONFIG", pyannote_config)
 pushenv("NUMBA_CACHE_DIR", numba_cache)
 pushenv("MPLCONFIGDIR", mplconfigdir)
