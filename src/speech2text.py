@@ -7,15 +7,17 @@ import warnings
 from collections import defaultdict
 from pathlib import Path
 
+import torch
+from typing import Optional, Union
 import pandas as pd
-import whisper
+import faster_whisper
 from numba.core.errors import (NumbaDeprecationWarning,
                                NumbaPendingDeprecationWarning)
 from pyannote.audio import Pipeline
 from pydub import AudioSegment
 
 from submit import parse_output_dir
-from utils import seconds_to_human_readable_format
+from utils import seconds_to_human_readable_format, _MODELS, available_models
 
 # https://numba.pydata.org/numba-doc/dev/reference/deprecation.html
 warnings.simplefilter("ignore", category=NumbaDeprecationWarning)
@@ -28,6 +30,7 @@ logging.basicConfig(
     handlers=[logging.StreamHandler()],
 )
 logger = logging.getLogger("__name__")
+logging.getLogger("faster_whisper").setLevel(logging.WARNING)
 
 
 def get_argument_parser():
@@ -74,28 +77,6 @@ def get_argument_parser():
     return parser
 
 
-def convert_to_wav(input_file, tmp_dir):
-    if str(input_file).lower().endswith(".wav"):
-        logger.info(f".. .. File is already in wav format: {input_file}")
-        return input_file
-
-    if not Path(input_file).is_file():
-        logger.info(f".. .. File does not exist: {input_file}")
-        return None
-
-    converted_file = Path(tmp_dir) / Path(Path(input_file).name).with_suffix(".wav")
-    if Path(converted_file).is_file():
-        logger.info(f".. .. Converted file {converted_file} already exists.")
-        return converted_file
-    try:
-        AudioSegment.from_file(input_file).export(converted_file, format="wav")
-        logger.info(f".. .. File converted to wav: {converted_file}")
-        return converted_file
-    except Exception as err:
-        logger.info(f".. .. Error while converting file: {err}")
-        return None
-
-
 def compute_overlap(start1, end1, start2, end2):
     if start1 > end1 or start2 > end2:
         raise ValueError("Start of segment can't be larger than its end.")
@@ -109,7 +90,7 @@ def compute_overlap(start1, end1, start2, end2):
     return abs(end_overlap - start_overlap)
 
 
-def align(transcription, diarization):
+def align(segments, diarization):
     """
     Align diarization with transcription.
 
@@ -139,8 +120,8 @@ def align(transcription, diarization):
     dict
     """
     transcription_segments = [
-        (segment["start"], segment["end"], segment["text"])
-        for segment in transcription["segments"]
+        (segment.start, segment.end, segment.text)
+        for segment in segments
     ]
     diarization_segments = [
         (segment.start, segment.end, speaker)
@@ -235,17 +216,22 @@ def write_alignment_to_txt_file(alignment, output_file_stem):
     logger.info(f".. .. Wrote TXT output to: {output_file}")
 
 
-def load_whisper_model(download_root, language):    
-    if language is None:
-        model_name = "large-v3"
-    elif language.lower() == "english":
-        # model_name = "medium.en"
-        model_name = "large-v3"
-    else:
-        model_name = "large-v3"
+def load_whisper_model(name: str = "large-v3",
+                       device: Optional[Union[str, torch.device]] = None,
+                       ):    
+    if device is None:
+        device = "cuda" if torch.cuda.is_available() else "cpu"
 
-    logger.info(f".. .. Load model '{model_name}' from '{download_root}'")
-    model = whisper.load_model(model_name, download_root=download_root)
+    if name not in _MODELS:
+        raise RuntimeError(
+            f"Model {name} not found; available models = {available_models()}"
+        )
+    
+    logger.info(f".. .. Load model '{name}' from '{_MODELS[name]}'")
+    model = faster_whisper.WhisperModel(_MODELS[name], 
+                                        device=device,
+                                        cpu_threads=6,
+                                        compute_type="int8")
 
     return model
 
@@ -302,43 +288,34 @@ def main():
             args.INPUT_FILE, slurm_array_task_id
         )
 
-    logger.info(f".. Convert input file to wav: {args.INPUT_FILE}")
-    input_file_wav = convert_to_wav(args.INPUT_FILE, args.SPEECH2TEXT_TMP)
-    if input_file_wav is None:
-        logger.error(f".. .. Input file could not be converted: {args.INPUT_FILE}")
-        return
-
     logger.info(".. Load models")
     logging.info(args.PYANNOTE_CONFIG)
     diarization_pipeline = load_pipeline(args.PYANNOTE_CONFIG, args.AUTH_TOKEN)
     t0 = time.time()
-    whisper_model = load_whisper_model(args.WHISPER_CACHE, args.SPEECH2TEXT_LANGUAGE)
+    faster_whisper_model = load_whisper_model()
     logger.info(f".. .. Models loaded in {time.time()-t0:.1f} seconds")
 
-    logger.info(f".. Transcribe input file: {input_file_wav}")
+    logger.info(f".. Transcribe input file: {args.INPUT_FILE}")
     t0 = time.time()
-    transcription = whisper_model.transcribe(
-        str(input_file_wav), language=args.SPEECH2TEXT_LANGUAGE
-    )
+    segments, _ = faster_whisper_model.transcribe(args.INPUT_FILE,
+                                                  language=args.SPEECH2TEXT_LANGUAGE,
+                                                  beam_size=5)
+    segments = list(segments)
     logger.info(f".. .. Transcription finished in {time.time()-t0:.1f} seconds")
 
-    logger.info(f".. Diarize input file: {input_file_wav}")
+    logger.info(f".. Diarize input file: {args.INPUT_FILE}")
     t0 = time.time()
-    diarization = diarization_pipeline(str(input_file_wav))
+    diarization = diarization_pipeline(args.INPUT_FILE)
     logger.info(f".. .. Diarization finished in {time.time()-t0:.1f} seconds")
 
     logger.info(".. Align transcription and diarization")
-    alignment = align(transcription, diarization)
+    alignment = align(segments, diarization)
 
     logger.info(f".. Write alignment to output")
     output_dir = parse_output_dir(args.INPUT_FILE)
     output_file_stem = parse_output_file_stem(output_dir, args.INPUT_FILE)
     write_alignment_to_csv_file(alignment, output_file_stem)
     write_alignment_to_txt_file(alignment, output_file_stem)
-
-    if input_file_wav != args.INPUT_FILE:
-        logger.info(f".. Remove the converted wav file")
-        Path(input_file_wav).unlink()
 
     logger.info(f"Finished.")
 
