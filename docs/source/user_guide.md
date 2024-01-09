@@ -8,13 +8,15 @@ In order to transcribe your speech files into text, apply the following steps (d
 
 1. Create a Triton cluster account (only done once)
 
-2. Copy your audio and/or video files to Triton workspace
+2. Connect to Triton using the web browser interface
 
-3. Run speech2text app
+3. Copy your audio and/or video files to your Triton workspace
 
-4. Process your result files on Triton or copy them to your personal computer
+4. Run speech2text app
 
-5. Delete the audio and/or result files from Triton when not needed anymore
+5. Process your result files on Triton or copy them to your personal computer
+
+6. Delete the audio and/or result files from Triton when not needed anymore
 
 The workflow described here is suitable for processing sensitive and personal data.
 All data uploaded to and processed on Triton are stored on servers managed by Aalto and can only be accessed from within Aalto network. The files and folders on Triton are protected by standard Unix permissions so that only their owner (you) has access to them.
@@ -33,17 +35,33 @@ If you don't already have a Triton account, please, visit the [account page](htt
 
 > **_NOTE:_** Activating the account takes on average 1-2 work days. However, if you are in a hurry, visit us at [the daily Zoom help session at 13.00-14.00](https://scicomp.aalto.fi/help/garage/#id1) and we can speed up the process.
 
-## Copy your data to Triton
+
+## Connect to Triton
 
 If you are not familiar with Triton usage, we recommend connecting and transferring data to Triton using the web browser interface [Open On Demand](http://ood.triton.aalto.fi). 
-
-> **_NOTE:_**  If you are familiar with Triton usage, feel free to use any of the available approaches [to connect to Triton](https://scicomp.aalto.fi/triton/ref/#connecting) and [to transfer you data](https://scicomp.aalto.fi/triton/tut/remotedata/) and skip directly to next section.
 
 Go to [Open On Demand](http://ood.triton.aalto.fi) and log in with your Aalto username and password. (You will be granted access since your Aalto account has been synced with your Triton account.)
 
 > **_IMPORTANT:_** To connect to Open On Demand, you need to be inside Aalto network or use the Aalto VPN.
 
-On the Open On Demand frontpage, click the `Files` dropdown menu from the left upper corner and select the `Work /scratch/work/your-username`.
+> **_IMPORTANT:_** If you are using Triton for the very first time, do the following.
+>
+> On the Open On Demand front page, click on the Triton Shell Access button. 
+>
+> ![](images/triton_shell_access1.png)
+> 
+> The shell that opened into a new tab will ask you to confirm that you want to connect, answer "yes".
+> 
+> Subsequently, the shell will ask you for a password. This is your Aalto password. Note that your key presses do not show - just write your password and press enter.
+>
+> Afterwards, you can close this tab. Your Triton account is now fully operational.
+
+
+## Copy your data to Triton
+
+> **_NOTE:_**  If you are familiar with Triton usage, feel free to use any of the available approaches [to connect to Triton](https://scicomp.aalto.fi/triton/ref/#connecting) and [to transfer you data](https://scicomp.aalto.fi/triton/tut/remotedata/) and skip directly to next section.
+
+On the Open On Demand front page, click the `Files` dropdown menu from the left upper corner and select `Work /scratch/work/yourusername`.
 
 ![](images/files_workspace.png)
 
@@ -79,22 +97,18 @@ After the transfer is done, you should see your folder in the list of existing c
 
 ![](images/upload3.png)
 
-> **_IMPORTANT:_** Some people have been experiencing difficulties with the Open On Demand file upload. If you receive a "File Upload" error several times in a row, you can try the [SMB remote mounting method](https://scicomp.aalto.fi/triton/tut/remotedata/#remote-mounting-using-smb) or visit us at [the daily Zoom help session at 13.00-14.00](https://scicomp.aalto.fi/help/garage/#id1) and we can figure it out.
+> **_IMPORTANT:_** Some people have been experiencing difficulties with the Open On Demand file upload. If you receive a "File Upload Failed" error several times in a row, you can visit us at [the daily Zoom help session at 13.00-14.00](https://scicomp.aalto.fi/help/garage/#id1) and we can figure it out.
 
 
 ## Run speech2text on Triton
 
-Go back to the Open On Demand frontpage by clicking the ASC logo in the utmost upper left corner.
+Go back to the Open On Demand front page by clicking the ASC logo in the utmost upper left corner.
 
 On the front page, click on the Triton Shell Access button.
 
 ![](images/triton_shell_access1.png)
 
 This will open a command line shell on Triton into a new tab.
-
-> **_NOTE:_** You may get prompted for a password. This is your Aalto password. Note that your key presses do not show - just write your password and press enter.
-
-> **_NOTE:_** If you are using Triton for the first time, you will encounter a question `Are you sure you want to continue connecting (yes/no)?`. You can answer `yes`. You will also likely get a notification that a pair of SSH keys have been created for you.
 
 The command line shell looks roughly like the one below.
 
@@ -130,7 +144,7 @@ export SPEECH2TEXT_EMAIL=john.smith@aalto.fi
 export SPEECH2TEXT_LANGUAGE=finnish
 ```
 
->**_IMPORTANT:_** Copy the commands verbatim, that is, make sure the UPPER CASE characters are upper case, lower case characters are lower case, and there are no typos.
+>**_IMPORTANT:_** Copy the commands verbatim, that is, make sure the UPPER CASE characters are upper case, lower case characters are lower case, and that there are no typos.
 
 These commands sets environment variables for
 
@@ -218,7 +232,7 @@ However, if you wish to submit more audio folders or files for processing, you a
 
 After receiving an email saying an audio file has finished processing, log back into [Open On Demand](http://ood.triton.aalto.fi).
 
-At the Open On Demand frontpage, select again the `Files` and `Work` page (upper left corner). Enter your audio folder. You should now see the newly created `results` folder.
+At the Open On Demand front page, select again the `Files` and `Work` page (upper left corner). Enter your audio folder. You should now see the newly created `results` folder.
 
 Enter the `results` folder and notice there are two result files corresponding to each audio file:
 
