@@ -16,7 +16,7 @@ from numba.core.errors import (NumbaDeprecationWarning,
 from pyannote.audio import Pipeline
 
 from submit import parse_output_dir
-from utils import seconds_to_human_readable_format, _MODELS, available_models
+from utils import seconds_to_human_readable_format
 
 # https://numba.pydata.org/numba-doc/dev/reference/deprecation.html
 warnings.simplefilter("ignore", category=NumbaDeprecationWarning)
