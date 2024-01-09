@@ -215,13 +215,7 @@ def load_whisper_model(name: str = "large-v3",
     if device is None:
         device = "cuda" if torch.cuda.is_available() else "cpu"
 
-    if name not in _MODELS:
-        raise RuntimeError(
-            f"Model {name} not found; available models = {available_models()}"
-        )
-    
-    logger.info(f".. .. Load model '{name}' from '{_MODELS[name]}'")
-    model = faster_whisper.WhisperModel(_MODELS[name], 
+    model = faster_whisper.WhisperModel(name, 
                                         device=device,
                                         cpu_threads=6,
                                         compute_type="int8",

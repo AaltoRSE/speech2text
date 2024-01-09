@@ -1,13 +1,4 @@
 import numpy as np
-from typing import List
-
-_MODELS = {
-    "large-v3": "" #  "/scratch/shareddata/faster-whisper/models--Systran--faster-whisper-large-v3",
-}
-
-def available_models() -> List[str]:
-    """Returns the names of available models"""
-    return list(_MODELS.keys())
 
 def seconds_to_human_readable_format(seconds):
     """
