@@ -66,12 +66,6 @@ def get_argument_parser():
         default=os.getenv("SPEECH2TEXT_LANGUAGE"),
         help="Audio language. Optional but recommended.",
     )
-    parser.add_argument(
-        "--HF_HOME",
-        type=str,
-        default=os.getenv("HF_HOME"),
-        help="Path to local HuggingFace cache folder.",
-    )
 
     return parser
 
@@ -167,7 +161,7 @@ def write_alignment_to_csv_file(alignment, output_file_stem):
 
 
 def write_alignment_to_txt_file(alignment, output_file_stem):
-    # group lines by speaker
+    # Group lines by speaker
     all_lines_grouped_by_speaker = []
     lines_speaker = []
     prev_speaker = None
@@ -190,11 +184,11 @@ def write_alignment_to_txt_file(alignment, output_file_stem):
         )
         prev_speaker = speaker
 
-    # append remainders
+    # Append remainders
     if lines_speaker:
         all_lines_grouped_by_speaker.append(lines_speaker)
 
-    # write out
+    # Write out
     lines_out = []
     for lines_speaker in all_lines_grouped_by_speaker:
         start = lines_speaker[0]["start"]  # first start time in group
@@ -217,7 +211,6 @@ def write_alignment_to_txt_file(alignment, output_file_stem):
 
 def load_whisper_model(name: str = "large-v3",
                        device: Optional[Union[str, torch.device]] = None,
-                       download_root
                        ):    
     if device is None:
         device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -232,7 +225,6 @@ def load_whisper_model(name: str = "large-v3",
                                         device=device,
                                         cpu_threads=6,
                                         compute_type="int8",
-                                        download_root=download_root,
                                         )
 
     return model
@@ -294,7 +286,7 @@ def main():
     logging.info(args.PYANNOTE_CONFIG)
     diarization_pipeline = load_pipeline(args.PYANNOTE_CONFIG, args.AUTH_TOKEN)
     t0 = time.time()
-    faster_whisper_model = load_whisper_model(args.)
+    faster_whisper_model = load_whisper_model()
     logger.info(f".. .. Models loaded in {time.time()-t0:.1f} seconds")
 
     logger.info(f".. Transcribe input file: {args.INPUT_FILE}")

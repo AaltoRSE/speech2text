@@ -58,7 +58,7 @@ local conda_env = "/share/apps/manual_installations/speech2text/" .. version .. 
 prepend_path("PATH", speech2text)
 prepend_path("PATH", conda_env)
 
-local hf_home = "/scratch/ruokolt1/huggingface-tmp"
+local hf_home = "/scratch/shareddata/dldata/huggingface-hub-cache/hub/"
 local torch_home = "/scratch/shareddata/speech2text"
 local pyannote_config = "/share/apps/manual_installations/speech2text/" .. version .. "/pyannote/config.yml"
 local numba_cache = "/tmp" 
