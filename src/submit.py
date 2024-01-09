@@ -285,7 +285,7 @@ where mylanguage is one of:\n\n{' '.join(settings.supported_languages)}
 
     # Notify about temporary folder location
     print(
-        f"Log files (.out) and temporary files (.sh submit scripts, .wav conversions) will be written to: {args.SPEECH2TEXT_TMP}"
+        f"Log files (.out) and batch submit scripts (.sh) will be written to: {args.SPEECH2TEXT_TMP}"
     )
 
     # Submit file or directory
