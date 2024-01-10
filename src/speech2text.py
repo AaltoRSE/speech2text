@@ -279,12 +279,20 @@ def main():
             args.INPUT_FILE, slurm_array_task_id
         )
 
-    logger.info(".. Load models")
-    logging.info(args.PYANNOTE_CONFIG)
+    logger.info(".. Load diarization pipeline")
+    t0 = time.time()
     diarization_pipeline = load_diarization_pipeline(args.PYANNOTE_CONFIG, args.AUTH_TOKEN)
+    logger.info(f".. .. Pipeline loaded in {time.time()-t0:.1f} seconds")
+
+    logger.info(f".. Diarize input file: {args.INPUT_FILE}")
+    t0 = time.time()
+    diarization = diarization_pipeline(args.INPUT_FILE)
+    logger.info(f".. .. Diarization finished in {time.time()-t0:.1f} seconds")
+
+    logger.info(".. Load faster_whisper model")
     t0 = time.time()
     faster_whisper_model = load_faster_whisper_model()
-    logger.info(f".. .. Models loaded in {time.time()-t0:.1f} seconds")
+    logger.info(f".. .. Model loaded in {time.time()-t0:.1f} seconds")
 
     logger.info(f".. Transcribe input file: {args.INPUT_FILE}")
     t0 = time.time()    
@@ -296,11 +304,6 @@ def main():
     )
     segments = list(segments)
     logger.info(f".. .. Transcription finished in {time.time()-t0:.1f} seconds")
-
-    logger.info(f".. Diarize input file: {args.INPUT_FILE}")
-    t0 = time.time()
-    diarization = diarization_pipeline(args.INPUT_FILE)
-    logger.info(f".. .. Diarization finished in {time.time()-t0:.1f} seconds")
 
     logger.info(".. Align transcription and diarization")
     alignment = align(segments, diarization)

@@ -36,6 +36,9 @@ The [pyannote/segmentation](https://huggingface.co/pyannote/segmentation/blob/ma
 
 This path has been hard-coded to the [Pyannote config file](https://huggingface.co/pyannote/speaker-diarization/blob/main/config.yaml): [pyannote/config.yml](pyannote/config.yml) which is located in [pyannote/config.yml](pyannote/config.yml)
 
+> **_NOTE:_**
+> The diarization is performed using the [`pyannote/speaker-diarization-3.1`](https://huggingface.co/pyannote/speaker-diarization-3.1) pipeline installed via [`pyannote.audio`](https://github.com/pyannote/pyannote-audio). While not a downloadable model, the pipeline is similarly gated and requires user to log in as Hugging Face user and accept the conditions to gain access.
+
 [LICENCE: MIT](https://huggingface.co/models?license=license:mit)
 
 
