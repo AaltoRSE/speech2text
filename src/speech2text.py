@@ -7,6 +7,7 @@ import warnings
 from collections import defaultdict
 from pathlib import Path
 from typing import Optional, Union
+from pydub import AudioSegment
 
 import faster_whisper
 import pandas as pd
@@ -262,6 +263,28 @@ def read_input_file_from_array_file(input_file, slurm_array_task_id):
     return new_input_file
 
 
+def convert_to_wav(input_file, tmp_dir):
+    if str(input_file).lower().endswith(".wav"):
+        logger.info(f".. .. File is already in wav format: {input_file}")
+        return input_file
+
+    if not Path(input_file).is_file():
+        logger.info(f".. .. File does not exist: {input_file}")
+        return None
+
+    converted_file = Path(tmp_dir) / Path(Path(input_file).name).with_suffix(".wav")
+    if Path(converted_file).is_file():
+        logger.info(f".. .. Converted file {converted_file} already exists.")
+        return converted_file
+    try:
+        AudioSegment.from_file(input_file).export(converted_file, format="wav")
+        logger.info(f".. .. File converted to wav: {converted_file}")
+        return converted_file
+    except Exception as err:
+        logger.info(f".. .. Error while converting file: {err}")
+        return None
+
+
 def main():
     parser = get_argument_parser()
     args = parser.parse_args()
@@ -279,6 +302,12 @@ def main():
             args.INPUT_FILE, slurm_array_task_id
         )
 
+    logger.info(f".. Convert input file to wav format: {args.INPUT_FILE}")
+    input_file_wav = convert_to_wav(args.INPUT_FILE, args.SPEECH2TEXT_TMP)
+    if input_file_wav is None:
+        logger.error(f".. .. Input file could not be converted: {args.INPUT_FILE}")
+        return
+
     logger.info(".. Load diarization pipeline")
     t0 = time.time()
     diarization_pipeline = load_diarization_pipeline(args.PYANNOTE_CONFIG, args.AUTH_TOKEN)
@@ -286,7 +315,7 @@ def main():
 
     logger.info(f".. Diarize input file: {args.INPUT_FILE}")
     t0 = time.time()
-    diarization = diarization_pipeline(args.INPUT_FILE)
+    diarization = diarization_pipeline(input_file_wav)
     logger.info(f".. .. Diarization finished in {time.time()-t0:.1f} seconds")
 
     logger.info(".. Load faster_whisper model")
@@ -294,7 +323,7 @@ def main():
     faster_whisper_model = load_faster_whisper_model()
     logger.info(f".. .. Model loaded in {time.time()-t0:.1f} seconds")
 
-    logger.info(f".. Transcribe input file: {args.INPUT_FILE}")
+    logger.info(f".. Transcribe input file: {input_file_wav}")
     t0 = time.time()    
     language = args.SPEECH2TEXT_LANGUAGE
     if args.SPEECH2TEXT_LANGUAGE.lower() in settings.supported_languages:
@@ -313,6 +342,10 @@ def main():
     output_file_stem = parse_output_file_stem(output_dir, args.INPUT_FILE)
     write_alignment_to_csv_file(alignment, output_file_stem)
     write_alignment_to_txt_file(alignment, output_file_stem)
+
+    if input_file_wav != args.INPUT_FILE:
+        logger.info(f".. Remove the converted wav file")
+        Path(input_file_wav).unlink()
 
     logger.info(f"Finished.")
 
