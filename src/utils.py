@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def seconds_to_human_readable_format(seconds):
     """
     Convert seconds to human readable string.

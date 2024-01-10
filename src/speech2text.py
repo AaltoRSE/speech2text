@@ -6,11 +6,11 @@ import time
 import warnings
 from collections import defaultdict
 from pathlib import Path
-
-import torch
 from typing import Optional, Union
-import pandas as pd
+
 import faster_whisper
+import pandas as pd
+import torch
 from numba.core.errors import (NumbaDeprecationWarning,
                                NumbaPendingDeprecationWarning)
 from pyannote.audio import Pipeline
@@ -113,8 +113,7 @@ def align(segments, diarization):
     dict
     """
     transcription_segments = [
-        (segment.start, segment.end, segment.text)
-        for segment in segments
+        (segment.start, segment.end, segment.text) for segment in segments
     ]
     diarization_segments = [
         (segment.start, segment.end, speaker)
@@ -209,17 +208,19 @@ def write_alignment_to_txt_file(alignment, output_file_stem):
     logger.info(f".. .. Wrote TXT output to: {output_file}")
 
 
-def load_whisper_model(name: str = "large-v3",
-                       device: Optional[Union[str, torch.device]] = None,
-                       ):    
+def load_whisper_model(
+    name: str = "large-v3",
+    device: Optional[Union[str, torch.device]] = None,
+):
     if device is None:
         device = "cuda" if torch.cuda.is_available() else "cpu"
 
-    model = faster_whisper.WhisperModel(name, 
-                                        device=device,
-                                        cpu_threads=6,
-                                        compute_type="int8",
-                                        )
+    model = faster_whisper.WhisperModel(
+        name,
+        device=device,
+        cpu_threads=6,
+        compute_type="int8",
+    )
 
     return model
 
@@ -285,9 +286,9 @@ def main():
 
     logger.info(f".. Transcribe input file: {args.INPUT_FILE}")
     t0 = time.time()
-    segments, _ = faster_whisper_model.transcribe(args.INPUT_FILE,
-                                                  language=args.SPEECH2TEXT_LANGUAGE,
-                                                  beam_size=5)
+    segments, _ = faster_whisper_model.transcribe(
+        args.INPUT_FILE, language=args.SPEECH2TEXT_LANGUAGE, beam_size=5
+    )
     segments = list(segments)
     logger.info(f".. .. Transcription finished in {time.time()-t0:.1f} seconds")
 
