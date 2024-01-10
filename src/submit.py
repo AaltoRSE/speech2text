@@ -240,27 +240,18 @@ def submit_file(args, job_name):
     # Path(tmp_file_sh).unlink()
 
 
-def main():
-    # Parse arguments
-    parser = get_argument_parser()
-    args = parser.parse_args()
-    print(f"\nSubmit speech2text jobs with arguments:")
-    for key, value in vars(args).items():
-        print(f"\t{key}: {value}")
-    print()
-
-    # Check language
+def check_language(language):
     if (
-        args.SPEECH2TEXT_LANGUAGE is not None
-        and args.SPEECH2TEXT_LANGUAGE.lower() in settings.supported_languages
+        language is not None
+        and language.lower() in settings.supported_languages
     ):
-        print(f"Given language '{args.SPEECH2TEXT_LANGUAGE}' is supported.\n")
+        print(f"Given language '{language}' is supported.\n")
     elif (
-        args.SPEECH2TEXT_LANGUAGE is not None
-        and args.SPEECH2TEXT_LANGUAGE not in settings.supported_languages
+        language is not None
+        and language not in settings.supported_languages
     ):
         print(
-            f"Submission failed: Given language '{args.SPEECH2TEXT_LANGUAGE}' not found in supported languages:\n\n{' '.join(settings.supported_languages)}\n"
+            f"Submission failed: Given language '{language}' not found in supported languages:\n\n{' '.join(settings.supported_languages)}\n"
         )
         return
     else:
@@ -273,9 +264,10 @@ where mylanguage is one of:\n\n{' '.join(settings.supported_languages)}\n
         """
         )
 
-    # Check email
-    if args.SPEECH2TEXT_EMAIL is not None:
-        print(f"Email notifications will be sent to: {args.SPEECH2TEXT_EMAIL}\n")
+
+def check_email(email):
+    if email is not None:
+        print(f"Email notifications will be sent to: {email}\n")
     else:
         print(
             f"""Notifications will not be sent as no email address was specified. To specify email address, use
@@ -283,6 +275,22 @@ where mylanguage is one of:\n\n{' '.join(settings.supported_languages)}\n
     export SPEECH2TEXT_EMAIL=my.name@aalto.fi\n
     """
         )
+
+
+def main():
+    # Parse arguments
+    parser = get_argument_parser()
+    args = parser.parse_args()
+    print(f"\nSubmit speech2text jobs with arguments:")
+    for key, value in vars(args).items():
+        print(f"\t{key}: {value}")
+    print()
+
+    # Check language
+    check_language(args.SPEECH2TEXT_LANGUAGE)
+
+    # Check email
+    check_email(args.SPEECH2TEXT_EMAIL)
 
     # Notify about temporary folder location
     print(
@@ -292,12 +300,12 @@ where mylanguage is one of:\n\n{' '.join(settings.supported_languages)}\n
     # Submit file or directory
     if Path(args.INPUT).is_file():
         args.INPUT = Path(args.INPUT).absolute()
-        print(f"Input file: {args.INPUT}")
+        print(f"Input file: {args.INPUT}\n")
         job_name = parse_job_name(args.INPUT)
         submit_file(args, job_name)
     elif Path(args.INPUT).is_dir():
         args.INPUT = Path(args.INPUT).absolute()
-        print(f"Input directory: {args.INPUT}")
+        print(f"Input directory: {args.INPUT}\n")
         job_name = parse_job_name(args.INPUT)
         submit_dir(args, job_name)
     else:
