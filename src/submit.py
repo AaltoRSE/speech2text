@@ -243,12 +243,12 @@ def submit_file(args, job_name):
 def check_language(language):
     if (
         language is not None
-        and language.lower() in settings.supported_languages.keys() + settings.supported_languages.values()
+        and language.lower() in list(settings.supported_languages.keys()) + list(settings.supported_languages.values())
     ):
         print(f"Given language '{language}' is supported.\n")
     elif (
         language is not None
-        and language not in settings.supported_languages.keys() + settings.supported_languages.values()
+        and language not in list(settings.supported_languages.keys()) + list(settings.supported_languages.values())
     ):
         print(
             f"Submission failed: Given language '{language}' not found in supported languages:\n\n{' '.join(settings.supported_languages)}\n"
