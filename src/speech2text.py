@@ -302,7 +302,7 @@ def main():
             args.INPUT_FILE, slurm_array_task_id
         )
 
-    logger.info(f".. Convert input file to wav format: {args.INPUT_FILE}")
+    logger.info(f".. Convert input file to wav format for pyannote diarization pipeline: {args.INPUT_FILE}")
     input_file_wav = convert_to_wav(args.INPUT_FILE, args.SPEECH2TEXT_TMP)
     if input_file_wav is None:
         logger.error(f".. .. Input file could not be converted: {args.INPUT_FILE}")
@@ -313,7 +313,7 @@ def main():
     diarization_pipeline = load_diarization_pipeline(args.PYANNOTE_CONFIG, args.AUTH_TOKEN)
     logger.info(f".. .. Pipeline loaded in {time.time()-t0:.1f} seconds")
 
-    logger.info(f".. Diarize input file: {args.INPUT_FILE}")
+    logger.info(f".. Diarize input file: {input_file_wav}")
     t0 = time.time()
     diarization = diarization_pipeline(input_file_wav)
     logger.info(f".. .. Diarization finished in {time.time()-t0:.1f} seconds")
@@ -323,7 +323,7 @@ def main():
     faster_whisper_model = load_faster_whisper_model()
     logger.info(f".. .. Model loaded in {time.time()-t0:.1f} seconds")
 
-    logger.info(f".. Transcribe input file: {input_file_wav}")
+    logger.info(f".. Transcribe input file: {args.INPUT_FILE}")
     t0 = time.time()    
     language = args.SPEECH2TEXT_LANGUAGE
     if args.SPEECH2TEXT_LANGUAGE.lower() in settings.supported_languages:
