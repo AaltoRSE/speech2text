@@ -260,8 +260,7 @@ def check_language(language):
               
     export SPEECH2TEXT_LANGUAGE=mylanguage    
 
-where mylanguage is one of:\n\n{' '.join(settings.supported_languages.keys())}\n
-        """
+where mylanguage is one of:\n\n{' '.join(settings.supported_languages.keys())}\n"""
         )
 
     return True
@@ -274,8 +273,7 @@ def check_email(email):
         print(
             f"""Notifications will not be sent as no email address was specified. To specify email address, use
               
-    export SPEECH2TEXT_EMAIL=my.name@aalto.fi\n
-    """
+    export SPEECH2TEXT_EMAIL=my.name@aalto.fi\n"""
         )
 
 

@@ -8,7 +8,7 @@ The non-technical user guide using the Open On Demand web interface can be found
 
 ## Models
 
-The required Huggingface and Pyannote models are downloaded beforehand and saved into a shared data folder on the cluster. Therefore, users do not have to download the models themselves.
+The required models have been downloaded beforehand from Hugging Face and saved into a shared data folder on the cluster. Therefore, users do not have to download the models themselves.
 **Make sure the following models have been downloaded and accessible**.
 
 ### Faster Whisper  
@@ -26,10 +26,13 @@ been pre-downloaded to `/scratch/shareddata/dldata/huggingface-hub-cache/hub/mod
 
 ### Pyannote 
 
-> **_NOTE:_**  
+> **_NOTE:_**
 > The Pyannote model is covered by MIT licence but is nevertheless gated. In order to use it, go to [pyannote/segmentation](https://huggingface.co/pyannote/segmentation/blob/main/pytorch_model.bin), log in as Hugging Face user, and accept the conditions to access it.
 
-The [pyannote/segmentation](https://huggingface.co/pyannote/segmentation/blob/main/pytorch_model.bin) model has been pre-downloaded to `/scratch/shareddata/speech2text/pyannote/segmentation/blob/main/pytorch_model.bin`.
+The [pyannote/segmentation](https://huggingface.co/pyannote/segmentation/blob/main/pytorch_model.bin) model has been pre-downloaded from Hugging Face to `/scratch/shareddata/speech2text/pyannote/segmentation/blob/main/pytorch_model.bin`.
+
+> **_NOTE:_**
+> Due to gating, the model has not been saved to `/scratch/shareddata/dldata/huggingface-hub-cache/` which is meant for models accessible more generally to Triton users.
 
 This path has been hard-coded to the [Pyannote config file](https://huggingface.co/pyannote/speaker-diarization/blob/main/config.yaml): [pyannote/config.yml](pyannote/config.yml) which is located in [pyannote/config.yml](pyannote/config.yml)
 

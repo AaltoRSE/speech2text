@@ -210,7 +210,7 @@ def write_alignment_to_txt_file(alignment, output_file_stem):
     logger.info(f".. .. Wrote TXT output to: {output_file}")
 
 
-def load_whisper_model(
+def load_faster_whisper_model(
     name: str = "large-v3",
     device: Optional[Union[str, torch.device]] = None,
 ):
@@ -227,7 +227,7 @@ def load_whisper_model(
     return model
 
 
-def load_pipeline(config_file, auth_token):
+def load_diarization_pipeline(config_file, auth_token):
     """
     For more info on the config file, see 'Offline use' at:
     https://github.com/pyannote/pyannote-audio/blob/develop/tutorials/applying_a_pipeline.ipynb
@@ -239,7 +239,7 @@ def load_pipeline(config_file, auth_token):
     elif auth_token:
         logger.info(".. .. Environment variable AUTH_TOKEN found")
         pipeline = Pipeline.from_pretrained(
-            "pyannote/speaker-diarization",
+            "pyannote/speaker-diarization-3.1",
             use_auth_token=auth_token,
         )
     else:
@@ -281,9 +281,9 @@ def main():
 
     logger.info(".. Load models")
     logging.info(args.PYANNOTE_CONFIG)
-    diarization_pipeline = load_pipeline(args.PYANNOTE_CONFIG, args.AUTH_TOKEN)
+    diarization_pipeline = load_diarization_pipeline(args.PYANNOTE_CONFIG, args.AUTH_TOKEN)
     t0 = time.time()
-    faster_whisper_model = load_whisper_model()
+    faster_whisper_model = load_faster_whisper_model()
     logger.info(f".. .. Models loaded in {time.time()-t0:.1f} seconds")
 
     logger.info(f".. Transcribe input file: {args.INPUT_FILE}")
