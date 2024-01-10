@@ -288,10 +288,9 @@ def main():
 
     logger.info(f".. Transcribe input file: {args.INPUT_FILE}")
     t0 = time.time()    
-    if args.SPEECH2TEXT_LANGUAGE in settings.supported_languages:
-        language = settings.supported_languages[args.SPEECH2TEXT_LANGUAGE]
-    else:
-        language = args.SPEECH2TEXT_LANGUAGE
+    language = args.SPEECH2TEXT_LANGUAGE
+    if args.SPEECH2TEXT_LANGUAGE.lower() in settings.supported_languages:
+        language = settings.supported_languages[args.SPEECH2TEXT_LANGUAGE.lower()]
     segments, _ = faster_whisper_model.transcribe(
         args.INPUT_FILE, language=language, beam_size=5
     )
