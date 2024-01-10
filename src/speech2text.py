@@ -18,6 +18,8 @@ from pyannote.audio import Pipeline
 from submit import parse_output_dir
 from utils import seconds_to_human_readable_format
 
+import settings
+
 # https://numba.pydata.org/numba-doc/dev/reference/deprecation.html
 warnings.simplefilter("ignore", category=NumbaDeprecationWarning)
 warnings.simplefilter("ignore", category=NumbaPendingDeprecationWarning)
@@ -285,9 +287,13 @@ def main():
     logger.info(f".. .. Models loaded in {time.time()-t0:.1f} seconds")
 
     logger.info(f".. Transcribe input file: {args.INPUT_FILE}")
-    t0 = time.time()
+    t0 = time.time()    
+    if args.SPEECH2TEXT_LANGUAGE in settings.supported_languages:
+        language = settings.supported_languages[args.SPEECH2TEXT_LANGUAGE]
+    else:
+        language = args.SPEECH2TEXT_LANGUAGE
     segments, _ = faster_whisper_model.transcribe(
-        args.INPUT_FILE, language=args.SPEECH2TEXT_LANGUAGE, beam_size=5
+        args.INPUT_FILE, language=language, beam_size=5
     )
     segments = list(segments)
     logger.info(f".. .. Transcription finished in {time.time()-t0:.1f} seconds")

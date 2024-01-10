@@ -243,26 +243,28 @@ def submit_file(args, job_name):
 def check_language(language):
     if (
         language is not None
-        and language.lower() in settings.supported_languages
+        and language.lower() in settings.supported_languages.keys() + settings.supported_languages.values()
     ):
         print(f"Given language '{language}' is supported.\n")
     elif (
         language is not None
-        and language not in settings.supported_languages
+        and language not in settings.supported_languages.keys() + settings.supported_languages.values()
     ):
         print(
             f"Submission failed: Given language '{language}' not found in supported languages:\n\n{' '.join(settings.supported_languages)}\n"
         )
-        return
+        return False
     else:
         print(
             f"""No language given. The language will be detected automatically. To specify language explicitly (recommended), use
               
     export SPEECH2TEXT_LANGUAGE=mylanguage    
 
-where mylanguage is one of:\n\n{' '.join(settings.supported_languages)}\n
+where mylanguage is one of:\n\n{' '.join(settings.supported_languages.keys())}\n
         """
         )
+
+    return True
 
 
 def check_email(email):
@@ -287,7 +289,8 @@ def main():
     print()
 
     # Check language
-    check_language(args.SPEECH2TEXT_LANGUAGE)
+    if not check_language(args.SPEECH2TEXT_LANGUAGE):
+        return
 
     # Check email
     check_email(args.SPEECH2TEXT_EMAIL)
