@@ -345,7 +345,7 @@ def main():
         args.INPUT_FILE, language=language, beam_size=5
     )
     if language is None:
-        print(f".. .. Automatically detected language '{settings.supported_languages_reverse[info.language]}' with probability {info.language_probability:.2f}")
+        logger.info(f".. .. Automatically detected language '{settings.supported_languages_reverse[info.language]}' with probability {info.language_probability:.2f}")
     segments = list(segments)
     logger.info(f".. .. Transcription finished in {time.time()-t0:.1f} seconds")
 
