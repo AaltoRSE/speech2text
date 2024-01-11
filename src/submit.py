@@ -97,16 +97,16 @@ def parse_output_dir(input_path, create_if_not_exists=True):
 
 
 def create_array_input_file(input_dir, output_dir, job_name, tmp_dir):
-    print(f"Scan input audio files from: {input_dir}")
+    print(f"Scan input audio files from: {input_dir}\n")
     input_files = []
     for input_file in Path(input_dir).glob("*.*"):
         existing, missing = get_existing_result_files(input_file, output_dir)
         if existing and not missing:
             print(
-                f"{input_file}: Skip since result files {[str(f) for f in existing]} exist"
+                f".. {input_file}: Skip since result files {[str(f) for f in existing]} exist"
             )
             continue
-        print(f"{input_file}: Submit")
+        print(f".. {input_file}: Submit")
         input_files.append(str(input_file))
     print()
 
