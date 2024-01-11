@@ -57,3 +57,6 @@ supported_languages = {
     "vietnamese": "vi",
     "welsh": "cy"
 }
+
+
+supported_languages_reverse = {value : key for key, value in supported_languages.items()}

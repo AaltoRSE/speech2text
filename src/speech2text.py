@@ -341,9 +341,11 @@ def main():
     language = args.SPEECH2TEXT_LANGUAGE
     if language and language.lower() in settings.supported_languages:
         language = settings.supported_languages[language.lower()]
-    segments, _ = faster_whisper_model.transcribe(
+    segments, info = faster_whisper_model.transcribe(
         args.INPUT_FILE, language=language, beam_size=5
     )
+    if language is None:
+        print(f".. .. Automatically detected language '{settings.supported_languages_reverse[info.language]}' with probability {info.language_probability:.2f}")
     segments = list(segments)
     logger.info(f".. .. Transcription finished in {time.time()-t0:.1f} seconds")
 
