@@ -59,12 +59,14 @@ prepend_path("PATH", speech2text)
 prepend_path("PATH", conda_env)
 
 local hf_home = "/scratch/shareddata/dldata/huggingface-hub-cache/"
+local pyannote_cache = hf_home .. "hub/"
 local torch_home = "/scratch/shareddata/speech2text"
 local pyannote_config = "/share/apps/manual_installations/speech2text/" .. version .. "/pyannote/config.yml"
 local numba_cache = "/tmp" 
 local mplconfigdir = "/tmp"
 
 pushenv("HF_HOME", hf_home)
+pushenv("PYANNOTE_CACHE", pyannote_cache)
 pushenv("TORCH_HOME", torch_home)
 pushenv("XDG_CACHE_HOME", torch_home)
 pushenv("PYANNOTE_CONFIG", pyannote_config)

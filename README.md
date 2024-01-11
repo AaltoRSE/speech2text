@@ -13,33 +13,29 @@ The required models have been downloaded beforehand from Hugging Face and saved 
 
 ### Faster Whisper  
 
-We use `large-v3`, currently the biggest and most accurate multilingual model available. Languages supported by the model are listed [here](https://github.com/openai/whisper#available-models-and-languages). The model has been pre-downloaded from Hugging Face to `/scratch/shareddata/dldata/huggingface-hub-cache/hub/models--Systran--faster-whisper-large-v3`. 
+We use `large-v3`, currently the biggest and most accurate multilingual Faster Whisper model available. Languages supported by the model are listed in the original [OpenAI Whisper repo](https://github.com/openai/whisper#available-models-and-languages). The model is covered by the [MIT licence]((https://huggingface.co/models?license=license:mit)) and has been pre-downloaded from Hugging Face to 
+
+`/scratch/shareddata/dldata/huggingface-hub-cache/hub/models--Systran--faster-whisper-large-v3`
  
-[LICENCE: MIT](https://github.com/openai/whisper/blob/main/LICENSE)
-
-### ECAPA-TDNN embeddings on Voxceleb
-
-The required [speechbrain/spkrec-ecapa-voxceleb](https://huggingface.co/speechbrain/spkrec-ecapa-voxceleb) embeddings from Hugging Face have
-been pre-downloaded to `/scratch/shareddata/dldata/huggingface-hub-cache/hub/models--speechbrain--spkrec-ecapa-voxceleb`.
-
-[LICENCE: MIT](https://huggingface.co/models?license=license:mit)
-
 ### Pyannote 
 
+The diarization is performed using the [pyannote/speaker-diarization-3.1](https://huggingface.co/pyannote/speaker-diarization-3.1) pipeline installed via [`pyannote.audio`](https://github.com/pyannote/pyannote-audio).
 > **_NOTE:_**
-> The Pyannote model is covered by MIT licence but is nevertheless gated. In order to use it, go to [pyannote/segmentation](https://huggingface.co/pyannote/segmentation/blob/main/pytorch_model.bin), log in as Hugging Face user, and accept the conditions to access it.
+> pyannote.audio is covered by MIT licence but the diarization pipeline is gated. In order to use it, go to [Hugging Face](https://huggingface.co/pyannote/speaker-diarization-3.1), log in, and accept the conditions to access it.
 
-The [pyannote/segmentation](https://huggingface.co/pyannote/segmentation/blob/main/pytorch_model.bin) model has been pre-downloaded from Hugging Face to `/scratch/shareddata/speech2text/pyannote/segmentation/blob/main/pytorch_model.bin`.
+The [pyannote/segmentation-3.0](https://huggingface.co/pyannote/segmentation/blob/main/pytorch_model.bin) model used by the pipeline has been pre-downloaded from Hugging Face to 
+
+`/scratch/shareddata/speech2text/pyannote/segmentation-3.0/blob/main/pytorch_model.bin`
+
+This path has been hard-coded to the [Pyannote config file](https://huggingface.co/pyannote/speaker-diarization-3.1/blob/main/config.yaml) located in [pyannote/config.yml](pyannote/config.yml).
+
 
 > **_NOTE:_**
-> Due to gating, the model has not been saved to `/scratch/shareddata/dldata/huggingface-hub-cache/` which is meant for models accessible more generally to Triton users.
+> pyannote/segmentation-3.0 is also covered by MIT licence but is gated. In order to use it, go to [pyannote/segmentation-3.0](https://huggingface.co/pyannote/segmentation-3.0), log in as Hugging Face user, and accept the conditions to access it.
+>
+> Due to gating, the model has **not** been saved to `/scratch/shareddata/dldata/huggingface-hub-cache/` which is meant for models accessible more generally to Triton users.
 
-This path has been hard-coded to the [Pyannote config file](https://huggingface.co/pyannote/speaker-diarization/blob/main/config.yaml): [pyannote/config.yml](pyannote/config.yml) which is located in [pyannote/config.yml](pyannote/config.yml)
-
-> **_NOTE:_**
-> The diarization is performed using the [`pyannote/speaker-diarization-3.1`](https://huggingface.co/pyannote/speaker-diarization-3.1) pipeline installed via [`pyannote.audio`](https://github.com/pyannote/pyannote-audio). While not a downloadable model, the pipeline is similarly gated and requires user to log in as Hugging Face user and accept the conditions to gain access.
-
-[LICENCE: MIT](https://huggingface.co/models?license=license:mit)
+Wrapper around the [wespeaker-voxceleb-resnet34-LM](https://huggingface.co/pyannote/wespeaker-voxceleb-resnet34-LM) pretrained speaker embedding model is used by pyannote-audio version 3.1 and higher (see [pyannote/config.yml](pyannote/config.yml)). The model is covered by the [MIT licence]((https://huggingface.co/models?license=license:mit)) and has been downloaded from Hugging Face to `/scratch/shareddata/dldata/huggingface-hub-cache/hub/models--pyannote--wespeaker-voxceleb-resnet34-LM`.
 
 
 ## Data
