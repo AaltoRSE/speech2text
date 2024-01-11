@@ -35,7 +35,9 @@ This path has been hard-coded to the [Pyannote config file](https://huggingface.
 >
 > Due to gating, the model has **not** been saved to `/scratch/shareddata/dldata/huggingface-hub-cache/` which is meant for models accessible more generally to Triton users.
 
-Wrapper around the [wespeaker-voxceleb-resnet34-LM](https://huggingface.co/pyannote/wespeaker-voxceleb-resnet34-LM) pretrained speaker embedding model is used by pyannote-audio version 3.1 and higher (see [pyannote/config.yml](pyannote/config.yml)). The model is covered by the [MIT licence]((https://huggingface.co/models?license=license:mit)) and has been downloaded from Hugging Face to `/scratch/shareddata/dldata/huggingface-hub-cache/hub/models--pyannote--wespeaker-voxceleb-resnet34-LM`.
+Wrapper around the [wespeaker-voxceleb-resnet34-LM](https://huggingface.co/pyannote/wespeaker-voxceleb-resnet34-LM) pretrained speaker embedding model is used by pyannote-audio version 3.1 and higher (see [pyannote/config.yml](pyannote/config.yml)). The model is covered by the [MIT licence]((https://huggingface.co/models?license=license:mit)) and has been downloaded from Hugging Face to 
+
+`/scratch/shareddata/dldata/huggingface-hub-cache/hub/models--pyannote--wespeaker-voxceleb-resnet34-LM`.
 
 
 ## Data
