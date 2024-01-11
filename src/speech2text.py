@@ -303,10 +303,12 @@ def main():
         )
 
     logger.info(f".. Convert input file to wav format for pyannote diarization pipeline: {args.INPUT_FILE}")
+    t0 = time.time()
     input_file_wav = convert_to_wav(args.INPUT_FILE, args.SPEECH2TEXT_TMP)
     if input_file_wav is None:
         logger.error(f".. .. Input file could not be converted: {args.INPUT_FILE}")
         return
+    logger.info(f".. .. Wav conversion done in {time.time()-t0:.1f} seconds")
 
     logger.info(".. Load diarization pipeline")
     t0 = time.time()
@@ -326,8 +328,8 @@ def main():
     logger.info(f".. Transcribe input file: {args.INPUT_FILE}")
     t0 = time.time()    
     language = args.SPEECH2TEXT_LANGUAGE
-    if args.SPEECH2TEXT_LANGUAGE.lower() in settings.supported_languages:
-        language = settings.supported_languages[args.SPEECH2TEXT_LANGUAGE.lower()]
+    if language and language.lower() in settings.supported_languages:
+        language = settings.supported_languages[language.lower()]
     segments, _ = faster_whisper_model.transcribe(
         args.INPUT_FILE, language=language, beam_size=5
     )
