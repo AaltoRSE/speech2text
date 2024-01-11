@@ -264,6 +264,13 @@ def read_input_file_from_array_file(input_file, slurm_array_task_id):
 
 
 def convert_to_wav(input_file, tmp_dir):
+    """Pyannote diarization pipeline does handle resampling to ensure 16 kHz and
+    stereo/mono mixing. However, number of supported audio/video formats appears to be 
+    limited and not listed in README. To be sure, we convert all files to .wav beforehand.
+
+    https://huggingface.co/pyannote/speaker-diarization-3.1
+    """
+
     if str(input_file).lower().endswith(".wav"):
         logger.info(f".. .. File is already in wav format: {input_file}")
         return input_file
@@ -296,12 +303,14 @@ def main():
         logger.error(f".. Given input file '{args.INPUT_FILE}' does not exist!")
         return
 
+    # Parse input file
     slurm_array_task_id = os.getenv("SLURM_ARRAY_TASK_ID")
     if Path(args.INPUT_FILE).suffix == ".json" and slurm_array_task_id is not None:
         args.INPUT_FILE = read_input_file_from_array_file(
             args.INPUT_FILE, slurm_array_task_id
         )
 
+    # .wav conversion
     logger.info(f".. Convert input file to wav format for pyannote diarization pipeline: {args.INPUT_FILE}")
     t0 = time.time()
     input_file_wav = convert_to_wav(args.INPUT_FILE, args.SPEECH2TEXT_TMP)
@@ -310,6 +319,7 @@ def main():
         return
     logger.info(f".. .. Wav conversion done in {time.time()-t0:.1f} seconds")
 
+    # Diarization
     logger.info(".. Load diarization pipeline")
     t0 = time.time()
     diarization_pipeline = load_diarization_pipeline(args.PYANNOTE_CONFIG, args.AUTH_TOKEN)
@@ -320,6 +330,7 @@ def main():
     diarization = diarization_pipeline(input_file_wav)
     logger.info(f".. .. Diarization finished in {time.time()-t0:.1f} seconds")
 
+    # Transcription
     logger.info(".. Load faster_whisper model")
     t0 = time.time()
     faster_whisper_model = load_faster_whisper_model()
@@ -336,6 +347,7 @@ def main():
     segments = list(segments)
     logger.info(f".. .. Transcription finished in {time.time()-t0:.1f} seconds")
 
+    # Alignment
     logger.info(".. Align transcription and diarization")
     alignment = align(segments, diarization)
 
@@ -345,6 +357,7 @@ def main():
     write_alignment_to_csv_file(alignment, output_file_stem)
     write_alignment_to_txt_file(alignment, output_file_stem)
 
+    # Clean up
     if input_file_wav != args.INPUT_FILE:
         logger.info(f".. Remove the converted wav file")
         Path(input_file_wav).unlink()
