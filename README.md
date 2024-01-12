@@ -1,8 +1,12 @@
 # speech2text
 
-This repo contains instructions for setting up and applying the speech2text app on Aalto Triton cluster. The app utilizes [Faster Whisper](https://github.com/SYSTRAN/faster-whisper) automatic speech recognition and [Pyannote](https://huggingface.co/pyannote/speaker-diarization) speaker detection (diarization) tools. The speech recognition and diarization steps are run sequentially (and independently) and their result segments are combined (aligned) using a simple algorithm which for each transcription segment finds the most overlapping (in time) speaker segment.
+This repo contains instructions for setting up and applying the speech2text app on Aalto Triton cluster. The app utilizes [Faster Whisper](https://github.com/SYSTRAN/faster-whisper) automatic speech recognition tool and [Pyannote](https://huggingface.co/pyannote/speaker-diarization) speaker detection (diarization) pipeline. The speech recognition and diarization steps are run sequentially (and independently) and their result segments are combined (aligned) using a simple algorithm which for each transcription segment finds the most overlapping (in time) speaker segment.
 
-The required models are described [here](#models). Conda environment and Lmod setup is described [here](#setup). Usage is describe [here](#usage).
+The required models are described [here](#models). 
+
+Conda environment and Lmod setup is described [here](#setup). 
+
+Usage is describe [here](#usage).
 
 The non-technical user guide using the Open On Demand web interface can be found [here](https://aaltorse.github.io/speech2text/).
 
@@ -13,7 +17,17 @@ The required models have been downloaded beforehand from Hugging Face and saved 
 
 ### Faster Whisper  
 
-We use `large-v3`, currently the biggest and most accurate multilingual Faster Whisper model available. Languages supported by the model are listed in the original [OpenAI Whisper repo](https://github.com/openai/whisper#available-models-and-languages). The model is covered by the [MIT licence]((https://huggingface.co/models?license=license:mit)) and has been pre-downloaded from Hugging Face to 
+We use `large-v3`, currently the biggest and most accurate multilingual [Faster Whisper](https://github.com/SYSTRAN/faster-whisper) model available. Languages supported by the model are:
+
+afrikaans, arabic, armenian, azerbaijani, belarusian, bosnian, bulgarian, catalan, 
+chinese, croatian, czech, danish, dutch, english, estonian, finnish, french, galician, 
+german, greek, hebrew, hindi, hungarian, icelandic, indonesian, italian, japanese, 
+kannada, kazakh, korean, latvian, lithuanian, macedonian, malay, marathi, maori, nepali,
+norwegian, persian, polish, portuguese, romanian, russian, serbian, slovak, slovenian, 
+spanish, swahili, swedish, tagalog, tamil, thai, turkish, ukrainian, urdu, vietnamese, 
+welsh
+
+The model is covered by the [MIT licence]((https://huggingface.co/models?license=license:mit)) and has been pre-downloaded from Hugging Face to 
 
 `/scratch/shareddata/dldata/huggingface-hub-cache/hub/models--Systran--faster-whisper-large-v3`
  
@@ -21,7 +35,7 @@ We use `large-v3`, currently the biggest and most accurate multilingual Faster W
 
 The diarization is performed using the [pyannote/speaker-diarization-3.1](https://huggingface.co/pyannote/speaker-diarization-3.1) pipeline installed via [`pyannote.audio`](https://github.com/pyannote/pyannote-audio).
 > **_NOTE:_**
-> pyannote.audio is covered by MIT licence but the diarization pipeline is gated. In order to use it, go to [Hugging Face](https://huggingface.co/pyannote/speaker-diarization-3.1), log in, and accept the conditions to access it.
+> pyannote.audio is covered by [MIT licence]((https://huggingface.co/models?license=license:mit)) but the diarization pipeline is gated. In order to use it, log in to [Hugging Face](https://huggingface.co/pyannote/speaker-diarization-3.1) and accept the conditions to access it.
 
 The [pyannote/segmentation-3.0](https://huggingface.co/pyannote/segmentation/blob/main/pytorch_model.bin) model used by the pipeline has been pre-downloaded from Hugging Face to 
 
@@ -31,11 +45,11 @@ This path has been hard-coded to the [Pyannote config file](https://huggingface.
 
 
 > **_NOTE:_**
-> pyannote/segmentation-3.0 is also covered by MIT licence but is gated. In order to use it, go to [pyannote/segmentation-3.0](https://huggingface.co/pyannote/segmentation-3.0), log in as Hugging Face user, and accept the conditions to access it.
+> pyannote/segmentation-3.0 is also covered by [MIT licence]((https://huggingface.co/models?license=license:mit)) but is gated separately. In order to use it, log in to [pyannote/segmentation-3.0](https://huggingface.co/pyannote/segmentation-3.0) and accept the conditions to access it.
 >
 > Due to gating, the model has **not** been saved to `/scratch/shareddata/dldata/huggingface-hub-cache/` which is meant for models accessible more generally to Triton users.
 
-Wrapper around the [wespeaker-voxceleb-resnet34-LM](https://huggingface.co/pyannote/wespeaker-voxceleb-resnet34-LM) pretrained speaker embedding model is used by pyannote-audio version 3.1 and higher (see [pyannote/config.yml](pyannote/config.yml)). The model is covered by the [MIT licence]((https://huggingface.co/models?license=license:mit)) and has been downloaded from Hugging Face to 
+Wrapper around the [wespeaker-voxceleb-resnet34-LM](https://huggingface.co/pyannote/wespeaker-voxceleb-resnet34-LM) pretrained speaker embedding model is used by pyannote-audio version 3.1 and higher (see [pyannote/config.yml](pyannote/config.yml)). The model is covered by the [MIT licence]((https://huggingface.co/models?license=license:mit)) and has been pre-downloaded from Hugging Face to 
 
 `/scratch/shareddata/dldata/huggingface-hub-cache/hub/models--pyannote--wespeaker-voxceleb-resnet34-LM`.
 
