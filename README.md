@@ -1,6 +1,6 @@
 # speech2text
 
-This repo contains instructions for setting up and applying the speech2text app on Aalto Triton cluster. The app utilizes [OpenAI Whisper](https://openai.com/research/whisper) automatic speech recognition and [Pyannote speaker detection (diarization)](https://huggingface.co/pyannote/speaker-diarization) tools. The speech recognition and diarization steps are run sequentially (and independently) and their result segments are combined (aligned) using a simple algorithm which for each transcription segment finds the most overlapping (in time) speaker segment.
+This repo contains instructions for setting up and applying the speech2text app on Aalto Triton cluster. The app utilizes [Faster Whisper](https://github.com/SYSTRAN/faster-whisper) automatic speech recognition and [Pyannote](https://huggingface.co/pyannote/speaker-diarization) speaker detection (diarization) tools. The speech recognition and diarization steps are run sequentially (and independently) and their result segments are combined (aligned) using a simple algorithm which for each transcription segment finds the most overlapping (in time) speaker segment.
 
 The required models are described [here](#models). Conda environment and Lmod setup is described [here](#setup). Usage is describe [here](#usage).
 
@@ -8,34 +8,36 @@ The non-technical user guide using the Open On Demand web interface can be found
 
 ## Models
 
-The required Whisper, Huggingface, and Pyannote models are downloaded beforehand and saved into a shared data folder on the cluster. Therefore, users do not have to download the models themselves.
+The required models have been downloaded beforehand from Hugging Face and saved into a shared data folder on the cluster. Therefore, users do not have to download the models themselves.
 **Make sure the following models have been downloaded and accessible**.
 
-### OpenAI Whisper  
+### Faster Whisper  
 
-We use `large`, the biggest and most accurate multilingual Whisper model. Languages supported by the model are described [here](https://github.com/openai/whisper#available-models-and-languages). The model has been pre-downloaded to `/scratch/shareddata/openai-whisper/envs/venv-2023-03-29/models/large-v2.pt`. 
+We use `large-v3`, currently the biggest and most accurate multilingual Faster Whisper model available. Languages supported by the model are listed in the original [OpenAI Whisper repo](https://github.com/openai/whisper#available-models-and-languages). The model is covered by the [MIT licence]((https://huggingface.co/models?license=license:mit)) and has been pre-downloaded from Hugging Face to 
 
-> **_NOTE:_**  For English, one might want to use the English-specific model. However, the largest English-specific model `medium.en` [is reported to be comparable in accuracy]((https://github.com/openai/whisper#available-models-and-languages)) to the multilingual `large` model for English. The model has been anyways been pre-downloaded to `/scratch/shareddata/openai-whisper/envs/venv-2023-03-29/models/medium.en.pt`.
+`/scratch/shareddata/dldata/huggingface-hub-cache/hub/models--Systran--faster-whisper-large-v3`
  
-[LICENCE: MIT](https://github.com/openai/whisper/blob/main/LICENSE)
-
-### Hugging Face
-
-The required [speechbrain/spkrec-ecapa-voxceleb](https://huggingface.co/speechbrain/spkrec-ecapa-voxceleb) embeddings from Hugging Face have
-been pre-downloaded to `/scratch/shareddata/speech2text/huggingface/hub/models--speechbrain--spkrec-ecapa-voxcelebs`.
-
-[LICENCE: MIT](https://huggingface.co/models?license=license:mit)
-
 ### Pyannote 
 
-> **_NOTE:_**  
-> The Pyannote model is covered by MIT licence but nevertheless gated. In order to use it, go to [pyannote/segmentation](https://huggingface.co/pyannote/segmentation/blob/main/pytorch_model.bin), log in as Hugging Face user, and accept the conditions to access it.
+The diarization is performed using the [pyannote/speaker-diarization-3.1](https://huggingface.co/pyannote/speaker-diarization-3.1) pipeline installed via [`pyannote.audio`](https://github.com/pyannote/pyannote-audio).
+> **_NOTE:_**
+> pyannote.audio is covered by MIT licence but the diarization pipeline is gated. In order to use it, go to [Hugging Face](https://huggingface.co/pyannote/speaker-diarization-3.1), log in, and accept the conditions to access it.
 
-The [pyannote/segmentation](https://huggingface.co/pyannote/segmentation/blob/main/pytorch_model.bin) model has been pre-downloaded to `/scratch/shareddata/speech2text/pyannote/segmentation/blob/main/pytorch_model.bin`.
+The [pyannote/segmentation-3.0](https://huggingface.co/pyannote/segmentation/blob/main/pytorch_model.bin) model used by the pipeline has been pre-downloaded from Hugging Face to 
 
-This path has been hard-coded to the [Pyannote config file](https://huggingface.co/pyannote/speaker-diarization/blob/main/config.yaml): [pyannote/config.yml](pyannote/config.yml) which is located in [pyannote/config.yml](pyannote/config.yml)
+`/scratch/shareddata/speech2text/pyannote/segmentation-3.0/blob/main/pytorch_model.bin`
 
-[LICENCE: MIT](https://huggingface.co/models?license=license:mit)
+This path has been hard-coded to the [Pyannote config file](https://huggingface.co/pyannote/speaker-diarization-3.1/blob/main/config.yaml) located in [pyannote/config.yml](pyannote/config.yml).
+
+
+> **_NOTE:_**
+> pyannote/segmentation-3.0 is also covered by MIT licence but is gated. In order to use it, go to [pyannote/segmentation-3.0](https://huggingface.co/pyannote/segmentation-3.0), log in as Hugging Face user, and accept the conditions to access it.
+>
+> Due to gating, the model has **not** been saved to `/scratch/shareddata/dldata/huggingface-hub-cache/` which is meant for models accessible more generally to Triton users.
+
+Wrapper around the [wespeaker-voxceleb-resnet34-LM](https://huggingface.co/pyannote/wespeaker-voxceleb-resnet34-LM) pretrained speaker embedding model is used by pyannote-audio version 3.1 and higher (see [pyannote/config.yml](pyannote/config.yml)). The model is covered by the [MIT licence]((https://huggingface.co/models?license=license:mit)) and has been downloaded from Hugging Face to 
+
+`/scratch/shareddata/dldata/huggingface-hub-cache/hub/models--pyannote--wespeaker-voxceleb-resnet34-LM`.
 
 
 ## Data
@@ -67,7 +69,7 @@ git clone https://github.com/AaltoRSE/speech2text.git 00000000
 cd 00000000
 ```
 
-where `00000000` is the version number (date) for development. 
+where `00000000` is the version number ("date") for development. 
 
 Create a conda environment to `env/`
 
@@ -88,7 +90,7 @@ module use /share/apps/manual_installations/speech2text/modules/speech2text/0000
 
 Alternatively, copy the .lua script to `/share/apps/modules/speech2text/` so that it gets activated automatically at login.
 
-Essentially, the module implementation prepends `/share/apps/manual_installations/speech2text/bin` `/share/apps/manual_installations/speech2text/env/bin` to `PATH` and sets good default values for Slurm job resource requests for easy load and usage. Check [modules/speech2text/00000000.lua](modules/speech2text/00000000.lua) and [bin/speech2text](bin/speech2text) for details. 
+Essentially, the module implementation prepends `/share/apps/manual_installations/speech2text/bin` and `/share/apps/manual_installations/speech2text/env/bin` to `PATH` and sets good default values for Slurm job resource requests for easy load and usage. Check [modules/speech2text/00000000.lua](modules/speech2text/00000000.lua) and [bin/speech2text](bin/speech2text) for details. 
 
 
 ## Usage
@@ -105,7 +107,7 @@ Set email (for Slurm job notifications) and audio language environment variables
 
 ```
 export SPEECH2TEXT_EMAIL=my.name@aalto.fi
-export SPEECH2TEXT_LANGUAGE=my-language
+export SPEECH2TEXT_LANGUAGE=mylanguage
 ```
 
 For example:
@@ -120,7 +122,6 @@ The following variables are already set by the Lmod .lua script. They can be ign
 ```
 HF_HOME
 TORCH_HOME
-WHISPER_CACHE
 PYANNOTE_CONFIG
 NUMBA_CACHE
 MPLCONFIGDIR
@@ -134,7 +135,6 @@ Note that you can leave the language variable unspecified, in which case speech2
 
 Notification emails will be sent to given email address. If the addresss is left unspecified,
 no notifications are sent.
-
 
 Finally, process a single audio file with
 

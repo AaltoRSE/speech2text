@@ -97,18 +97,18 @@ def parse_output_dir(input_path, create_if_not_exists=True):
 
 
 def create_array_input_file(input_dir, output_dir, job_name, tmp_dir):
-    print(f"Scan input audio files from: {input_dir}")
+    print(f"Scan input audio files from: {input_dir}\n")
     input_files = []
     for input_file in Path(input_dir).glob("*.*"):
         existing, missing = get_existing_result_files(input_file, output_dir)
         if existing and not missing:
             print(
-                f"{input_file}: Skip since result files {[str(f) for f in existing]} exist"
+                f".. {input_file}: Skip since result files {[str(f) for f in existing]} exist"
             )
             continue
-        print(f"{input_file}: Submit")
-
+        print(f".. {input_file}: Submit")
         input_files.append(str(input_file))
+    print()
 
     if not input_files:
         return
@@ -158,7 +158,7 @@ def submit_dir(args, job_name):
     )
     if tmp_file_array is None:
         print(
-            f"Submission not necessary since no files in {args.INPUT} need processing"
+            f"Submission not necessary since no files in {args.INPUT} need processing\n"
         )
         return
     tmp_file_sh = create_sbatch_script_for_array_job(
@@ -240,68 +240,77 @@ def submit_file(args, job_name):
     # Path(tmp_file_sh).unlink()
 
 
-def main():
-    # Parse arguments
-    parser = get_argument_parser()
-    args = parser.parse_args()
-    print(f"Submit speech2text jobs with arguments:")
-    for key, value in vars(args).items():
-        print(f"\t{key}: {value}")
+def check_language(language):
+    supported_languages = list(settings.supported_languages.keys())
 
-    # Check language
-    if (
-        args.SPEECH2TEXT_LANGUAGE is not None
-        and args.SPEECH2TEXT_LANGUAGE.lower() in settings.supported_languages
-    ):
-        print(f"Given language '{args.SPEECH2TEXT_LANGUAGE}' is supported.")
-    elif (
-        args.SPEECH2TEXT_LANGUAGE is not None
-        and args.SPEECH2TEXT_LANGUAGE not in settings.supported_languages
-    ):
-        print(
-            f"Submission failed: Given language '{args.SPEECH2TEXT_LANGUAGE}' not found in supported languages:\n\n{' '.join(settings.supported_languages)}"
-        )
-        return
-    else:
+    if language is None:
         print(
             f"""No language given. The language will be detected automatically. To specify language explicitly (recommended), use
               
-    export SPEECH2TEXT_LANGUAGE=mylanguage    
+    export SPEECH2TEXT_LANGUAGE=mylanguage
 
-where mylanguage is one of:\n\n{' '.join(settings.supported_languages)}
-        """
+where mylanguage is one of:\n\n{' '.join(supported_languages)}\n"""
         )
 
-    # Check email
-    if args.SPEECH2TEXT_EMAIL is not None:
-        print(f"Email notifications will be sent to: {args.SPEECH2TEXT_EMAIL}")
+        return True
+
+    if language.lower() in supported_languages:
+        print(f"Given language '{language}' is supported.\n")
+        return True
+
+    print(
+        f"Submission failed: Given language '{language}' not found in supported languages:\n\n{' '.join(supported_languages)}\n"
+    )
+
+    return False
+
+
+def check_email(email):
+    if email is not None:
+        print(f"Email notifications will be sent to: {email}\n")
     else:
         print(
             f"""Notifications will not be sent as no email address was specified. To specify email address, use
               
-    export SPEECH2TEXT_EMAIL=my.name@aalto.fi    
-    """
+    export SPEECH2TEXT_EMAIL=my.name@aalto.fi\n"""
         )
+
+
+def main():
+    # Parse arguments
+    parser = get_argument_parser()
+    args = parser.parse_args()
+    print(f"\nSubmit speech2text jobs with arguments:")
+    for key, value in vars(args).items():
+        print(f"\t{key}: {value}")
+    print()
+
+    # Check language
+    if not check_language(args.SPEECH2TEXT_LANGUAGE):
+        return
+
+    # Check email
+    check_email(args.SPEECH2TEXT_EMAIL)
 
     # Notify about temporary folder location
     print(
-        f"Log files (.out) and temporary files (.sh submit scripts, .wav conversions) will be written to: {args.SPEECH2TEXT_TMP}"
+        f"Log files (.out) and batch submit scripts (.sh) will be written to: {args.SPEECH2TEXT_TMP}\n"
     )
 
     # Submit file or directory
     if Path(args.INPUT).is_file():
         args.INPUT = Path(args.INPUT).absolute()
-        print(f"Input file: {args.INPUT}")
+        print(f"Input file: {args.INPUT}\n")
         job_name = parse_job_name(args.INPUT)
         submit_file(args, job_name)
     elif Path(args.INPUT).is_dir():
         args.INPUT = Path(args.INPUT).absolute()
-        print(f"Input directory: {args.INPUT}")
+        print(f"Input directory: {args.INPUT}\n")
         job_name = parse_job_name(args.INPUT)
         submit_dir(args, job_name)
     else:
         print(
-            ".. Submission failed: First argument needs to be an existing audio file or a directory with audio files."
+            ".. Submission failed: First argument needs to be an existing audio file or a directory with audio files.\n"
         )
 
 

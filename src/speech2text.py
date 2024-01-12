@@ -6,16 +6,20 @@ import time
 import warnings
 from collections import defaultdict
 from pathlib import Path
+from typing import Optional, Union
+from pydub import AudioSegment
 
+import faster_whisper
 import pandas as pd
-import whisper
+import torch
 from numba.core.errors import (NumbaDeprecationWarning,
                                NumbaPendingDeprecationWarning)
 from pyannote.audio import Pipeline
-from pydub import AudioSegment
 
 from submit import parse_output_dir
 from utils import seconds_to_human_readable_format
+
+import settings
 
 # https://numba.pydata.org/numba-doc/dev/reference/deprecation.html
 warnings.simplefilter("ignore", category=NumbaDeprecationWarning)
@@ -28,6 +32,7 @@ logging.basicConfig(
     handlers=[logging.StreamHandler()],
 )
 logger = logging.getLogger("__name__")
+logging.getLogger("faster_whisper").setLevel(logging.WARNING)
 
 
 def get_argument_parser():
@@ -45,12 +50,6 @@ def get_argument_parser():
         type=str,
         default=os.getenv("SPEECH2TEXT_TMP"),
         help="Temporary folder. If not given, should be set as an environment variable.",
-    )
-    parser.add_argument(
-        "--WHISPER_CACHE",
-        type=str,
-        default=os.getenv("WHISPER_CACHE"),
-        help="Whisper cache folder. If not given, should be set as an environment variable.",
     )
     parser.add_argument(
         "--AUTH_TOKEN",
@@ -74,28 +73,6 @@ def get_argument_parser():
     return parser
 
 
-def convert_to_wav(input_file, tmp_dir):
-    if str(input_file).lower().endswith(".wav"):
-        logger.info(f".. .. File is already in wav format: {input_file}")
-        return input_file
-
-    if not Path(input_file).is_file():
-        logger.info(f".. .. File does not exist: {input_file}")
-        return None
-
-    converted_file = Path(tmp_dir) / Path(Path(input_file).name).with_suffix(".wav")
-    if Path(converted_file).is_file():
-        logger.info(f".. .. Converted file {converted_file} already exists.")
-        return converted_file
-    try:
-        AudioSegment.from_file(input_file).export(converted_file, format="wav")
-        logger.info(f".. .. File converted to wav: {converted_file}")
-        return converted_file
-    except Exception as err:
-        logger.info(f".. .. Error while converting file: {err}")
-        return None
-
-
 def compute_overlap(start1, end1, start2, end2):
     if start1 > end1 or start2 > end2:
         raise ValueError("Start of segment can't be larger than its end.")
@@ -109,7 +86,7 @@ def compute_overlap(start1, end1, start2, end2):
     return abs(end_overlap - start_overlap)
 
 
-def align(transcription, diarization):
+def align(segments, diarization):
     """
     Align diarization with transcription.
 
@@ -139,8 +116,7 @@ def align(transcription, diarization):
     dict
     """
     transcription_segments = [
-        (segment["start"], segment["end"], segment["text"])
-        for segment in transcription["segments"]
+        (segment.start, segment.end, segment.text) for segment in segments
     ]
     diarization_segments = [
         (segment.start, segment.end, speaker)
@@ -187,7 +163,7 @@ def write_alignment_to_csv_file(alignment, output_file_stem):
 
 
 def write_alignment_to_txt_file(alignment, output_file_stem):
-    # group lines by speaker
+    # Group lines by speaker
     all_lines_grouped_by_speaker = []
     lines_speaker = []
     prev_speaker = None
@@ -210,11 +186,11 @@ def write_alignment_to_txt_file(alignment, output_file_stem):
         )
         prev_speaker = speaker
 
-    # append remainders
+    # Append remainders
     if lines_speaker:
         all_lines_grouped_by_speaker.append(lines_speaker)
 
-    # write out
+    # Write out
     lines_out = []
     for lines_speaker in all_lines_grouped_by_speaker:
         start = lines_speaker[0]["start"]  # first start time in group
@@ -235,22 +211,24 @@ def write_alignment_to_txt_file(alignment, output_file_stem):
     logger.info(f".. .. Wrote TXT output to: {output_file}")
 
 
-def load_whisper_model(download_root, language):
-    if language is None:
-        model_name = "large-v2"
-    elif language.lower() == "english":
-        # model_name = "medium.en"
-        model_name = "large-v2"
-    else:
-        model_name = "large-v2"
+def load_faster_whisper_model(
+    name: str = "large-v3",
+    device: Optional[Union[str, torch.device]] = None,
+):
+    if device is None:
+        device = "cuda" if torch.cuda.is_available() else "cpu"
 
-    logger.info(f".. .. Load model '{model_name}' from '{download_root}'")
-    model = whisper.load_model(model_name, download_root=download_root)
+    model = faster_whisper.WhisperModel(
+        name,
+        device=device,
+        cpu_threads=6,
+        compute_type="int8",
+    )
 
     return model
 
 
-def load_pipeline(config_file, auth_token):
+def load_diarization_pipeline(config_file, auth_token):
     """
     For more info on the config file, see 'Offline use' at:
     https://github.com/pyannote/pyannote-audio/blob/develop/tutorials/applying_a_pipeline.ipynb
@@ -262,7 +240,7 @@ def load_pipeline(config_file, auth_token):
     elif auth_token:
         logger.info(".. .. Environment variable AUTH_TOKEN found")
         pipeline = Pipeline.from_pretrained(
-            "pyannote/speaker-diarization",
+            "pyannote/speaker-diarization-3.1",
             use_auth_token=auth_token,
         )
     else:
@@ -285,6 +263,35 @@ def read_input_file_from_array_file(input_file, slurm_array_task_id):
     return new_input_file
 
 
+def convert_to_wav(input_file, tmp_dir):
+    """Pyannote diarization pipeline does handle resampling to ensure 16 kHz and
+    stereo/mono mixing. However, number of supported audio/video formats appears to be 
+    limited and not listed in README. To be sure, we convert all files to .wav beforehand.
+
+    https://huggingface.co/pyannote/speaker-diarization-3.1
+    """
+
+    if str(input_file).lower().endswith(".wav"):
+        logger.info(f".. .. File is already in wav format: {input_file}")
+        return input_file
+
+    if not Path(input_file).is_file():
+        logger.info(f".. .. File does not exist: {input_file}")
+        return None
+
+    converted_file = Path(tmp_dir) / Path(Path(input_file).name).with_suffix(".wav")
+    if Path(converted_file).is_file():
+        logger.info(f".. .. Converted file {converted_file} already exists.")
+        return converted_file
+    try:
+        AudioSegment.from_file(input_file).export(converted_file, format="wav")
+        logger.info(f".. .. File converted to wav: {converted_file}")
+        return converted_file
+    except Exception as err:
+        logger.info(f".. .. Error while converting file: {err}")
+        return None
+
+
 def main():
     parser = get_argument_parser()
     args = parser.parse_args()
@@ -296,39 +303,55 @@ def main():
         logger.error(f".. Given input file '{args.INPUT_FILE}' does not exist!")
         return
 
+    # Parse input file
     slurm_array_task_id = os.getenv("SLURM_ARRAY_TASK_ID")
     if Path(args.INPUT_FILE).suffix == ".json" and slurm_array_task_id is not None:
         args.INPUT_FILE = read_input_file_from_array_file(
             args.INPUT_FILE, slurm_array_task_id
         )
 
-    logger.info(f".. Convert input file to wav: {args.INPUT_FILE}")
+    # .wav conversion
+    logger.info(f".. Convert input file to wav format for pyannote diarization pipeline: {args.INPUT_FILE}")
+    t0 = time.time()
     input_file_wav = convert_to_wav(args.INPUT_FILE, args.SPEECH2TEXT_TMP)
     if input_file_wav is None:
         logger.error(f".. .. Input file could not be converted: {args.INPUT_FILE}")
         return
+    logger.info(f".. .. Wav conversion done in {time.time()-t0:.1f} seconds")
 
-    logger.info(".. Load models")
-    logging.info(args.PYANNOTE_CONFIG)
-    diarization_pipeline = load_pipeline(args.PYANNOTE_CONFIG, args.AUTH_TOKEN)
+    # Diarization
+    logger.info(".. Load diarization pipeline")
     t0 = time.time()
-    whisper_model = load_whisper_model(args.WHISPER_CACHE, args.SPEECH2TEXT_LANGUAGE)
-    logger.info(f".. .. Models loaded in {time.time()-t0:.1f} seconds")
-
-    logger.info(f".. Transcribe input file: {input_file_wav}")
-    t0 = time.time()
-    transcription = whisper_model.transcribe(
-        str(input_file_wav), language=args.SPEECH2TEXT_LANGUAGE
-    )
-    logger.info(f".. .. Transcription finished in {time.time()-t0:.1f} seconds")
+    diarization_pipeline = load_diarization_pipeline(args.PYANNOTE_CONFIG, args.AUTH_TOKEN)
+    logger.info(f".. .. Pipeline loaded in {time.time()-t0:.1f} seconds")
 
     logger.info(f".. Diarize input file: {input_file_wav}")
     t0 = time.time()
-    diarization = diarization_pipeline(str(input_file_wav))
+    diarization = diarization_pipeline(input_file_wav)
     logger.info(f".. .. Diarization finished in {time.time()-t0:.1f} seconds")
 
+    # Transcription
+    logger.info(".. Load faster_whisper model")
+    t0 = time.time()
+    faster_whisper_model = load_faster_whisper_model()
+    logger.info(f".. .. Model loaded in {time.time()-t0:.1f} seconds")
+
+    logger.info(f".. Transcribe input file: {args.INPUT_FILE}")
+    t0 = time.time()    
+    language = args.SPEECH2TEXT_LANGUAGE
+    if language and language.lower() in settings.supported_languages:
+        language = settings.supported_languages[language.lower()]
+    segments, info = faster_whisper_model.transcribe(
+        args.INPUT_FILE, language=language, beam_size=5
+    )
+    if language is None:
+        logger.info(f".. .. Automatically detected language '{settings.supported_languages_reverse[info.language]}' with probability {info.language_probability:.2f}")
+    segments = list(segments)
+    logger.info(f".. .. Transcription finished in {time.time()-t0:.1f} seconds")
+
+    # Alignment
     logger.info(".. Align transcription and diarization")
-    alignment = align(transcription, diarization)
+    alignment = align(segments, diarization)
 
     logger.info(f".. Write alignment to output")
     output_dir = parse_output_dir(args.INPUT_FILE)
@@ -336,6 +359,7 @@ def main():
     write_alignment_to_csv_file(alignment, output_file_stem)
     write_alignment_to_txt_file(alignment, output_file_stem)
 
+    # Clean up
     if input_file_wav != args.INPUT_FILE:
         logger.info(f".. Remove the converted wav file")
         Path(input_file_wav).unlink()
