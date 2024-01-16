@@ -1,5 +1,5 @@
 import numpy as np
-
+import subprocess
 
 def seconds_to_human_readable_format(seconds):
     """
@@ -33,3 +33,34 @@ def seconds_to_human_readable_format(seconds):
         hours += 1
 
     return f"{hours:02}:{minutes:02}:{seconds:02}"
+
+def get_audio_length(file: str) -> int:
+    """
+    Returns a length of an audio file in seconds.
+
+    Parameters
+    ----------
+    file: str
+        The audio file
+
+    Returns
+    -------
+    length: int
+        Audio duration in length
+    """
+    try:
+        cmd = [
+            "ffprobe",
+            "-v",
+            "quiet",
+            "-print_format",
+            "compact=print_section=0:nokey=1:escape=csv",
+            "-show_entries",
+            "format=duration",
+            file,
+        ]   
+        duration = subprocess.run(cmd, capture_output=True, check=True).stdout
+    except subprocess.CalledProcessError as e:
+        raise RuntimeError(f"Failed to get audio: {e.stderr.decode()} duration") from e
+    
+    return int(float(duration.decode()))
