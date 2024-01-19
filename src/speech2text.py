@@ -9,7 +9,8 @@ from pathlib import Path
 from typing import Optional, Union
 from pydub import AudioSegment
 
-import faster_whisper
+from whisperx import load_audio, load_model
+
 import pandas as pd
 import torch
 from numba.core.errors import (NumbaDeprecationWarning,
@@ -211,18 +212,18 @@ def write_alignment_to_txt_file(alignment, output_file_stem):
     logger.info(f".. .. Wrote TXT output to: {output_file}")
 
 
-def load_faster_whisper_model(
+def load_whisperx_model(
     name: str = "large-v3",
     device: Optional[Union[str, torch.device]] = None,
 ):
     if device is None:
         device = "cuda" if torch.cuda.is_available() else "cpu"
 
-    model = faster_whisper.WhisperModel(
+    model = load_model(
         name,
         device=device,
-        cpu_threads=6,
-        compute_type="int8",
+        threads=6,
+        compute_type="float16",
     )
 
     return model
@@ -313,11 +314,31 @@ def main():
     # .wav conversion
     logger.info(f".. Convert input file to wav format for pyannote diarization pipeline: {args.INPUT_FILE}")
     t0 = time.time()
-    input_file_wav = convert_to_wav(args.INPUT_FILE, args.SPEECH2TEXT_TMP)
-    if input_file_wav is None:
+    try:
+        input_file_wav = load_audio(args.INPUT_FILE)
+    except Exception as e:
         logger.error(f".. .. Input file could not be converted: {args.INPUT_FILE}")
-        return
+        raise(e)
+        
     logger.info(f".. .. Wav conversion done in {time.time()-t0:.1f} seconds")
+
+    # Transcription
+    logger.info(".. Load whisperX model")
+    t0 = time.time()
+    whisperX = load_whisperx_model()
+    logger.info(f".. .. Model loaded in {time.time()-t0:.1f} seconds")
+    
+    language = args.SPEECH2TEXT_LANGUAGE
+    if language and language.lower() in settings.supported_languages:
+        language = settings.supported_languages[language.lower()]
+    
+    logger.info(f".. Transcribe input file: {args.INPUT_FILE}")
+    t0 = time.time()    
+    segments, language = whisperX.transcribe(
+        args.INPUT_FILE, batch_size=32, language=language
+    )
+    logger.info(f".. .. Transcription finished in {time.time()-t0:.1f} seconds")
+    print(segments)
 
     # Diarization
     logger.info(".. Load diarization pipeline")
@@ -329,25 +350,6 @@ def main():
     t0 = time.time()
     diarization = diarization_pipeline(input_file_wav)
     logger.info(f".. .. Diarization finished in {time.time()-t0:.1f} seconds")
-
-    # Transcription
-    logger.info(".. Load faster_whisper model")
-    t0 = time.time()
-    faster_whisper_model = load_faster_whisper_model()
-    logger.info(f".. .. Model loaded in {time.time()-t0:.1f} seconds")
-
-    logger.info(f".. Transcribe input file: {args.INPUT_FILE}")
-    t0 = time.time()    
-    language = args.SPEECH2TEXT_LANGUAGE
-    if language and language.lower() in settings.supported_languages:
-        language = settings.supported_languages[language.lower()]
-    segments, info = faster_whisper_model.transcribe(
-        args.INPUT_FILE, language=language, beam_size=5
-    )
-    if language is None:
-        logger.info(f".. .. Automatically detected language '{settings.supported_languages_reverse[info.language]}' with probability {info.language_probability:.2f}")
-    segments = list(segments)
-    logger.info(f".. .. Transcription finished in {time.time()-t0:.1f} seconds")
 
     # Alignment
     logger.info(".. Align transcription and diarization")
