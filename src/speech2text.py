@@ -117,7 +117,7 @@ def align(segments, diarization):
     dict
     """
     transcription_segments = [
-        (segment.start, segment.end, segment.text) for segment in segments
+        (segment['start'], segment['end'], segment['text']) for segment in segments
     ]
     diarization_segments = [
         (segment.start, segment.end, speaker)
@@ -223,7 +223,7 @@ def load_whisperx_model(
         name,
         device=device,
         threads=6,
-        compute_type="float16",
+        compute_type="int8",
     )
 
     return model
@@ -336,7 +336,7 @@ def main():
     t0 = time.time()    
     segments, language = whisperX.transcribe(
         args.INPUT_FILE, batch_size=32, language=language
-    )
+    ).values()
     logger.info(f".. .. Transcription finished in {time.time()-t0:.1f} seconds")
     print(segments)
 
@@ -346,9 +346,9 @@ def main():
     diarization_pipeline = load_diarization_pipeline(args.PYANNOTE_CONFIG, args.AUTH_TOKEN)
     logger.info(f".. .. Pipeline loaded in {time.time()-t0:.1f} seconds")
 
-    logger.info(f".. Diarize input file: {input_file_wav}")
+    logger.info(f".. Diarize input file: {args.INPUT_FILE}")
     t0 = time.time()
-    diarization = diarization_pipeline(input_file_wav)
+    diarization = diarization_pipeline(args.INPUT_FILE)
     logger.info(f".. .. Diarization finished in {time.time()-t0:.1f} seconds")
 
     # Alignment
@@ -360,11 +360,6 @@ def main():
     output_file_stem = parse_output_file_stem(output_dir, args.INPUT_FILE)
     write_alignment_to_csv_file(alignment, output_file_stem)
     write_alignment_to_txt_file(alignment, output_file_stem)
-
-    # Clean up
-    if input_file_wav != args.INPUT_FILE:
-        logger.info(f".. Remove the converted wav file")
-        Path(input_file_wav).unlink()
 
     logger.info(f"Finished.")
 
