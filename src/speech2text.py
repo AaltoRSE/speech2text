@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Optional, Union
 from pydub import AudioSegment
 
+import numpy as np
 from whisperx import load_audio, load_model
 
 import pandas as pd
@@ -18,7 +19,7 @@ from numba.core.errors import (NumbaDeprecationWarning,
 from pyannote.audio import Pipeline
 
 from submit import parse_output_dir
-from utils import seconds_to_human_readable_format
+from utils import DiarizationPipeline, seconds_to_human_readable_format
 
 import settings
 
@@ -120,8 +121,8 @@ def align(segments, diarization):
         (segment['start'], segment['end'], segment['text']) for segment in segments
     ]
     diarization_segments = [
-        (segment.start, segment.end, speaker)
-        for segment, _, speaker in diarization.itertracks(yield_label=True)
+        (start, end, speaker)
+        for _, _, speaker, start, end in diarization.to_numpy()
     ]
     alignment = defaultdict(list)
     for transcription_start, transcription_end, text in transcription_segments:
@@ -338,12 +339,12 @@ def main():
         args.INPUT_FILE, batch_size=32, language=language
     ).values()
     logger.info(f".. .. Transcription finished in {time.time()-t0:.1f} seconds")
-    print(segments)
 
     # Diarization
     logger.info(".. Load diarization pipeline")
     t0 = time.time()
-    diarization_pipeline = load_diarization_pipeline(args.PYANNOTE_CONFIG, args.AUTH_TOKEN)
+    diarization_pipeline = DiarizationPipeline(config_file=args.PYANNOTE_CONFIG, 
+                                               auth_token=args.AUTH_TOKEN)
     logger.info(f".. .. Pipeline loaded in {time.time()-t0:.1f} seconds")
 
     logger.info(f".. Diarize input file: {args.INPUT_FILE}")
