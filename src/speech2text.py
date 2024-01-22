@@ -9,14 +9,19 @@ from pathlib import Path
 from typing import Optional, Union
 from pydub import AudioSegment
 
+import torch.multiprocessing as mp
+if __name__=='__main__':
+    mp.set_start_method('spawn')
+
 import numpy as np
 from whisperx import load_audio, load_model
+from whisperx.asr import WhisperModel
+from whisperx.types import TranscriptionResult
 
 import pandas as pd
 import torch
 from numba.core.errors import (NumbaDeprecationWarning,
                                NumbaPendingDeprecationWarning)
-from pyannote.audio import Pipeline
 
 from submit import parse_output_dir
 from utils import DiarizationPipeline, seconds_to_human_readable_format
@@ -224,34 +229,9 @@ def load_whisperx_model(
         name,
         device=device,
         threads=6,
-        compute_type="int8",
+        compute_type="float16",
     )
-
     return model
-
-
-def load_diarization_pipeline(config_file, auth_token):
-    """
-    For more info on the config file, see 'Offline use' at:
-    https://github.com/pyannote/pyannote-audio/blob/develop/tutorials/applying_a_pipeline.ipynb
-    """
-
-    if Path(config_file).is_file():
-        logger.info(".. .. Local config file found")
-        pipeline = Pipeline.from_pretrained(config_file)
-    elif auth_token:
-        logger.info(".. .. Environment variable AUTH_TOKEN found")
-        pipeline = Pipeline.from_pretrained(
-            "pyannote/speaker-diarization-3.1",
-            use_auth_token=auth_token,
-        )
-    else:
-        logger.error(
-            "One of these is required: local pyannote config file or environment variable AUTH_TOKEN to download model from HuggingFace hub"
-        )
-        raise ValueError
-
-    return pipeline
 
 
 def read_input_file_from_array_file(input_file, slurm_array_task_id):
@@ -265,33 +245,32 @@ def read_input_file_from_array_file(input_file, slurm_array_task_id):
     return new_input_file
 
 
-def convert_to_wav(input_file, tmp_dir):
-    """Pyannote diarization pipeline does handle resampling to ensure 16 kHz and
-    stereo/mono mixing. However, number of supported audio/video formats appears to be 
-    limited and not listed in README. To be sure, we convert all files to .wav beforehand.
+def transcribe(file: str, language: str, result_list) -> TranscriptionResult:
+    logger.info(".. Load whisperX model")
+    t0 = time.time()
+    model = load_whisperx_model()
+    logger.info(f".. .. Model loaded in {time.time()-t0:.1f} seconds")
 
-    https://huggingface.co/pyannote/speaker-diarization-3.1
-    """
+    logger.info(f".. Transcribe input file.")
+    t0 = time.time()    
+    segs, lang = model.transcribe(file, batch_size=32, language=language).values()
+    logger.info(f".. .. Transcription finished in {time.time()-t0:.1f} seconds")
+    result_list['segments'] = segs
 
-    if str(input_file).lower().endswith(".wav"):
-        logger.info(f".. .. File is already in wav format: {input_file}")
-        return input_file
 
-    if not Path(input_file).is_file():
-        logger.info(f".. .. File does not exist: {input_file}")
-        return None
+def diarization(file: str, config: str, token: str, result_list):
+    logger.info(".. Load diarization pipeline")
+    t0 = time.time()
+    diarization_pipeline = DiarizationPipeline(config_file=config, 
+                                               auth_token=token)
+    logger.info(f".. .. Pipeline loaded in {time.time()-t0:.1f} seconds")
 
-    converted_file = Path(tmp_dir) / Path(Path(input_file).name).with_suffix(".wav")
-    if Path(converted_file).is_file():
-        logger.info(f".. .. Converted file {converted_file} already exists.")
-        return converted_file
-    try:
-        AudioSegment.from_file(input_file).export(converted_file, format="wav")
-        logger.info(f".. .. File converted to wav: {converted_file}")
-        return converted_file
-    except Exception as err:
-        logger.info(f".. .. Error while converting file: {err}")
-        return None
+    logger.info(f".. Diarize input file: {file}")
+    t0 = time.time()
+    diarization = diarization_pipeline(file)
+    logger.info(f".. .. Diarization finished in {time.time()-t0:.1f} seconds")
+    
+    result_list['diarization'] = diarization
 
 
 def main():
@@ -322,39 +301,50 @@ def main():
         raise(e)
         
     logger.info(f".. .. Wav conversion done in {time.time()-t0:.1f} seconds")
-
-    # Transcription
-    logger.info(".. Load whisperX model")
-    t0 = time.time()
-    whisperX = load_whisperx_model()
-    logger.info(f".. .. Model loaded in {time.time()-t0:.1f} seconds")
     
     language = args.SPEECH2TEXT_LANGUAGE
     if language and language.lower() in settings.supported_languages:
         language = settings.supported_languages[language.lower()]
-    
-    logger.info(f".. Transcribe input file: {args.INPUT_FILE}")
-    t0 = time.time()    
-    segments, language = whisperX.transcribe(
-        args.INPUT_FILE, batch_size=32, language=language
-    ).values()
-    logger.info(f".. .. Transcription finished in {time.time()-t0:.1f} seconds")
+    """
+    logger.info(".. Experiment A")
+    ta = time.time()
+    model = load_whisperx_model()
 
-    # Diarization
-    logger.info(".. Load diarization pipeline")
-    t0 = time.time()
+    _, _ = model.transcribe(input_file_wav, batch_size=32, language=language).values()
+
     diarization_pipeline = DiarizationPipeline(config_file=args.PYANNOTE_CONFIG, 
                                                auth_token=args.AUTH_TOKEN)
-    logger.info(f".. .. Pipeline loaded in {time.time()-t0:.1f} seconds")
 
-    logger.info(f".. Diarize input file: {args.INPUT_FILE}")
-    t0 = time.time()
-    diarization = diarization_pipeline(args.INPUT_FILE)
-    logger.info(f".. .. Diarization finished in {time.time()-t0:.1f} seconds")
+    _ = diarization_pipeline(args.INPUT_FILE)
+    logger.info(f".. .. Experiment A finished in {time.time()-ta:.1f} seconds")
+    """
+    logger.info(".. Experiment b")
+    tb = time.time()
+    with mp.Manager() as manager:
+        shared_list = manager.dict()
+    # Create two processes for Task 1 and Task 2
+        process1 = mp.Process(target=transcribe, args=(input_file_wav, language, shared_list,))
+        process2 = mp.Process(target=diarization, args=(args.INPUT_FILE, args.PYANNOTE_CONFIG, args.AUTH_TOKEN, shared_list,))
 
+        # Start the processes
+        process1.start()
+        process2.start()
+
+        # Wait for both processes to finish
+        process1.join()
+        process2.join()
+
+        # Retrieve results from the queue
+        result_1 = shared_list['segments']
+        result_2 = shared_list['diarization']
+        print(type(result_1), type(result_2))
+    
+    logger.info(f".. .. Experiment B finished in {time.time()-tb:.1f} seconds")
+    segments = result_1
+    diarization_results = result_2
     # Alignment
     logger.info(".. Align transcription and diarization")
-    alignment = align(segments, diarization)
+    alignment = align(segments, diarization_results)
 
     logger.info(f".. Write alignment to output")
     output_dir = parse_output_dir(args.INPUT_FILE)
