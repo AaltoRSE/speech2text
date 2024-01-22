@@ -1,5 +1,14 @@
+import logging
 import numpy as np
+import pandas as pd
+import torch
 import subprocess
+from pathlib import Path
+from pyannote.audio import Pipeline
+from typing import Optional, Union
+from whisperx import load_audio
+
+logger = logging.getLogger("__name__")
 
 def seconds_to_human_readable_format(seconds):
     """
