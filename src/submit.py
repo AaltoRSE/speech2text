@@ -24,6 +24,7 @@ def get_argument_parser():
     parser.add_argument(
         "INPUT",
         type=str,
+        required=True,
         help="Input audio file or folder containing audio files. Mandatory.",
     )
     parser.add_argument(
