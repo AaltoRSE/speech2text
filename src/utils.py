@@ -1,3 +1,4 @@
+import re
 import logging
 import numpy as np
 import pandas as pd
@@ -6,7 +7,8 @@ import subprocess
 from pathlib import Path
 from pyannote.audio import Pipeline
 from typing import Optional, Union
-from whisperx import load_audio
+
+SAMPLE_RATE = 16000
 
 logger = logging.getLogger("__name__")
 
@@ -44,36 +46,58 @@ def seconds_to_human_readable_format(seconds):
     return f"{hours:02}:{minutes:02}:{seconds:02}"
 
 
-def get_audio_length(file: str) -> int:
+def load_audio(file: str, sr: int = SAMPLE_RATE):
     """
-    Returns a length of an audio file in seconds.
+    Open an audio file and read as mono waveform, resampling as necessary
 
     Parameters
     ----------
     file: str
-        The audio file
+        The audio file to open
+
+    sr: int
+        The sample rate to resample the audio if necessary
 
     Returns
     -------
-    length: int
-        Audio duration in length
+    Audio: NumPy Array 
+        Containing the audio waveform, in float32 dtype.
+    Duration: str
+        Audio Duration in HH:MM:SS
     """
     try:
+        # Launches a subprocess to decode audio while down-mixing and resampling as necessary.
+        # Requires the ffmpeg CLI to be installed.
         cmd = [
-            "ffprobe",
-            "-v",
-            "quiet",
-            "-print_format",
-            "compact=print_section=0:nokey=1:escape=csv",
-            "-show_entries",
-            "format=duration",
+            "ffmpeg",
+            "-nostdin",
+            "-threads",
+            "0",
+            "-i",
             file,
-        ]   
-        duration = subprocess.run(cmd, capture_output=True, check=True).stdout
+            "-f",
+            "s16le",
+            "-ac",
+            "1",
+            "-acodec",
+            "pcm_s16le",
+            "-ar",
+            str(sr),
+            "-",
+        ]
+        out = subprocess.run(cmd, capture_output=True, check=True)
     except subprocess.CalledProcessError as e:
-        raise RuntimeError(f"Failed to get audio: {e.stderr.decode()} duration") from e
+        raise RuntimeError(f"Failed to load audio: {e.stderr.decode()}") from e
     
-    return int(float(duration.decode()))
+    audio = np.frombuffer(out.stdout, np.int16).flatten().astype(np.float32) / 32768.0
+    
+    duration_pattern = re.compile(r'time=(\d{2}:\d{2}:\d{2})')
+    durations = duration_pattern.findall(str(out.stderr))
+
+    if durations:
+        return audio, durations[-1]
+    else:
+        raise RuntimeError(f"Failed to get audio duration from {file}")
 
 
 class DiarizationPipeline:
@@ -103,13 +127,14 @@ class DiarizationPipeline:
 
     def __call__(self, audio: Union[str, np.ndarray], num_speakers=None, min_speakers=None, max_speakers=None):
         if isinstance(audio, str):
-            audio = load_audio(audio)
+            audio, _ = load_audio(audio)
         audio_data = {
             'waveform': torch.from_numpy(audio[None, :]),
-            'sample_rate': 16000 
+            'sample_rate': SAMPLE_RATE 
         }
         segments = self.model(audio_data, num_speakers = num_speakers, min_speakers=min_speakers, max_speakers=max_speakers)
         diarize_df = pd.DataFrame(segments.itertracks(yield_label=True), columns=['segment', 'label', 'speaker'])
         diarize_df['start'] = diarize_df['segment'].apply(lambda x: x.start)
         diarize_df['end'] = diarize_df['segment'].apply(lambda x: x.end)
+        
         return diarize_df

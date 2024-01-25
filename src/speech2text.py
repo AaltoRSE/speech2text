@@ -12,8 +12,7 @@ from pydub import AudioSegment
 import torch.multiprocessing as mp
 
 import numpy as np
-from whisperx import load_audio, load_model
-from whisperx.asr import WhisperModel
+import whisperx
 from whisperx.types import TranscriptionResult
 
 import pandas as pd
@@ -22,7 +21,9 @@ from numba.core.errors import (NumbaDeprecationWarning,
                                NumbaPendingDeprecationWarning)
 
 from submit import parse_output_dir
-from utils import DiarizationPipeline, seconds_to_human_readable_format
+from utils import (DiarizationPipeline, 
+                   seconds_to_human_readable_format,
+                   load_audio)
 
 import settings
 
@@ -226,11 +227,13 @@ def load_whisperx_model(
     if device is None:
         device = "cuda" if torch.cuda.is_available() else "cpu"
 
-    model = load_model(
+    compute_type = "float16" if device=="cuda" else "int8"
+
+    model = whisperx.load_model(
         name,
         device=device,
         threads=6,
-        compute_type="float16",
+        compute_type=compute_type,
     )
     return model
 
@@ -249,7 +252,7 @@ def read_input_file_from_array_file(input_file, slurm_array_task_id):
 def transcribe(file: str, language: str, result_list) -> TranscriptionResult:
     
     model = load_whisperx_model()
-    segs, lang = model.transcribe(file, batch_size=32, language=language).values()
+    segs, _ = model.transcribe(file, batch_size=32, language=language).values()
     
     result_list['segments'] = segs
     result_list['transcribe_time'] = time.time()
@@ -287,7 +290,7 @@ def main():
     logger.info(f".. Convert input file to wav format for pyannote diarization pipeline: {args.INPUT_FILE}")
     t0 = time.time()
     try:
-        input_file_wav = load_audio(args.INPUT_FILE)
+        input_file_wav, _ = load_audio(args.INPUT_FILE)
     except Exception as e:
         logger.error(f".. .. Input file could not be converted: {args.INPUT_FILE}")
         raise(e)
@@ -302,7 +305,7 @@ def main():
         shared_dict = manager.dict()
 
         process1 = mp.Process(target=transcribe, args=(input_file_wav, language, shared_dict,))
-        process2 = mp.Process(target=diarization, args=(args.INPUT_FILE, args.PYANNOTE_CONFIG, args.AUTH_TOKEN, shared_dict,))
+        process2 = mp.Process(target=diarization, args=(input_file_wav, args.PYANNOTE_CONFIG, args.AUTH_TOKEN, shared_dict,))
         
         t0=time.time()
         logger.info(f".. Starting transcription task for {args.INPUT_FILE}")
