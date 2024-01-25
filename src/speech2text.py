@@ -23,7 +23,8 @@ from numba.core.errors import (NumbaDeprecationWarning,
 from submit import parse_output_dir
 from utils import (DiarizationPipeline, 
                    seconds_to_human_readable_format,
-                   load_audio)
+                   load_audio,
+                   calculate_max_batch_size)
 
 import settings
 
@@ -250,16 +251,20 @@ def read_input_file_from_array_file(input_file, slurm_array_task_id):
 
 
 def transcribe(file: str, language: str, result_list) -> TranscriptionResult:
-    
+    batch_size = calculate_max_batch_size()
     model = load_whisperx_model()
-    segs, _ = model.transcribe(file, batch_size=32, language=language).values()
+    try:
+        segs, _ = model.transcribe(file, batch_size=batch_size, language=language).values()
+    except torch.cuda.OutOfMemoryError:
+        logger.warning(f"Current CUDA device {torch.cuda.current_device()} doesn't have enough memory. Reducing batch_size {batch_size} by half.")
+        batch_size /= 2
+        segs, _ = model.transcribe(file, batch_size=batch_size, language=language).values()
     
     result_list['segments'] = segs
     result_list['transcribe_time'] = time.time()
 
 
 def diarization(file: str, config: str, token: str, result_list):
-
     diarization_pipeline = DiarizationPipeline(config_file=config, 
                                                auth_token=token)
     diarization = diarization_pipeline(file)

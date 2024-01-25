@@ -1,4 +1,5 @@
 import re
+import math
 import logging
 import numpy as np
 import pandas as pd
@@ -151,3 +152,23 @@ def add_durations(time1, time2):
     result_time_str = result_time.strftime(dt_format)
 
     return result_time_str
+
+
+def calculate_max_batch_size() -> int:
+    """
+    This function is experimental to maximize the batch size based on cuda available memory.
+    Based on multiple experiments, batch size of 4 requires 1GB of VRAM. WhisperX and Pyannote
+    models each require 3GB of VRAM.
+
+    Parameters
+    ----------
+
+    Returns
+    -------
+    batch_size:
+        Maximum batch_size for fitting in CUDA
+    """
+    total_gpu_vram = torch.cuda.get_device_properties(0).total_memory / 1024 / 1024 / 1024
+    batch_size = 4 * math.pow(2, math.floor(math.log2(total_gpu_vram)))
+
+    return int(batch_size)
