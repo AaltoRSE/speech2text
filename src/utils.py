@@ -157,8 +157,8 @@ def add_durations(time1, time2):
 def calculate_max_batch_size() -> int:
     """
     This function is experimental to maximize the batch size based on cuda available memory.
-    Based on multiple experiments, batch size of 4 requires 1GB of VRAM. WhisperX and Pyannote
-    models each require 3GB of VRAM.
+    Based on multiple experiments, batch size of 4 requires 1GB of VRAM with float16. WhisperX and Pyannote
+    models each require 3GB of VRAM. Float32 requires double memory for each batch.
 
     Parameters
     ----------
@@ -168,7 +168,10 @@ def calculate_max_batch_size() -> int:
     batch_size:
         Maximum batch_size for fitting in CUDA
     """
+    
     total_gpu_vram = torch.cuda.get_device_properties(0).total_memory / 1024 / 1024 / 1024
     batch_size = 4 * math.pow(2, math.floor(math.log2(total_gpu_vram)))
-
+    if torch.cuda.FloatTensor().dtype == torch.float32:
+        batch_size /=  4
+    
     return int(batch_size)

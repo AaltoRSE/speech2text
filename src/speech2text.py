@@ -2,6 +2,7 @@ import argparse
 import json
 import logging
 import os
+import gc
 import time
 import warnings
 from collections import defaultdict
@@ -229,13 +230,21 @@ def load_whisperx_model(
         device = "cuda" if torch.cuda.is_available() else "cpu"
 
     compute_type = "float16" if device=="cuda" else "int8"
-
-    model = whisperx.load_model(
-        name,
-        device=device,
-        threads=6,
-        compute_type=compute_type,
-    )
+    try:
+        model = whisperx.load_model(
+            name,
+            device=device,
+            threads=6,
+            compute_type=compute_type,
+        )
+    except ValueError:
+        compute_type="float32"
+        model = whisperx.load_model(
+            name,
+            device=device,
+            threads=6,
+            compute_type=compute_type,
+        )
     return model
 
 
@@ -255,10 +264,14 @@ def transcribe(file: str, language: str, result_list) -> TranscriptionResult:
     model = load_whisperx_model()
     try:
         segs, _ = model.transcribe(file, batch_size=batch_size, language=language).values()
-    except torch.cuda.OutOfMemoryError:
+    except RuntimeError:
         logger.warning(f"Current CUDA device {torch.cuda.current_device()} doesn't have enough memory. Reducing batch_size {batch_size} by half.")
+        
+        gc.collect()
+        torch.cuda.empty_cache()
+        
         batch_size /= 2
-        segs, _ = model.transcribe(file, batch_size=batch_size, language=language).values()
+        segs, _ = model.transcribe(file, batch_size=int(batch_size), language=language).values()
     
     result_list['segments'] = segs
     result_list['transcribe_time'] = time.time()
