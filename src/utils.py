@@ -7,6 +7,7 @@ import subprocess
 from pathlib import Path
 from pyannote.audio import Pipeline
 from typing import Optional, Union
+from datetime import datetime, timedelta
 
 SAMPLE_RATE = 16000
 
@@ -138,3 +139,15 @@ class DiarizationPipeline:
         diarize_df['end'] = diarize_df['segment'].apply(lambda x: x.end)
         
         return diarize_df
+    
+
+def add_durations(time1, time2):
+    dt_format = "%H:%M:%S"
+    time1_obj = datetime.strptime(time1, dt_format)
+    time2_obj = datetime.strptime(time2, dt_format)
+
+    result_time = time1_obj + timedelta(hours=time2_obj.hour, minutes=time2_obj.minute, seconds=time2_obj.second)
+
+    result_time_str = result_time.strftime(dt_format)
+
+    return result_time_str

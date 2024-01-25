@@ -318,7 +318,7 @@ def main():
         process2.join()
         
         logger.info(f".. .. Transcription finished in {shared_dict['transcribe_time']-t0:.1f} seconds")
-        logger.info(f".. .. Diarization finished in {shared_dict['transcribe_time']-t0:.1f} seconds")
+        logger.info(f".. .. Diarization finished in {shared_dict['diarize_time']-t0:.1f} seconds")
 
         segments = shared_dict['segments']
         diarization_results = shared_dict['diarization']
