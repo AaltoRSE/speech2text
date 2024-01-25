@@ -17,6 +17,10 @@ import time
 import settings
 from utils import load_audio, add_durations
 
+# This is the speedup to realtime for transcibing the audio file.
+# The real number is higher than 15, this is just to make sure the job has enough time to complete.
+REALTIME_SPEEDUP = 15
+
 def get_argument_parser():
     parser = argparse.ArgumentParser(
         prog="Aalto speech2text submit script",
@@ -131,7 +135,7 @@ def estimate_job_time(input_path: str) -> str:
         Total estimate time in HH:MM:SS format.
     """
     #Loading time for whisper + diarization pipeline
-    PIPELINE_LOADING_TIME="00:02:00" 
+    PIPELINE_LOADING_TIME="00:05:00" 
     #Loading a 60 minute audio file takes ~5 seconds. This is an upper limit (equevalant for
     #loading a 24h file) to insure sufficient time.
     AUDIO_LOADING_TIME="00:01:00"   
@@ -150,7 +154,7 @@ def estimate_job_time(input_path: str) -> str:
 
         hours, minutes, seconds = map(int, duration.split(':'))
         total_seconds = hours * 3600 + minutes * 60 + seconds
-        result_seconds = total_seconds / 20
+        result_seconds = total_seconds / REALTIME_SPEEDUP
 
         if result_seconds < 60:
             result_seconds = 60 
