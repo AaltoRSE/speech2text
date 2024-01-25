@@ -10,8 +10,6 @@ from typing import Optional, Union
 from pydub import AudioSegment
 
 import torch.multiprocessing as mp
-if __name__=='__main__':
-    mp.set_start_method('spawn')
 
 import numpy as np
 from whisperx import load_audio, load_model
@@ -41,6 +39,9 @@ logging.basicConfig(
 logger = logging.getLogger("__name__")
 logging.getLogger("faster_whisper").setLevel(logging.WARNING)
 
+# Sharing CUDA tensors between prcoesses requires a spawn or forkserver start method
+if __name__=='__main__':
+    mp.set_start_method('spawn')
 
 def get_argument_parser():
     parser = argparse.ArgumentParser(
@@ -246,31 +247,22 @@ def read_input_file_from_array_file(input_file, slurm_array_task_id):
 
 
 def transcribe(file: str, language: str, result_list) -> TranscriptionResult:
-    logger.info(".. Load whisperX model")
-    t0 = time.time()
+    
     model = load_whisperx_model()
-    logger.info(f".. .. Model loaded in {time.time()-t0:.1f} seconds")
-
-    logger.info(f".. Transcribe input file.")
-    t0 = time.time()    
     segs, lang = model.transcribe(file, batch_size=32, language=language).values()
-    logger.info(f".. .. Transcription finished in {time.time()-t0:.1f} seconds")
+    
     result_list['segments'] = segs
+    result_list['transcribe_time'] = time.time()
 
 
 def diarization(file: str, config: str, token: str, result_list):
-    logger.info(".. Load diarization pipeline")
-    t0 = time.time()
+
     diarization_pipeline = DiarizationPipeline(config_file=config, 
                                                auth_token=token)
-    logger.info(f".. .. Pipeline loaded in {time.time()-t0:.1f} seconds")
-
-    logger.info(f".. Diarize input file: {file}")
-    t0 = time.time()
     diarization = diarization_pipeline(file)
-    logger.info(f".. .. Diarization finished in {time.time()-t0:.1f} seconds")
     
     result_list['diarization'] = diarization
+    result_list['diarize_time'] = time.time()
 
 
 def main():
@@ -305,43 +297,29 @@ def main():
     language = args.SPEECH2TEXT_LANGUAGE
     if language and language.lower() in settings.supported_languages:
         language = settings.supported_languages[language.lower()]
-    """
-    logger.info(".. Experiment A")
-    ta = time.time()
-    model = load_whisperx_model()
 
-    _, _ = model.transcribe(input_file_wav, batch_size=32, language=language).values()
-
-    diarization_pipeline = DiarizationPipeline(config_file=args.PYANNOTE_CONFIG, 
-                                               auth_token=args.AUTH_TOKEN)
-
-    _ = diarization_pipeline(args.INPUT_FILE)
-    logger.info(f".. .. Experiment A finished in {time.time()-ta:.1f} seconds")
-    """
-    logger.info(".. Experiment b")
-    tb = time.time()
     with mp.Manager() as manager:
-        shared_list = manager.dict()
-    # Create two processes for Task 1 and Task 2
-        process1 = mp.Process(target=transcribe, args=(input_file_wav, language, shared_list,))
-        process2 = mp.Process(target=diarization, args=(args.INPUT_FILE, args.PYANNOTE_CONFIG, args.AUTH_TOKEN, shared_list,))
+        shared_dict = manager.dict()
 
-        # Start the processes
+        process1 = mp.Process(target=transcribe, args=(input_file_wav, language, shared_dict,))
+        process2 = mp.Process(target=diarization, args=(args.INPUT_FILE, args.PYANNOTE_CONFIG, args.AUTH_TOKEN, shared_dict,))
+        
+        t0=time.time()
+        logger.info(f".. Starting transcription task for {args.INPUT_FILE}")
         process1.start()
+
+        logger.info(f".. Starting diarization task for {args.INPUT_FILE}")
         process2.start()
 
-        # Wait for both processes to finish
         process1.join()
         process2.join()
+        
+        logger.info(f".. .. Transcription finished in {shared_dict['transcribe_time']-t0:.1f} seconds")
+        logger.info(f".. .. Diarization finished in {shared_dict['transcribe_time']-t0:.1f} seconds")
 
-        # Retrieve results from the queue
-        result_1 = shared_list['segments']
-        result_2 = shared_list['diarization']
-        print(type(result_1), type(result_2))
+        segments = shared_dict['segments']
+        diarization_results = shared_dict['diarization']
     
-    logger.info(f".. .. Experiment B finished in {time.time()-tb:.1f} seconds")
-    segments = result_1
-    diarization_results = result_2
     # Alignment
     logger.info(".. Align transcription and diarization")
     alignment = align(segments, diarization_results)
