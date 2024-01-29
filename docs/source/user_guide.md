@@ -59,8 +59,6 @@ Go to [Open On Demand](http://ood.triton.aalto.fi) and log in with your Aalto us
 
 ## Copy your data to Triton
 
-> **_NOTE:_**  If you are familiar with Triton usage, feel free to use any of the available approaches [to connect to Triton](https://scicomp.aalto.fi/triton/ref/#connecting) and [to transfer you data](https://scicomp.aalto.fi/triton/tut/remotedata/) and skip directly to next section.
-
 On the Open On Demand front page, click the `Files` dropdown menu from the left upper corner and select `Work /scratch/work/yourusername`.
 
 ![](images/files_workspace.png)
@@ -158,7 +156,7 @@ These variables are valid until the end of current terminal session.
 >```bash
 >unset SPEECH2TEXT_EMAIL
 >```
-> This is equal to not running the `export EMAIL=my.name@aalto.fi command` command in the first place. However, receiving the notifications is recommended.
+> This is equal to not running the `export EMAIL=my.name@aalto.fi` command in the first place. However, receiving the notifications is recommended.
 
 Finally, submit all the audio files in your folder to the Triton job queue (remember to replace `my-audio-folder` with the name of the folder you just uploaded) with
 ```
@@ -205,7 +203,7 @@ slurm queue
 ```
 which tells you for each job ID if the job is still in the queue waiting for resources (_PENDING_) or already running (_RUNNING_).
 
->**_NOTE:_** As a rule of thumb, the results will be ready at the next day latest. However, if you receive an email saying the processing has failed or have not received any emails within, say, an hour of running the speech2text command, something has gone wrong. In this case, visit RSEs at [the daily Zoom help session at 13.00-14.00](https://scicomp.aalto.fi/help/garage/#id1) and we will figure it out.
+>**_NOTE:_** As a rule of thumb, you can expected to results to be ready within an hour. However, if you receive an email saying the processing has failed or have not received any emails within an hour of running the speech2text command, something has gone wrong. In this case, visit RSEs at [the daily Zoom help session at 13.00-14.00](https://scicomp.aalto.fi/help/garage/#id1) and we will figure it out.
 
 If you have no more work to submit at this time, you are free to close the terminal window and log out from Open On Demand. If the browser asks for confirmation (`This page is asking you to confirm that you want to leave — information you’ve entered may not be saved.`), you can answer "yes".
 
@@ -297,15 +295,7 @@ If you do not need your audio and/or result files and/or folders, you can remove
 ### My transcription has a weird segment where a word or two are repeated over and over.
 
 This is a quite known issue with the OpenAI Whisper speech recognition model. This behavior is sometimes triggered 
-by bad audio quality during that segment (background noise, mic issues, people talking over each other). However, sometimes this seems to happen even with good audio quality. Unfortunately, there is nothing we can do about this at the moment: you have to go through that particular audio segment and transcribe it manually.
-
-### My speech2text process ran over night and I got noted that the job failed due to time limit.
-
-The run time of speech2text on a single audio file is limited to 24 hours by default. If you have very large audio files (several hours), you can try setting the maximum run time to a larger value, e.g. 72 hours, with 
-```
-export SPEECH2TEXT_TIME=72:00:00
-```
-Run the speech2text on your file/folder again normally according to the guide [above](#run-speech2text-on-triton). 
+by bad audio quality during that segment (background noise, mic issues, people talking over each other). However, sometimes this seems to happen even with good audio quality. Unfortunately, there is nothing we can do about this at the moment: you have to go through that particular audio segment and transcribe it manually. 
 
 ### I accidentally closed the browser tab/window when speech2text was still running.
 

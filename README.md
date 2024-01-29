@@ -1,6 +1,6 @@
 # speech2text
 
-This repo contains instructions for setting up and applying the speech2text app on Aalto Triton cluster. The app utilizes [Faster Whisper](https://github.com/SYSTRAN/faster-whisper) automatic speech recognition tool and [Pyannote](https://huggingface.co/pyannote/speaker-diarization) speaker detection (diarization) pipeline. The speech recognition and diarization steps are run sequentially (and independently) and their result segments are combined (aligned) using a simple algorithm which for each transcription segment finds the most overlapping (in time) speaker segment.
+This repo contains instructions for setting up and applying the speech2text app on Aalto Triton cluster. The app utilizes [WhisperX](https://github.com/m-bain/whisperX) automatic speech recognition tool and [Pyannote](https://huggingface.co/pyannote/speaker-diarization) speaker detection (diarization) pipeline. The speech recognition and diarization steps are run independently and their result segments are combined (aligned) using a simple algorithm which for each transcription segment finds the most overlapping (in time) speaker segment.
 
 The required models are described [here](#models). 
 
@@ -142,7 +142,6 @@ MPLCONFIGDIR
 SPEECH2TEXT_TMP
 SPEECH2TEXT_MEM
 SPEECH2TEXT_CPUS_PER_TASK
-SPEECH2TEXT_TIME
 ```
 
 Note that you can leave the language variable unspecified, in which case speech2text tries to detect the language automatically. Specifying the language explicitly is, however, recommended.
@@ -258,14 +257,6 @@ The documentation can be found in `docs/build/`. A good place to start is the in
 
 
 ## Known Issues
-
-### Inference using CPUs versus GPUs
-
-The recommended way to do inference with Whisper is to use GPUs. However, on Triton, we have to make a compromise between GPU queues and inference efficiency. All the scripts use CPUs by default.
-
-### Increasing the number of CPUs for inference
-
-There is a plateauing problem with running Whisper inference with multiple CPUs (not GPUs). Increasing the number of CPUs speeds up inference until around 8 CPUs but plateaus and begins to slow down after 16. See related discussion where same behavior has been observed: [https://github.com/ggerganov/whisper.cpp/issues/200](https://github.com/ggerganov/whisper.cpp/issues/200) Therefore, in all the scripts, the number of CPUs is set to 8 by default.
 
 ### Audio files with more than one language
 
