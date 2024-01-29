@@ -17,7 +17,7 @@ import time
 import settings
 from utils import load_audio, add_durations
 
-# This is the speedup to realtime for transcibing the audio file.
+# This is the speedup to realtime for transcribing the audio file.
 # The real number is higher than 15, this is just to make sure the job has enough time to complete.
 REALTIME_SPEEDUP = 15
 
@@ -134,10 +134,10 @@ def estimate_job_time(input_path: str) -> str:
     Duration: str
         Total estimate time in HH:MM:SS format.
     """
-    #Loading time for whisper + diarization pipeline
+    # Loading time for whisper + diarization pipeline
     PIPELINE_LOADING_TIME="00:05:00" 
-    #Loading a 60 minute audio file takes ~5 seconds. This is an upper limit (equevalant for
-    #loading a 24h file) to insure sufficient time.
+    # Loading a 60 minute audio file takes ~5 seconds. This is an upper limit (equivalent to
+    # loading a 24h file) to ensure sufficient time.
     AUDIO_LOADING_TIME="00:01:00"   
 
     total_duration = "00:00:00"
