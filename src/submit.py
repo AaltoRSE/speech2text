@@ -11,7 +11,7 @@ import json
 import os
 import shlex
 import subprocess
-from pathlib import Path
+from pathlib import Path, PosixPath
 import time
 
 import settings
@@ -120,13 +120,13 @@ def create_array_input_file(input_dir, output_dir, job_name, tmp_dir):
     return tmp_file_array
 
 
-def estimate_job_time(input_path: str) -> str:
+def estimate_job_time(input_path: PosixPath) -> str:
     """
     Estimate total run time based on input file/folder
 
     Parameters
     ----------
-    input_path: str
+    input_path: PosixPath
         Input audio file or folder containing audio files.
 
     Returns
@@ -143,11 +143,12 @@ def estimate_job_time(input_path: str) -> str:
     total_duration = "00:00:00"
     total_loading = "00:00:00"
 
+    input_files=[]
     if Path(input_path).suffix == ".json":
         with open(input_path, "r") as fin:
             input_files = json.load(fin)
     else:
-        input_files=input_path
+        input_files.append(str(input_path))
         
     for audio_file in input_files:
         _, duration = load_audio(audio_file)
