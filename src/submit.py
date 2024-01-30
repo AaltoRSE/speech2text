@@ -195,6 +195,7 @@ def create_sbatch_script_for_array_job(
 #SBATCH --mail-type=BEGIN
 #SBATCH --mail-type=END
 #SBATCH --mail-type=FAIL
+export OMP_NUM_THREADS={cpus_per_task}
 python3 {python_source_dir}/speech2text.py {input_file}
 """
     tmp_file_sh = (Path(tmp_dir) / str(job_name)).with_suffix(".sh")
