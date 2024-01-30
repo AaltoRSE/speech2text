@@ -1,33 +1,28 @@
 import argparse
+import gc
 import json
 import logging
 import os
-import gc
 import time
 import warnings
 from collections import defaultdict
 from pathlib import Path
 from typing import Optional, Union
-from pydub import AudioSegment
-
-import torch.multiprocessing as mp
 
 import numpy as np
-import whisperx
-from whisperx.types import TranscriptionResult
-
 import pandas as pd
 import torch
+import torch.multiprocessing as mp
+import whisperx
 from numba.core.errors import (NumbaDeprecationWarning,
                                NumbaPendingDeprecationWarning)
-
-from submit import parse_output_dir
-from utils import (DiarizationPipeline, 
-                   seconds_to_human_readable_format,
-                   load_audio,
-                   calculate_max_batch_size)
+from pydub import AudioSegment
+from whisperx.types import TranscriptionResult
 
 import settings
+from submit import parse_output_dir
+from utils import (DiarizationPipeline, calculate_max_batch_size, load_audio,
+                   seconds_to_human_readable_format)
 
 # https://numba.pydata.org/numba-doc/dev/reference/deprecation.html
 warnings.simplefilter("ignore", category=NumbaDeprecationWarning)
@@ -43,8 +38,9 @@ logger = logging.getLogger("__name__")
 logging.getLogger("faster_whisper").setLevel(logging.WARNING)
 
 # Sharing CUDA tensors between prcoesses requires a spawn or forkserver start method
-if __name__=='__main__':
-    mp.set_start_method('spawn')
+if __name__ == "__main__":
+    mp.set_start_method("spawn")
+
 
 def get_argument_parser():
     parser = argparse.ArgumentParser(
@@ -127,11 +123,10 @@ def align(segments, diarization):
     dict
     """
     transcription_segments = [
-        (segment['start'], segment['end'], segment['text']) for segment in segments
+        (segment["start"], segment["end"], segment["text"]) for segment in segments
     ]
     diarization_segments = [
-        (start, end, speaker)
-        for _, _, speaker, start, end in diarization.to_numpy()
+        (start, end, speaker) for _, _, speaker, start, end in diarization.to_numpy()
     ]
     alignment = defaultdict(list)
     for transcription_start, transcription_end, text in transcription_segments:
@@ -229,7 +224,7 @@ def load_whisperx_model(
     if device is None:
         device = "cuda" if torch.cuda.is_available() else "cpu"
 
-    compute_type = "float16" if device=="cuda" else "int8"
+    compute_type = "float16" if device == "cuda" else "int8"
     try:
         model = whisperx.load_model(
             name,
@@ -238,7 +233,7 @@ def load_whisperx_model(
             compute_type=compute_type,
         )
     except ValueError:
-        compute_type="float32"
+        compute_type = "float32"
         model = whisperx.load_model(
             name,
             device=device,
@@ -263,27 +258,32 @@ def transcribe(file: str, language: str, result_list) -> TranscriptionResult:
     batch_size = calculate_max_batch_size()
     model = load_whisperx_model()
     try:
-        segs, _ = model.transcribe(file, batch_size=batch_size, language=language).values()
+        segs, _ = model.transcribe(
+            file, batch_size=batch_size, language=language
+        ).values()
     except RuntimeError:
-        logger.warning(f"Current CUDA device {torch.cuda.current_device()} doesn't have enough memory. Reducing batch_size {batch_size} by half.")
-        
+        logger.warning(
+            f"Current CUDA device {torch.cuda.current_device()} doesn't have enough memory. Reducing batch_size {batch_size} by half."
+        )
+
         gc.collect()
         torch.cuda.empty_cache()
-        
+
         batch_size /= 2
-        segs, _ = model.transcribe(file, batch_size=int(batch_size), language=language).values()
-    
-    result_list['segments'] = segs
-    result_list['transcribe_time'] = time.time()
+        segs, _ = model.transcribe(
+            file, batch_size=int(batch_size), language=language
+        ).values()
+
+    result_list["segments"] = segs
+    result_list["transcribe_time"] = time.time()
 
 
 def diarization(file: str, config: str, token: str, result_list):
-    diarization_pipeline = DiarizationPipeline(config_file=config, 
-                                               auth_token=token)
+    diarization_pipeline = DiarizationPipeline(config_file=config, auth_token=token)
     diarization = diarization_pipeline(file)
-    
-    result_list['diarization'] = diarization
-    result_list['diarize_time'] = time.time()
+
+    result_list["diarization"] = diarization
+    result_list["diarize_time"] = time.time()
 
 
 def main():
@@ -305,16 +305,18 @@ def main():
         )
 
     # .wav conversion
-    logger.info(f".. Convert input file to wav format for pyannote diarization pipeline: {args.INPUT_FILE}")
+    logger.info(
+        f".. Convert input file to wav format for pyannote diarization pipeline: {args.INPUT_FILE}"
+    )
     t0 = time.time()
     try:
         input_file_wav, _ = load_audio(args.INPUT_FILE)
     except Exception as e:
         logger.error(f".. .. Input file could not be converted: {args.INPUT_FILE}")
-        raise(e)
-        
+        raise (e)
+
     logger.info(f".. .. Wav conversion done in {time.time()-t0:.1f} seconds")
-    
+
     language = args.SPEECH2TEXT_LANGUAGE
     if language and language.lower() in settings.supported_languages:
         language = settings.supported_languages[language.lower()]
@@ -322,10 +324,25 @@ def main():
     with mp.Manager() as manager:
         shared_dict = manager.dict()
 
-        process1 = mp.Process(target=transcribe, args=(input_file_wav, language, shared_dict,))
-        process2 = mp.Process(target=diarization, args=(input_file_wav, args.PYANNOTE_CONFIG, args.AUTH_TOKEN, shared_dict,))
-        
-        t0=time.time()
+        process1 = mp.Process(
+            target=transcribe,
+            args=(
+                input_file_wav,
+                language,
+                shared_dict,
+            ),
+        )
+        process2 = mp.Process(
+            target=diarization,
+            args=(
+                input_file_wav,
+                args.PYANNOTE_CONFIG,
+                args.AUTH_TOKEN,
+                shared_dict,
+            ),
+        )
+
+        t0 = time.time()
         logger.info(f".. Starting transcription task for {args.INPUT_FILE}")
         process1.start()
 
@@ -334,13 +351,17 @@ def main():
 
         process1.join()
         process2.join()
-        
-        logger.info(f".. .. Transcription finished in {shared_dict['transcribe_time']-t0:.1f} seconds")
-        logger.info(f".. .. Diarization finished in {shared_dict['diarize_time']-t0:.1f} seconds")
 
-        segments = shared_dict['segments']
-        diarization_results = shared_dict['diarization']
-    
+        logger.info(
+            f".. .. Transcription finished in {shared_dict['transcribe_time']-t0:.1f} seconds"
+        )
+        logger.info(
+            f".. .. Diarization finished in {shared_dict['diarize_time']-t0:.1f} seconds"
+        )
+
+        segments = shared_dict["segments"]
+        diarization_results = shared_dict["diarization"]
+
     # Alignment
     logger.info(".. Align transcription and diarization")
     alignment = align(segments, diarization_results)

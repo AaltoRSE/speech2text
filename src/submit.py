@@ -11,15 +11,16 @@ import json
 import os
 import shlex
 import subprocess
-from pathlib import Path, PosixPath
 import time
+from pathlib import Path, PosixPath
 
 import settings
-from utils import load_audio, add_durations
+from utils import add_durations, load_audio
 
 # This is the speedup to realtime for transcribing the audio file.
 # The real number is higher than 15, this is just to make sure the job has enough time to complete.
 REALTIME_SPEEDUP = 15
+
 
 def get_argument_parser():
     parser = argparse.ArgumentParser(
@@ -135,35 +136,37 @@ def estimate_job_time(input_path: PosixPath) -> str:
         Total estimate time in HH:MM:SS format.
     """
     # Loading time for whisper + diarization pipeline
-    PIPELINE_LOADING_TIME="00:05:00" 
+    PIPELINE_LOADING_TIME = "00:05:00"
     # Loading a 60 minute audio file takes ~5 seconds. This is an upper limit (equivalent to
     # loading a 24h file) to ensure sufficient time.
-    AUDIO_LOADING_TIME="00:01:00"   
+    AUDIO_LOADING_TIME = "00:01:00"
 
     total_duration = "00:00:00"
     total_loading = "00:00:00"
 
-    input_files=[]
+    input_files = []
     if Path(input_path).suffix == ".json":
         with open(input_path, "r") as fin:
             input_files = json.load(fin)
     else:
         input_files.append(str(input_path))
-        
+
     for audio_file in input_files:
         _, duration = load_audio(audio_file)
 
-        hours, minutes, seconds = map(int, duration.split(':'))
+        hours, minutes, seconds = map(int, duration.split(":"))
         total_seconds = hours * 3600 + minutes * 60 + seconds
         result_seconds = total_seconds / REALTIME_SPEEDUP
 
         if result_seconds < 60:
-            result_seconds = 60 
+            result_seconds = 60
 
         result_hours, remainder = divmod(result_seconds, 3600)
         result_minutes, result_seconds = divmod(remainder, 60)
 
-        duration = "{:02}:{:02}:{:02}".format(int(result_hours), int(result_minutes), int(result_seconds))
+        duration = "{:02}:{:02}:{:02}".format(
+            int(result_hours), int(result_minutes), int(result_seconds)
+        )
 
         total_duration = add_durations(total_duration, duration)
         total_loading = add_durations(total_loading, AUDIO_LOADING_TIME)
@@ -213,7 +216,7 @@ def submit_dir(args, job_name):
             f"Submission not necessary since no files in {args.INPUT} need processing\n"
         )
         return
-    
+
     estimated_time = estimate_job_time(tmp_file_array)
     tmp_file_sh = create_sbatch_script_for_array_job(
         tmp_file_array,
