@@ -77,12 +77,6 @@ do
      esac                                       
 done
 
-# Set env variables
-export OMP_NUM_THREADS=$SPEECH2TEXT_CPUS_PER_TASK
-export OMP_PROC_BIND=true
-export KMP_AFFINITY=granularity=fine,compact,1,0
-export KMP_AFFINITY=granularity=fine,compact,1,0
-
 # Folder in which this script is located
 # https://stackoverflow.com/questions/39340169/dir-cd-dirname-bash-source0-pwd-how-does-that-work
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
