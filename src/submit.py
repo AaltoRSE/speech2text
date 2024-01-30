@@ -11,9 +11,15 @@ import json
 import os
 import shlex
 import subprocess
-from pathlib import Path
+import time
+from pathlib import Path, PosixPath
 
 import settings
+from utils import add_durations, load_audio
+
+# This is the speedup to realtime for transcribing the audio file.
+# The real number is higher than 15, this is just to make sure the job has enough time to complete.
+REALTIME_SPEEDUP = 15
 
 
 def get_argument_parser():
@@ -43,12 +49,6 @@ def get_argument_parser():
         type=str,
         default=os.getenv("SPEECH2TEXT_CPUS_PER_TASK"),
         help="Requested cpus per task. If not given, should be set as an environment variable.",
-    )
-    parser.add_argument(
-        "--SPEECH2TEXT_TIME",
-        type=str,
-        default=os.getenv("SPEECH2TEXT_TIME"),
-        help="Requested time per job. If not given, should be set as an environment variable.",
     )
     parser.add_argument(
         "--SPEECH2TEXT_EMAIL",
@@ -121,6 +121,60 @@ def create_array_input_file(input_dir, output_dir, job_name, tmp_dir):
     return tmp_file_array
 
 
+def estimate_job_time(input_path: PosixPath) -> str:
+    """
+    Estimate total run time based on input file/folder
+
+    Parameters
+    ----------
+    input_path: PosixPath
+        Input audio file or folder containing audio files.
+
+    Returns
+    -------
+    Duration: str
+        Total estimate time in HH:MM:SS format.
+    """
+    # Loading time for whisper + diarization pipeline
+    PIPELINE_LOADING_TIME = "00:05:00"
+    # Loading a 60 minute audio file takes ~5 seconds. This is an upper limit (equivalent to
+    # loading a 24h file) to ensure sufficient time.
+    AUDIO_LOADING_TIME = "00:01:00"
+
+    total_duration = "00:00:00"
+    total_loading = "00:00:00"
+
+    input_files = []
+    if Path(input_path).suffix == ".json":
+        with open(input_path, "r") as fin:
+            input_files = json.load(fin)
+    else:
+        input_files.append(str(input_path))
+
+    for audio_file in input_files:
+        _, duration = load_audio(audio_file)
+
+        hours, minutes, seconds = map(int, duration.split(":"))
+        total_seconds = hours * 3600 + minutes * 60 + seconds
+        result_seconds = total_seconds / REALTIME_SPEEDUP
+
+        if result_seconds < 60:
+            result_seconds = 60
+
+        result_hours, remainder = divmod(result_seconds, 3600)
+        result_minutes, result_seconds = divmod(remainder, 60)
+
+        duration = "{:02}:{:02}:{:02}".format(
+            int(result_hours), int(result_minutes), int(result_seconds)
+        )
+
+        total_duration = add_durations(total_duration, duration)
+        total_loading = add_durations(total_loading, AUDIO_LOADING_TIME)
+
+    audio_processing_time = add_durations(total_duration, total_loading)
+    return add_durations(PIPELINE_LOADING_TIME, audio_processing_time)
+
+
 def create_sbatch_script_for_array_job(
     input_file, job_name, mem, cpus_per_task, time, email, tmp_dir
 ):
@@ -135,6 +189,7 @@ def create_sbatch_script_for_array_job(
 #SBATCH --job-name={job_name}
 #SBATCH --mem={mem} 
 #SBATCH --cpus-per-task={cpus_per_task}
+#SBATCH --gres=gpu:1
 #SBATCH --time={time}
 #SBATCH --mail-user={email}
 #SBATCH --mail-type=BEGIN
@@ -161,12 +216,14 @@ def submit_dir(args, job_name):
             f"Submission not necessary since no files in {args.INPUT} need processing\n"
         )
         return
+
+    estimated_time = estimate_job_time(tmp_file_array)
     tmp_file_sh = create_sbatch_script_for_array_job(
         tmp_file_array,
         job_name,
         args.SPEECH2TEXT_MEM,
         args.SPEECH2TEXT_CPUS_PER_TASK,
-        args.SPEECH2TEXT_TIME,
+        estimated_time,
         args.SPEECH2TEXT_EMAIL,
         args.SPEECH2TEXT_TMP,
     )
@@ -175,10 +232,6 @@ def submit_dir(args, job_name):
     cmd = f"sbatch {tmp_file_sh.absolute()}"
     cmd = shlex.split(cmd)
     subprocess.run(cmd)
-
-    # Clean up
-    # Path(tmp_file_array).unlink()
-    # Path(tmp_file_sh).unlink()
 
 
 def create_sbatch_script_for_single_file(
@@ -191,6 +244,7 @@ def create_sbatch_script_for_single_file(
 #SBATCH --output="{tmp_dir}/{job_name}_%j.out"
 #SBATCH --mem={mem} 
 #SBATCH --cpus-per-task={cpus_per_task}
+#SBATCH --gres=gpu:1
 #SBATCH --time={time}
 #SBATCH --mail-user={email}
 #SBATCH --mail-type=BEGIN
@@ -220,13 +274,13 @@ def submit_file(args, job_name):
             f"Submission not necessary as expected result files already exist:\n{' '.join([str(f) for f in existing_result_files])}"
         )
         return
-
+    estimated_time = estimate_job_time(args.INPUT)
     tmp_file_sh = create_sbatch_script_for_single_file(
         args.INPUT,
         job_name,
         args.SPEECH2TEXT_MEM,
         args.SPEECH2TEXT_CPUS_PER_TASK,
-        args.SPEECH2TEXT_TIME,
+        estimated_time,
         args.SPEECH2TEXT_EMAIL,
         args.SPEECH2TEXT_TMP,
     )
@@ -235,9 +289,6 @@ def submit_file(args, job_name):
     cmd = f"sbatch {tmp_file_sh.absolute()}"
     cmd = shlex.split(cmd)
     subprocess.run(cmd)
-
-    # Clean up
-    # Path(tmp_file_sh).unlink()
 
 
 def check_language(language):
@@ -298,15 +349,13 @@ def main():
     )
 
     # Submit file or directory
+    args.INPUT = Path(args.INPUT).absolute()
+    job_name = parse_job_name(args.INPUT)
     if Path(args.INPUT).is_file():
-        args.INPUT = Path(args.INPUT).absolute()
         print(f"Input file: {args.INPUT}\n")
-        job_name = parse_job_name(args.INPUT)
         submit_file(args, job_name)
     elif Path(args.INPUT).is_dir():
-        args.INPUT = Path(args.INPUT).absolute()
         print(f"Input directory: {args.INPUT}\n")
-        job_name = parse_job_name(args.INPUT)
         submit_dir(args, job_name)
     else:
         print(

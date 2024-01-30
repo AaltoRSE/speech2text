@@ -55,8 +55,8 @@ supported_languages = {
     "ukrainian": "uk",
     "urdu": "ur",
     "vietnamese": "vi",
-    "welsh": "cy"
+    "welsh": "cy",
 }
 
 
-supported_languages_reverse = {value : key for key, value in supported_languages.items()}
+supported_languages_reverse = {value: key for key, value in supported_languages.items()}

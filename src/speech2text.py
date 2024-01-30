@@ -1,4 +1,5 @@
 import argparse
+import gc
 import json
 import logging
 import os
@@ -7,19 +8,21 @@ import warnings
 from collections import defaultdict
 from pathlib import Path
 from typing import Optional, Union
-from pydub import AudioSegment
 
-import faster_whisper
+import numpy as np
 import pandas as pd
 import torch
+import torch.multiprocessing as mp
+import whisperx
 from numba.core.errors import (NumbaDeprecationWarning,
                                NumbaPendingDeprecationWarning)
-from pyannote.audio import Pipeline
-
-from submit import parse_output_dir
-from utils import seconds_to_human_readable_format
+from pydub import AudioSegment
+from whisperx.types import TranscriptionResult
 
 import settings
+from submit import parse_output_dir
+from utils import (DiarizationPipeline, calculate_max_batch_size, load_audio,
+                   seconds_to_human_readable_format)
 
 # https://numba.pydata.org/numba-doc/dev/reference/deprecation.html
 warnings.simplefilter("ignore", category=NumbaDeprecationWarning)
@@ -33,6 +36,10 @@ logging.basicConfig(
 )
 logger = logging.getLogger("__name__")
 logging.getLogger("faster_whisper").setLevel(logging.WARNING)
+
+# Sharing CUDA tensors between prcoesses requires a spawn or forkserver start method
+if __name__ == "__main__":
+    mp.set_start_method("spawn")
 
 
 def get_argument_parser():
@@ -116,11 +123,10 @@ def align(segments, diarization):
     dict
     """
     transcription_segments = [
-        (segment.start, segment.end, segment.text) for segment in segments
+        (segment["start"], segment["end"], segment["text"]) for segment in segments
     ]
     diarization_segments = [
-        (segment.start, segment.end, speaker)
-        for segment, _, speaker in diarization.itertracks(yield_label=True)
+        (start, end, speaker) for _, _, speaker, start, end in diarization.to_numpy()
     ]
     alignment = defaultdict(list)
     for transcription_start, transcription_end, text in transcription_segments:
@@ -211,45 +217,30 @@ def write_alignment_to_txt_file(alignment, output_file_stem):
     logger.info(f".. .. Wrote TXT output to: {output_file}")
 
 
-def load_faster_whisper_model(
+def load_whisperx_model(
     name: str = "large-v3",
     device: Optional[Union[str, torch.device]] = None,
 ):
     if device is None:
         device = "cuda" if torch.cuda.is_available() else "cpu"
 
-    model = faster_whisper.WhisperModel(
-        name,
-        device=device,
-        cpu_threads=6,
-        compute_type="int8",
-    )
-
+    compute_type = "float16" if device == "cuda" else "int8"
+    try:
+        model = whisperx.load_model(
+            name,
+            device=device,
+            threads=6,
+            compute_type=compute_type,
+        )
+    except ValueError:
+        compute_type = "float32"
+        model = whisperx.load_model(
+            name,
+            device=device,
+            threads=6,
+            compute_type=compute_type,
+        )
     return model
-
-
-def load_diarization_pipeline(config_file, auth_token):
-    """
-    For more info on the config file, see 'Offline use' at:
-    https://github.com/pyannote/pyannote-audio/blob/develop/tutorials/applying_a_pipeline.ipynb
-    """
-
-    if Path(config_file).is_file():
-        logger.info(".. .. Local config file found")
-        pipeline = Pipeline.from_pretrained(config_file)
-    elif auth_token:
-        logger.info(".. .. Environment variable AUTH_TOKEN found")
-        pipeline = Pipeline.from_pretrained(
-            "pyannote/speaker-diarization-3.1",
-            use_auth_token=auth_token,
-        )
-    else:
-        logger.error(
-            "One of these is required: local pyannote config file or environment variable AUTH_TOKEN to download model from HuggingFace hub"
-        )
-        raise ValueError
-
-    return pipeline
 
 
 def read_input_file_from_array_file(input_file, slurm_array_task_id):
@@ -263,33 +254,36 @@ def read_input_file_from_array_file(input_file, slurm_array_task_id):
     return new_input_file
 
 
-def convert_to_wav(input_file, tmp_dir):
-    """Pyannote diarization pipeline does handle resampling to ensure 16 kHz and
-    stereo/mono mixing. However, number of supported audio/video formats appears to be 
-    limited and not listed in README. To be sure, we convert all files to .wav beforehand.
-
-    https://huggingface.co/pyannote/speaker-diarization-3.1
-    """
-
-    if str(input_file).lower().endswith(".wav"):
-        logger.info(f".. .. File is already in wav format: {input_file}")
-        return input_file
-
-    if not Path(input_file).is_file():
-        logger.info(f".. .. File does not exist: {input_file}")
-        return None
-
-    converted_file = Path(tmp_dir) / Path(Path(input_file).name).with_suffix(".wav")
-    if Path(converted_file).is_file():
-        logger.info(f".. .. Converted file {converted_file} already exists.")
-        return converted_file
+def transcribe(file: str, language: str, result_list) -> TranscriptionResult:
+    batch_size = calculate_max_batch_size()
+    model = load_whisperx_model()
     try:
-        AudioSegment.from_file(input_file).export(converted_file, format="wav")
-        logger.info(f".. .. File converted to wav: {converted_file}")
-        return converted_file
-    except Exception as err:
-        logger.info(f".. .. Error while converting file: {err}")
-        return None
+        segs, _ = model.transcribe(
+            file, batch_size=batch_size, language=language
+        ).values()
+    except RuntimeError:
+        logger.warning(
+            f"Current CUDA device {torch.cuda.current_device()} doesn't have enough memory. Reducing batch_size {batch_size} by half."
+        )
+
+        gc.collect()
+        torch.cuda.empty_cache()
+
+        batch_size /= 2
+        segs, _ = model.transcribe(
+            file, batch_size=int(batch_size), language=language
+        ).values()
+
+    result_list["segments"] = segs
+    result_list["transcribe_time"] = time.time()
+
+
+def diarization(file: str, config: str, token: str, result_list):
+    diarization_pipeline = DiarizationPipeline(config_file=config, auth_token=token)
+    diarization = diarization_pipeline(file)
+
+    result_list["diarization"] = diarization
+    result_list["diarize_time"] = time.time()
 
 
 def main():
@@ -311,58 +305,72 @@ def main():
         )
 
     # .wav conversion
-    logger.info(f".. Convert input file to wav format for pyannote diarization pipeline: {args.INPUT_FILE}")
+    logger.info(
+        f".. Convert input file to wav format for pyannote diarization pipeline: {args.INPUT_FILE}"
+    )
     t0 = time.time()
-    input_file_wav = convert_to_wav(args.INPUT_FILE, args.SPEECH2TEXT_TMP)
-    if input_file_wav is None:
+    try:
+        input_file_wav, _ = load_audio(args.INPUT_FILE)
+    except Exception as e:
         logger.error(f".. .. Input file could not be converted: {args.INPUT_FILE}")
-        return
+        raise (e)
+
     logger.info(f".. .. Wav conversion done in {time.time()-t0:.1f} seconds")
 
-    # Diarization
-    logger.info(".. Load diarization pipeline")
-    t0 = time.time()
-    diarization_pipeline = load_diarization_pipeline(args.PYANNOTE_CONFIG, args.AUTH_TOKEN)
-    logger.info(f".. .. Pipeline loaded in {time.time()-t0:.1f} seconds")
-
-    logger.info(f".. Diarize input file: {input_file_wav}")
-    t0 = time.time()
-    diarization = diarization_pipeline(input_file_wav)
-    logger.info(f".. .. Diarization finished in {time.time()-t0:.1f} seconds")
-
-    # Transcription
-    logger.info(".. Load faster_whisper model")
-    t0 = time.time()
-    faster_whisper_model = load_faster_whisper_model()
-    logger.info(f".. .. Model loaded in {time.time()-t0:.1f} seconds")
-
-    logger.info(f".. Transcribe input file: {args.INPUT_FILE}")
-    t0 = time.time()    
     language = args.SPEECH2TEXT_LANGUAGE
     if language and language.lower() in settings.supported_languages:
         language = settings.supported_languages[language.lower()]
-    segments, info = faster_whisper_model.transcribe(
-        args.INPUT_FILE, language=language, beam_size=5
-    )
-    if language is None:
-        logger.info(f".. .. Automatically detected language '{settings.supported_languages_reverse[info.language]}' with probability {info.language_probability:.2f}")
-    segments = list(segments)
-    logger.info(f".. .. Transcription finished in {time.time()-t0:.1f} seconds")
+
+    with mp.Manager() as manager:
+        shared_dict = manager.dict()
+
+        process1 = mp.Process(
+            target=transcribe,
+            args=(
+                input_file_wav,
+                language,
+                shared_dict,
+            ),
+        )
+        process2 = mp.Process(
+            target=diarization,
+            args=(
+                input_file_wav,
+                args.PYANNOTE_CONFIG,
+                args.AUTH_TOKEN,
+                shared_dict,
+            ),
+        )
+
+        t0 = time.time()
+        logger.info(f".. Starting transcription task for {args.INPUT_FILE}")
+        process1.start()
+
+        logger.info(f".. Starting diarization task for {args.INPUT_FILE}")
+        process2.start()
+
+        process1.join()
+        process2.join()
+
+        logger.info(
+            f".. .. Transcription finished in {shared_dict['transcribe_time']-t0:.1f} seconds"
+        )
+        logger.info(
+            f".. .. Diarization finished in {shared_dict['diarize_time']-t0:.1f} seconds"
+        )
+
+        segments = shared_dict["segments"]
+        diarization_results = shared_dict["diarization"]
 
     # Alignment
     logger.info(".. Align transcription and diarization")
-    alignment = align(segments, diarization)
+    alignment = align(segments, diarization_results)
 
     logger.info(f".. Write alignment to output")
     output_dir = parse_output_dir(args.INPUT_FILE)
     output_file_stem = parse_output_file_stem(output_dir, args.INPUT_FILE)
     write_alignment_to_csv_file(alignment, output_file_stem)
     write_alignment_to_txt_file(alignment, output_file_stem)
-
-    # Clean up
-    if input_file_wav != args.INPUT_FILE:
-        logger.info(f".. Remove the converted wav file")
-        Path(input_file_wav).unlink()
 
     logger.info(f"Finished.")
 
