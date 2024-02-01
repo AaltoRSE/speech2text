@@ -369,7 +369,7 @@ def main():
     check_email(args.SPEECH2TEXT_EMAIL)
 
     # Check Whisper model name
-    if not check_whisper_model(args.SPEEHCH2TEXT_WHISPER_MODEL):
+    if not check_whisper_model(args.SPEECH2TEXT_WHISPER_MODEL):
         return
 
     # Notify about temporary folder location
