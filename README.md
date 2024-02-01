@@ -17,7 +17,7 @@ The required models have been downloaded beforehand from Hugging Face and saved 
 
 ### Faster Whisper  
 
-We use `large-v3`, currently the biggest and most accurate multilingual [Faster Whisper](https://github.com/SYSTRAN/faster-whisper) model available. Languages supported by the model are:
+We support `large-v2` and `large-v3` (default) multilingual [Faster Whisper](https://github.com/SYSTRAN/faster-whisper) models. Languages supported by the models are:
 
 afrikaans, arabic, armenian, azerbaijani, belarusian, bosnian, bulgarian, catalan, 
 chinese, croatian, czech, danish, dutch, english, estonian, finnish, french, galician, 
@@ -27,7 +27,11 @@ norwegian, persian, polish, portuguese, romanian, russian, serbian, slovak, slov
 spanish, swahili, swedish, tagalog, tamil, thai, turkish, ukrainian, urdu, vietnamese, 
 welsh
 
-The model is covered by the [MIT licence]((https://huggingface.co/models?license=license:mit)) and has been pre-downloaded from Hugging Face to 
+The models are covered by the [MIT licence]((https://huggingface.co/models?license=license:mit)) and have been pre-downloaded from Hugging Face to 
+
+`/scratch/shareddata/dldata/huggingface-hub-cache/hub/models--Systran--faster-whisper-large-v2`
+
+and
 
 `/scratch/shareddata/dldata/huggingface-hub-cache/hub/models--Systran--faster-whisper-large-v3`
  
@@ -166,6 +170,9 @@ Using the latter option submits the files as an [array job](https://scicomp.aalt
 The audio file(s) can be in any common audio (.wav, .mp3, .aff, etc.) or video (.mp4, .mov, etc.) format. 
 
 The transcription and diarization results (.txt and .csv files) corresponding to each audio file will be written to `results/` next to the file. See [below](#output-formats) for details.
+
+
+> **__NOTE:__** While speech2text by default uses the `large-v3` model, user can specify the model with the `SPEECH2TEXT_WHISPER_MODEL` environment variable. Note, however, that only `large-v2` and `large-v3` models have been pre-downloaded.
 
 
 ## Output formats
