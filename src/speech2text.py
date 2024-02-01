@@ -9,7 +9,6 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Optional, Union
 
-import numpy as np
 import pandas as pd
 import torch
 import torch.multiprocessing as mp
@@ -75,6 +74,12 @@ def get_argument_parser():
         type=str,
         default=os.getenv("SPEECH2TEXT_LANGUAGE"),
         help="Audio language. Optional but recommended.",
+    )
+    parser.add_argument(
+        "--SPEECH2TEXT_WHISPER_MODEL",
+        type=str,
+        default=os.getenv("SPEECH2TEXT_WHISPER_MODEL"),
+        help=f"Whisper model. Defaults to {settings.default_whisper_model}.",
     )
 
     return parser
@@ -218,7 +223,7 @@ def write_alignment_to_txt_file(alignment, output_file_stem):
 
 
 def load_whisperx_model(
-    name: str = "large-v3",
+    name: str,
     device: Optional[Union[str, torch.device]] = None,
 ):
     if device is None:
@@ -254,9 +259,11 @@ def read_input_file_from_array_file(input_file, slurm_array_task_id):
     return new_input_file
 
 
-def transcribe(file: str, language: str, result_list) -> TranscriptionResult:
+def transcribe(
+    file: str, model_name: str, language: str, result_list
+) -> TranscriptionResult:
     batch_size = calculate_max_batch_size()
-    model = load_whisperx_model()
+    model = load_whisperx_model(model_name)
     try:
         segs, _ = model.transcribe(
             file, batch_size=batch_size, language=language
@@ -317,6 +324,12 @@ def main():
 
     logger.info(f".. .. Wav conversion done in {time.time()-t0:.1f} seconds")
 
+    # Check Whisper model name if given
+    model_name = args.SPEECH2TEXT_WHISPER_MODEL
+    if model_name is None:
+        model_name = settings.default_whisper_model
+
+    # Check language if given
     language = args.SPEECH2TEXT_LANGUAGE
     if language and language.lower() in settings.supported_languages:
         language = settings.supported_languages[language.lower()]
@@ -328,6 +341,7 @@ def main():
             target=transcribe,
             args=(
                 input_file_wav,
+                model_name,
                 language,
                 shared_dict,
             ),
