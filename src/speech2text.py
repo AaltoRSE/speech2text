@@ -229,7 +229,9 @@ def load_whisperx_model(
         device = "cuda" if torch.cuda.is_available() else "cpu"
 
     if name not in settings.available_whisper_models:
-        logger.warning(f"Specified model '{name}' not among available models: {settings.available_whisper_models}. Opting to use the default model '{settings.default_whisper_model}' instead")
+        logger.warning(
+            f"Specified model '{name}' not among available models: {settings.available_whisper_models}. Opting to use the default model '{settings.default_whisper_model}' instead"
+        )
         name = settings.default_whisper_model
 
     compute_type = "float16" if device == "cuda" else "int8"
@@ -267,6 +269,7 @@ def transcribe(
 ) -> TranscriptionResult:
     batch_size = calculate_max_batch_size()
     model = load_whisperx_model(model_name)
+
     try:
         segs, _ = model.transcribe(
             file, batch_size=batch_size, language=language
@@ -335,7 +338,13 @@ def main():
     # Check language if given
     language = args.SPEECH2TEXT_LANGUAGE
     if language and language.lower() in settings.supported_languages:
+        # Language is given in long form: convert to short form (two-letter abbreviation)
         language = settings.supported_languages[language.lower()]
+    elif language and language not in settings.supported_languages.values():
+        logger.warning(
+            f"Given language '{language}' not found among supported languages: {' '.join([lang for lang in settings.supported_languages.keys()])}. Opting to detect language automatically."
+        )
+        language = None
 
     with mp.Manager() as manager:
         shared_dict = manager.dict()
