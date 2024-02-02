@@ -15,7 +15,6 @@ import torch.multiprocessing as mp
 import whisperx
 from numba.core.errors import (NumbaDeprecationWarning,
                                NumbaPendingDeprecationWarning)
-from pydub import AudioSegment
 from whisperx.types import TranscriptionResult
 
 import settings
@@ -228,6 +227,10 @@ def load_whisperx_model(
 ):
     if device is None:
         device = "cuda" if torch.cuda.is_available() else "cpu"
+
+    if name not in settings.available_whisper_models:
+        logger.warning(f"Specified model '{name}' not among available models: {settings.available_whisper_models}. Opting to use the default model '{settings.default_whisper_model}' instead")
+        name = settings.default_whisper_model
 
     compute_type = "float16" if device == "cuda" else "int8"
     try:
