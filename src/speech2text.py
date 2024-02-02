@@ -346,7 +346,12 @@ def main():
             pass
         else:
             # Given language not OK
-            pretty_language_list = ", ".join([f'{lang} ({short})' for lang, short in settings.supported_languages.items()])
+            pretty_language_list = ", ".join(
+                [
+                    f"{lang} ({short})"
+                    for lang, short in settings.supported_languages.items()
+                ]
+            )
             logger.warning(
                 f"Given language '{language}' not found among supported languages: {pretty_language_list}. Opting to detect language automatically"
             )
