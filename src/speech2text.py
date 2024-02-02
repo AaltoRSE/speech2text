@@ -337,14 +337,20 @@ def main():
 
     # Check language if given
     language = args.SPEECH2TEXT_LANGUAGE
-    if language and language.lower() in settings.supported_languages:
-        # Language is given in long form: convert to short form (two-letter abbreviation)
-        language = settings.supported_languages[language.lower()]
-    elif language and language not in settings.supported_languages.values():
-        logger.warning(
-            f"Given language '{language}' not found among supported languages: {' '.join([lang for lang in settings.supported_languages.keys()])}. Opting to detect language automatically."
-        )
-        language = None
+    if language:
+        if language.lower() in settings.supported_languages.keys():
+            # Language is given in OK long form: convert to short form (two-letter abbreviation)
+            language = settings.supported_languages[language.lower()]
+        elif language.lower() in settings.supported_languages.values():
+            # Language is given in OK short form
+            pass
+        else:
+            # Given language not OK
+            pretty_language_list = ", ".join([f'{lang} ({short})' for lang, short in settings.supported_languages.items()])
+            logger.warning(
+                f"Given language '{language}' not found among supported languages: {pretty_language_list}. Opting to detect language automatically"
+            )
+            language = None
 
     with mp.Manager() as manager:
         shared_dict = manager.dict()
