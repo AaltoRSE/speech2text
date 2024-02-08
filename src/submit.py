@@ -11,7 +11,6 @@ import json
 import os
 import shlex
 import subprocess
-import time
 from pathlib import Path, PosixPath
 
 import settings
@@ -61,6 +60,12 @@ def get_argument_parser():
         type=str,
         default=os.getenv("SPEECH2TEXT_LANGUAGE"),
         help="Language. Optional.",
+    )
+    parser.add_argument(
+        "--SPEECH2TEXT_WHISPER_MODEL",
+        type=str,
+        default=os.getenv("SPEECH2TEXT_WHISPER_MODEL"),
+        help=f"Whisper model. Default is {settings.default_whisper_model}.",
     )
 
     return parser
@@ -195,6 +200,8 @@ def create_sbatch_script_for_array_job(
 #SBATCH --mail-type=BEGIN
 #SBATCH --mail-type=END
 #SBATCH --mail-type=FAIL
+export OMP_NUM_THREADS={cpus_per_task}
+export KMP_AFFINITY=granularity=fine,compact
 python3 {python_source_dir}/speech2text.py {input_file}
 """
     tmp_file_sh = (Path(tmp_dir) / str(job_name)).with_suffix(".sh")
@@ -327,6 +334,24 @@ def check_email(email):
         )
 
 
+def check_whisper_model(name):
+    if name is None:
+        print(
+            f"Whisper model not given, using default '{settings.default_whisper_model}'.\n"
+        )
+        return True
+
+    elif name in settings.available_whisper_models:
+        print(f"Given Whisper model '{name}' is available.\n")
+        return True
+
+    print(
+        f"Submission failed: Given Whisper model '{name}' is not among available models:\n\n{' '.join(settings.available_whisper_models)}.\n"
+    )
+
+    return False
+
+
 def main():
     # Parse arguments
     parser = get_argument_parser()
@@ -342,6 +367,10 @@ def main():
 
     # Check email
     check_email(args.SPEECH2TEXT_EMAIL)
+
+    # Check Whisper model name
+    if not check_whisper_model(args.SPEECH2TEXT_WHISPER_MODEL):
+        return
 
     # Notify about temporary folder location
     print(
