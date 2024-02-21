@@ -54,6 +54,8 @@ Go to [Open On Demand](http://ood.triton.aalto.fi) and log in with your Aalto us
 > 
 > Subsequently, the shell will ask you for a password. This is your Aalto password. Note that your key presses do not show - just write your password and press enter.
 >
+> You can skip the following question about `.zshrc` file creation by pressing "q".
+>
 > Afterwards, you can close this tab. Your Triton account is now fully operational.
 
 

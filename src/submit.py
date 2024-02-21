@@ -235,6 +235,9 @@ def submit_dir(args, job_name):
         args.SPEECH2TEXT_TMP,
     )
 
+    # Log
+    print(f"Results will be written to folder: {output_dir}\n")
+
     # Submit
     cmd = f"sbatch {tmp_file_sh.absolute()}"
     cmd = shlex.split(cmd)
@@ -291,6 +294,9 @@ def submit_file(args, job_name):
         args.SPEECH2TEXT_EMAIL,
         args.SPEECH2TEXT_TMP,
     )
+
+    # Log
+    print(f"Results will be written to folder: {output_dir}\n")
 
     # Submit
     cmd = f"sbatch {tmp_file_sh.absolute()}"
