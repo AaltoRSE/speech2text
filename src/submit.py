@@ -240,6 +240,9 @@ def submit_dir(args, job_name):
     cmd = shlex.split(cmd)
     subprocess.run(cmd)
 
+    # Log
+    print(f"Results will be written to folder: {output_dir}\n")
+
 
 def create_sbatch_script_for_single_file(
     input_file, job_name, mem, cpus_per_task, time, email, tmp_dir
@@ -296,6 +299,9 @@ def submit_file(args, job_name):
     cmd = f"sbatch {tmp_file_sh.absolute()}"
     cmd = shlex.split(cmd)
     subprocess.run(cmd)
+
+    # Log
+    print(f"Results will be written to folder: {output_dir}\n")
 
 
 def check_language(language):
