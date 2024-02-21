@@ -2,63 +2,43 @@
 
 usage() {                                    
      cat << EOF
-Aalto speech2text app.
+This app does speech2text with diarization.
 
-Usage:                             
+Example run on a single file: 
 
-0) Load the speech2text app
+    export SPEECH2TEXT_EMAIL=john.smith@aalto.fi
+    export SPEECH2TEXT_LANGUAGE=finnish
+    speech2text audiofile.mp3
 
-Load the speech2text app with
+Example run on a folder containing one or more audio file:
 
-module load speech2text
+    export SPEECH2TEXT_EMAIL=jane.smith@aalto.fi
+    export SPEECH2TEXT_LANGUAGE=finnish
+    speech2text audiofiles/
 
-This needs to be done once every login.
+The audio files can be in any common audio (.wav, .mp3, .aff, etc.) or video (.mp4, .mov, etc.) format.
 
+The speech2text app writes result files to a subfolder results/ next to each audio file.
+Result filenames are the audio filename with .txt and .csv extensions. For example, result files
+corresponding to audiofile.mp3 are written to results/audiofile.txt and results/audiofile.csv.
+Result files in a folder audiofiles/ will be written to folder audiofiles/results/.
 
-1) Set environment variables
+Notification emails will be sent to SPEECH2TEXT_EMAIL. If SPEECH2TEXT_EMAIL is left 
+unspecified, no notifications are sent.
 
-Set email (for Slurm job notifications) and audio language environment variables:
+Supported languages are:
 
-export SPEECH2TEXT_EMAIL=my.name@aalto.fi
-export SPEECH2TEXT_LANGUAGE=my-language
+afrikaans, arabic, armenian, azerbaijani, belarusian, bosnian, bulgarian, catalan, 
+chinese, croatian, czech, danish, dutch, english, estonian, finnish, french, galician, 
+german, greek, hebrew, hindi, hungarian, icelandic, indonesian, italian, japanese, 
+kannada, kazakh, korean, latvian, lithuanian, macedonian, malay, marathi, maori, nepali,
+norwegian, persian, polish, portuguese, romanian, russian, serbian, slovak, slovenian, 
+spanish, swahili, swedish, tagalog, tamil, thai, turkish, ukrainian, urdu, vietnamese, 
+welsh
 
-For example:
-
-export SPEECH2TEXT_EMAIL=john.smith@aalto.fi
-export SPEECH2TEXT_LANGUAGE=finnish
-
-The following variables are already set by the lmod .lua script. They can be ignored by user.
-
-HF_HOME
-TORCH_HOME
-WHISPER_CACHE
-PYANNOTE_CONFIG
-NUMBA_CACHE
-MPLCONFIGDIR
-SPEECH2TEXT_TMP
-SPEECH2TEXT_MEM
-SPEECH2TEXT_CPUS_PER_TASK
-SPEECH2TEXT_TIME
-
-
-2a) Process a single audio file
-
-speech2text audio-file
-
-The audio file can be in any common audio (.wav, .mp3, .aff, etc.) or video (.mp4, .mov, etc.) format.
-The transcription and diarization results (.txt and .csv files) corresponding to each audio file 
-will be written to results/ next to the file.
-
-
-2b) Process multiple audio files in a folder
-
-speech2text audio-files/
-
-The audio file can be in any common audio (.wav, .mp3, .aff, etc.) or video (.mp4, .mov, etc.) format.
-The transcription and diarization results (.txt and .csv files) corresponding to each audio file 
-will be written to audio-files/results.
-
-See also: https://github.com/AaltoRSE/speech2text
+You can leave the language variable SPEECH2TEXT_LANGUAGE unspecified, in which case 
+speech2text tries to detect the language automatically. Specifying the language 
+explicitly is, however, recommended.
 EOF
 }
 
