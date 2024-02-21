@@ -235,13 +235,13 @@ def submit_dir(args, job_name):
         args.SPEECH2TEXT_TMP,
     )
 
+    # Log
+    print(f"Results will be written to folder: {output_dir}\n")
+
     # Submit
     cmd = f"sbatch {tmp_file_sh.absolute()}"
     cmd = shlex.split(cmd)
     subprocess.run(cmd)
-
-    # Log
-    print(f"Results will be written to folder: {output_dir}\n")
 
 
 def create_sbatch_script_for_single_file(
@@ -295,13 +295,13 @@ def submit_file(args, job_name):
         args.SPEECH2TEXT_TMP,
     )
 
+    # Log
+    print(f"Results will be written to folder: {output_dir}\n")
+
     # Submit
     cmd = f"sbatch {tmp_file_sh.absolute()}"
     cmd = shlex.split(cmd)
     subprocess.run(cmd)
-
-    # Log
-    print(f"Results will be written to folder: {output_dir}\n")
 
 
 def check_language(language):
