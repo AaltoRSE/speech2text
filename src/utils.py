@@ -16,7 +16,7 @@ SAMPLE_RATE = 16000
 logger = logging.getLogger("__name__")
 
 
-def seconds_to_human_readable_format(seconds):
+def seconds_to_human_readable_format(seconds: int) -> str:
     """
     Convert seconds to human readable string.
 
@@ -107,9 +107,9 @@ def load_audio(file: str, sr: int = SAMPLE_RATE):
 class DiarizationPipeline:
     def __init__(
         self,
-        config_file,
-        model_name="pyannote/speaker-diarization-3.1",
-        auth_token=None,
+        config_file: str,
+        model_name: str = "pyannote/speaker-diarization-3.1",
+        auth_token: str = None,
         device: Optional[Union[str, torch.device]] = None,
     ):
         if device is None:
@@ -160,7 +160,17 @@ class DiarizationPipeline:
         return diarize_df
 
 
-def add_durations(time1, time2):
+def add_durations(time1: str, time2: str) -> str:
+    """
+    Adds two time durations and returns the result.
+
+    Args:
+        time1 (str): The first time duration in the format "HH:MM:SS".
+        time2 (str): The second time duration in the format "HH:MM:SS".
+
+    Returns:
+        str: The sum of the two time durations in the format "HH:MM:SS".
+    """
     dt_format = "%H:%M:%S"
     time1_obj = datetime.strptime(time1, dt_format)
     time2_obj = datetime.strptime(time2, dt_format)
@@ -182,13 +192,13 @@ def calculate_max_batch_size() -> int:
 
     Parameters
     ----------
-
+    None
+    
     Returns
     -------
     batch_size:
-        Maximum batch_size for fitting in CUDA
+        Maximum batch_size for fitting in a CUDA device.
     """
-
     total_gpu_vram = (
         torch.cuda.get_device_properties(0).total_memory / 1024 / 1024 / 1024
     )
