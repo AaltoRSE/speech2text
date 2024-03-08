@@ -78,6 +78,7 @@ def get_argument_parser():
         "--SPEECH2TEXT_WHISPER_MODEL",
         type=str,
         default=os.getenv("SPEECH2TEXT_WHISPER_MODEL"),
+        choices=settings.available_whisper_models,
         help=f"Whisper model. Defaults to {settings.default_whisper_model}.",
     )
 
