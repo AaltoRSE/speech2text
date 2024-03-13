@@ -176,13 +176,13 @@ def create_array_input_file(input_dir: str,
     for input_file in Path(input_dir).glob("*.*"):
         try:
             result = subprocess.run(["ffmpeg", "-i", str(input_file)], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            if "Audio:" not in str(result.stderr):
-                print(
-                f".. {input_file}: Skip since it's not an audio file."
-                )
-                continue
-        except Exception as e:
+        except subprocess.CalledProcessError as e:
             print(f"Error processing {input_file}: {e}")
+            continue
+        if "Audio:" not in str(result.stderr):
+            print(
+            f".. {input_file}: Skip since it's not an audio file."
+            )
             continue
         existing, missing = get_existing_result_files(input_file, output_dir)
         if existing and not missing:
