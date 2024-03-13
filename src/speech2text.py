@@ -266,16 +266,20 @@ def write_alignment_to_txt_file(alignment: dict, output_file_stem: Path):
 def load_whisperx_model(
     name: str,
     language: Optional[str] = None,
-    device: Optional[Union[str, torch.device]] = 'cuda'):
+    device: Optional[Union[str, torch.device]] = "cuda",
+):
     """
     Load a Whisper model in GPU.
 
     Will raise an error if CUDA is not available. This is due to batch_size optimization method in utils.py.
-    The submitted script will run on a GPU node, so this should not be a problem. The only issue is with a 
+    The submitted script will run on a GPU node, so this should not be a problem. The only issue is with a
     hardware failure.
     """
     if not torch.cuda.is_available():
-        raise ValueError("CUDA is not available. Check the hardware failures for " + subprocess.check_output(['hostname']).decode())
+        raise ValueError(
+            "CUDA is not available. Check the hardware failures for "
+            + subprocess.check_output(["hostname"]).decode()
+        )
 
     if name not in settings.available_whisper_models:
         logger.warning(

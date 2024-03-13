@@ -193,7 +193,7 @@ def calculate_max_batch_size() -> int:
     Parameters
     ----------
     None
-    
+
     Returns
     -------
     batch_size:

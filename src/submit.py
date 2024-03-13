@@ -7,12 +7,12 @@ import warnings
 warnings.filterwarnings("ignore")
 
 import argparse
-from argparse import Namespace
 import json
 import os
 import re
 import shlex
 import subprocess
+from argparse import Namespace
 from pathlib import Path, PosixPath
 
 import settings
@@ -73,7 +73,7 @@ def get_argument_parser():
     return parser
 
 
-def get_existing_result_files(input_file: str, output_dir: str) -> 'tuple[list, list]':
+def get_existing_result_files(input_file: str, output_dir: str) -> "tuple[list, list]":
     """
     For the input file or folder, check if the expected result files exist already in the output directory.
 
@@ -106,12 +106,12 @@ def get_existing_result_files(input_file: str, output_dir: str) -> 'tuple[list, 
 def parse_job_name(input_path: str) -> Path:
     """
     Convert input file/folder to path object.
-    
+
     Parameters
     ----------
     input_path: str
         The input path for the audio files.
-        
+
     Returns
     -------
     Path
@@ -120,16 +120,15 @@ def parse_job_name(input_path: str) -> Path:
     return Path(input_path).name
 
 
-def parse_output_dir(input_path: str, 
-                     create_if_not_exists: bool = True) -> str:
+def parse_output_dir(input_path: str, create_if_not_exists: bool = True) -> str:
     """
     Create the output directory for the results.
-    
+
     Parameters
     ----------
     input_path: str
         The input path for the audio files.
-        
+
     Returns
     -------
     output_dir: str
@@ -148,10 +147,9 @@ def parse_output_dir(input_path: str,
     return output_dir
 
 
-def create_array_input_file(input_dir: str,
-                            output_dir: str,
-                            job_name: Path, 
-                            tmp_dir) -> str:
+def create_array_input_file(
+    input_dir: str, output_dir: str, job_name: Path, tmp_dir
+) -> str:
     """
     Process the input directory and create a json file with the list of audio files to process.
 
@@ -175,14 +173,16 @@ def create_array_input_file(input_dir: str,
     input_files = []
     for input_file in Path(input_dir).glob("*.*"):
         try:
-            result = subprocess.run(["ffmpeg", "-i", str(input_file)], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            result = subprocess.run(
+                ["ffmpeg", "-i", str(input_file)],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            )
         except subprocess.CalledProcessError as e:
             print(f"Error processing {input_file}: {e}")
             continue
         if "Audio:" not in str(result.stderr):
-            print(
-            f".. {input_file}: Skip since it's not an audio file."
-            )
+            print(f".. {input_file}: Skip since it's not an audio file.")
             continue
         existing, missing = get_existing_result_files(input_file, output_dir)
         if existing and not missing:
@@ -259,13 +259,15 @@ def estimate_job_time(input_path: PosixPath) -> str:
     return add_durations(PIPELINE_LOADING_TIME, audio_processing_time)
 
 
-def create_sbatch_script_for_array_job(input_file: str, 
-                                       job_name: Path, 
-                                       mem: int, 
-                                       cpus_per_task: int, 
-                                       time: str, 
-                                       email: str,
-                                       tmp_dir: str) -> str:
+def create_sbatch_script_for_array_job(
+    input_file: str,
+    job_name: Path,
+    mem: int,
+    cpus_per_task: int,
+    time: str,
+    email: str,
+    tmp_dir: str,
+) -> str:
     """
     Create the sbatch script for the array job.
 
@@ -316,8 +318,7 @@ python3 {python_source_dir}/speech2text.py {input_file}
     return tmp_file_sh
 
 
-def submit_dir(args: Namespace, 
-               job_name: Path):
+def submit_dir(args: Namespace, job_name: Path):
     """
     Run sbatch command to submit the job to the cluster.
 
@@ -387,8 +388,7 @@ python3 {python_source_dir}/speech2text.py {input_file}
     return tmp_file_sh
 
 
-def submit_file(args: Namespace, 
-                job_name: Path):
+def submit_file(args: Namespace, job_name: Path):
     """
     Run sbatch command to submit the job to the cluster.
 
@@ -500,7 +500,7 @@ def check_whisper_model(name: str) -> bool:
     ----------
     name: str
         The Whisper model to check.
-    
+
     Returns
     -------
     Boolean:
