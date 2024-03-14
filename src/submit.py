@@ -9,8 +9,10 @@ warnings.filterwarnings("ignore")
 import argparse
 import json
 import os
+import re
 import shlex
 import subprocess
+from argparse import Namespace
 from pathlib import Path, PosixPath
 
 import settings
@@ -39,13 +41,13 @@ def get_argument_parser():
     )
     parser.add_argument(
         "--SPEECH2TEXT_MEM",
-        type=str,
+        type=int,
         default=os.getenv("SPEECH2TEXT_MEM"),
         help="Requested memory per job. If not given, should be set as an environment variable.",
     )
     parser.add_argument(
         "--SPEECH2TEXT_CPUS_PER_TASK",
-        type=str,
+        type=int,
         default=os.getenv("SPEECH2TEXT_CPUS_PER_TASK"),
         help="Requested cpus per task. If not given, should be set as an environment variable.",
     )
@@ -71,7 +73,25 @@ def get_argument_parser():
     return parser
 
 
-def get_existing_result_files(input_file, output_dir):
+def get_existing_result_files(input_file: str, output_dir: str) -> "tuple[list, list]":
+    """
+    For the input file or folder, check if the expected result files exist already in the output directory.
+
+    Parameters
+    ----------
+    inpup_file: str
+        Input audio file or folder containing audio files
+
+    output_dir: str
+        Output directory where the result files are located. Default is next the the input file/folder.
+
+    Returns
+    -------
+    existing_result_files: list
+        list of the existing result files
+    missing_result_files: list
+        list of the missing result files
+    """
     existing_result_files, missing_result_files = [], []
     for suffix in [".csv", ".txt"]:
         output_file = Path(output_dir) / Path(Path(input_file).name).with_suffix(suffix)
@@ -83,11 +103,37 @@ def get_existing_result_files(input_file, output_dir):
     return existing_result_files, missing_result_files
 
 
-def parse_job_name(input_path):
+def parse_job_name(input_path: str) -> Path:
+    """
+    Convert input file/folder to path object.
+
+    Parameters
+    ----------
+    input_path: str
+        The input path for the audio files.
+
+    Returns
+    -------
+    Path
+        The job name extracted from the input path.
+    """
     return Path(input_path).name
 
 
-def parse_output_dir(input_path, create_if_not_exists=True):
+def parse_output_dir(input_path: str, create_if_not_exists: bool = True) -> str:
+    """
+    Create the output directory for the results.
+
+    Parameters
+    ----------
+    input_path: str
+        The input path for the audio files.
+
+    Returns
+    -------
+    output_dir: str
+        The output path for the results.
+    """
     if Path(input_path).is_dir():
         output_dir = Path(input_path).absolute() / "results"
     elif Path(input_path).is_file():
@@ -101,10 +147,43 @@ def parse_output_dir(input_path, create_if_not_exists=True):
     return output_dir
 
 
-def create_array_input_file(input_dir, output_dir, job_name, tmp_dir):
+def create_array_input_file(
+    input_dir: str, output_dir: str, job_name: Path, tmp_dir
+) -> str:
+    """
+    Process the input directory and create a json file with the list of audio files to process.
+
+    Parameters
+    ----------
+    input_dir: str
+        The input directory for the audio files.
+    output_dir: str
+        The output directory for the results.
+    job_name: Path
+        The job name extracted from the input path.
+    tmp_dir: str
+        The temporary directory for saving the json file.
+
+    Returns
+    -------
+    tmp_file_array: str
+        The temporary json file with the list of audio files to process.
+    """
     print(f"Scan input audio files from: {input_dir}\n")
     input_files = []
     for input_file in Path(input_dir).glob("*.*"):
+        try:
+            result = subprocess.run(
+                ["ffmpeg", "-i", str(input_file)],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            )
+        except subprocess.CalledProcessError as e:
+            print(f"Error processing {input_file}: {e}")
+            continue
+        if "Audio:" not in str(result.stderr):
+            print(f".. {input_file}: Skip since it's not an audio file.")
+            continue
         existing, missing = get_existing_result_files(input_file, output_dir)
         if existing and not missing:
             print(
@@ -181,8 +260,34 @@ def estimate_job_time(input_path: PosixPath) -> str:
 
 
 def create_sbatch_script_for_array_job(
-    input_file, job_name, mem, cpus_per_task, time, email, tmp_dir
-):
+    input_file: str,
+    job_name: Path,
+    mem: int,
+    cpus_per_task: int,
+    time: str,
+    email: str,
+    tmp_dir: str,
+) -> str:
+    """
+    Create the sbatch script for the array job.
+
+    Parameters
+    ----------
+    input_file: str
+        The json file with the list of audio files to process.
+    job_name: Path
+        The job name extracted from the input path.
+    mem: int
+        Requested memory per job. Default is 8GB.
+    cpus_per_task: int
+        Requested cpus per task. Default is 6.
+    time: str
+        Requested time per job in HH:MM:SS format.
+    email: str
+        Send job notifications to this email. Optional.
+    tmp_dir: str
+        The temporary directory for saving the sbatch script.
+    """
     with open(input_file, "r") as fin:
         array_length = len(json.load(fin))
 
@@ -191,8 +296,9 @@ def create_sbatch_script_for_array_job(
     script = f"""#!/bin/bash
 #SBATCH --array=0-{array_length-1}
 #SBATCH --output="{tmp_dir}/{job_name}_%A_%a.out"
+#SBATCH --error="{tmp_dir}/{job_name}_%A_%a.err"
 #SBATCH --job-name={job_name}
-#SBATCH --mem={mem} 
+#SBATCH --mem={mem}G
 #SBATCH --cpus-per-task={cpus_per_task}
 #SBATCH --gres=gpu:1
 #SBATCH --time={time}
@@ -212,7 +318,17 @@ python3 {python_source_dir}/speech2text.py {input_file}
     return tmp_file_sh
 
 
-def submit_dir(args, job_name):
+def submit_dir(args: Namespace, job_name: Path):
+    """
+    Run sbatch command to submit the job to the cluster.
+
+    Parameters
+    ----------
+    args: Namespace
+        The arguments for the submit script.
+    job_name: Path
+        The job name extracted from the input path.
+    """
     # Prepare submission scripts
     output_dir = parse_output_dir(args.INPUT)
     tmp_file_array = create_array_input_file(
@@ -252,7 +368,8 @@ def create_sbatch_script_for_single_file(
     script = f"""#!/bin/bash
 #SBATCH --job-name={job_name}
 #SBATCH --output="{tmp_dir}/{job_name}_%j.out"
-#SBATCH --mem={mem} 
+#SBATCH --error="{tmp_dir}/{job_name}_%j.err"
+#SBATCH --mem={mem}G
 #SBATCH --cpus-per-task={cpus_per_task}
 #SBATCH --gres=gpu:1
 #SBATCH --time={time}
@@ -271,7 +388,17 @@ python3 {python_source_dir}/speech2text.py {input_file}
     return tmp_file_sh
 
 
-def submit_file(args, job_name):
+def submit_file(args: Namespace, job_name: Path):
+    """
+    Run sbatch command to submit the job to the cluster.
+
+    Parameters
+    ----------
+    args: Namespace
+        The arguments for the submit script.
+    job_name: Path
+        The job name extracted from the input path.
+    """
     # Prepare submission scripts
     output_dir = parse_output_dir(args.INPUT)
 
@@ -304,7 +431,20 @@ def submit_file(args, job_name):
     subprocess.run(cmd)
 
 
-def check_language(language):
+def check_language(language: str) -> bool:
+    """
+    Check if the given language is supported.
+
+    Parameters
+    ----------
+    language: str
+        The language to check.
+
+    Returns
+    -------
+    Booleam
+        True if the language is supported, False otherwise.
+    """
     supported_languages = list(settings.supported_languages.keys())
 
     if language is None:
@@ -329,18 +469,43 @@ where mylanguage is one of:\n\n{' '.join(supported_languages)}\n"""
     return False
 
 
-def check_email(email):
+def check_email(email: str):
+    """
+    Check if the given email is valid.
+
+    Parameters
+    ----------
+    email: str
+        The email to check.
+    """
+    pattern = r"^[A-Za-z]+\.+[A-Za-z]+@aalto.fi$"
     if email is not None:
-        print(f"Email notifications will be sent to: {email}\n")
+        if re.match(pattern, email):
+            print(f"Email notifications will be sent to: {email}\n")
+        else:
+            print("Invalid email address. Please provide an Aalto email address.\n")
     else:
         print(
             f"""Notifications will not be sent as no email address was specified. To specify email address, use
               
-    export SPEECH2TEXT_EMAIL=my.name@aalto.fi\n"""
+export SPEECH2TEXT_EMAIL=my.name@aalto.fi\n"""
         )
 
 
-def check_whisper_model(name):
+def check_whisper_model(name: str) -> bool:
+    """
+    Check if the given Whisper model is supported.
+
+    Parameters
+    ----------
+    name: str
+        The Whisper model to check.
+
+    Returns
+    -------
+    Boolean:
+        True if the Whisper model is supported, False otherwise.
+    """
     if name is None:
         print(
             f"Whisper model not given, using default '{settings.default_whisper_model}'.\n"
