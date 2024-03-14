@@ -262,7 +262,7 @@ def estimate_job_time(input_path: PosixPath) -> str:
 def create_sbatch_script_for_array_job(
     input_file: str,
     job_name: Path,
-    mem: int,
+    mem: str,
     cpus_per_task: int,
     time: str,
     email: str,
@@ -277,7 +277,7 @@ def create_sbatch_script_for_array_job(
         The json file with the list of audio files to process.
     job_name: Path
         The job name extracted from the input path.
-    mem: int
+    mem: str
         Requested memory per job. Default is 8GB.
     cpus_per_task: int
         Requested cpus per task. Default is 6.
@@ -298,7 +298,7 @@ def create_sbatch_script_for_array_job(
 #SBATCH --output="{tmp_dir}/{job_name}_%A_%a.out"
 #SBATCH --error="{tmp_dir}/{job_name}_%A_%a.err"
 #SBATCH --job-name={job_name}
-#SBATCH --mem={mem}G
+#SBATCH --mem={mem}
 #SBATCH --cpus-per-task={cpus_per_task}
 #SBATCH --gres=gpu:1
 #SBATCH --time={time}
@@ -369,7 +369,7 @@ def create_sbatch_script_for_single_file(
 #SBATCH --job-name={job_name}
 #SBATCH --output="{tmp_dir}/{job_name}_%j.out"
 #SBATCH --error="{tmp_dir}/{job_name}_%j.err"
-#SBATCH --mem={mem}G
+#SBATCH --mem={mem}
 #SBATCH --cpus-per-task={cpus_per_task}
 #SBATCH --gres=gpu:1
 #SBATCH --time={time}
