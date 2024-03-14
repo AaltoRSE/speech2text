@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>User Guide &mdash; speech2text  documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="For developers" href="for_developers.html" />
+    <link rel="prev" title="Welcome to Aalto speech2text’s documentation!" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            speech2text
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">User Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#create-a-triton-account">Create a Triton account</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#connect-to-triton">Connect to Triton</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#copy-your-data-to-triton">Copy your data to Triton</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#run-speech2text-on-triton">Run speech2text on Triton</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#inspect-and-copy-result-files-to-your-personal-computer">Inspect and copy result files to your personal computer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#remove-unneeded-files-and-folders-from-triton-workspace">Remove unneeded files and folders from Triton workspace</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#known-issues-and-troubleshooting">Known issues and troubleshooting</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#my-transcription-has-a-weird-segment-where-a-word-or-two-are-repeated-over-and-over">My transcription has a weird segment where a word or two are repeated over and over.</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#i-accidentally-closed-the-browser-tab-window-when-speech2text-was-still-running">I accidentally closed the browser tab/window when speech2text was still running.</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#why-do-we-use-work-directory-work-scratch-work-user-name-instead-of-home-directory">Why do we use work directory <code class="docutils literal notranslate"><span class="pre">Work</span> <span class="pre">/scratch/work/user-name</span></code> instead of <code class="docutils literal notranslate"><span class="pre">Home</span> <span class="pre">Directory</span></code>?</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#my-work-directory-has-a-lot-of-files-named-slurm-22970577-out-slurm-22235218-out-etc">My work directory has a lot of files named slurm-22970577.out, slurm-22235218.out, etc.</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#i-don-t-want-email-notifications-about-the-jobs">I don’t want email notifications about the jobs.</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#what-if-i-don-t-specify-the-language">What if I don’t specify the language?</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#what-if-my-audio-file-contains-speech-in-more-than-one-language">What if my audio file contains speech in more than one language?</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#what-happens-if-i-run-the-speech2text-command-for-audio-file-s-that-have-already-been-processed-and-completed">What happens if I run the speech2text command for audio file(s) that have already been processed and completed?</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="for_developers.html">For developers</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">speech2text</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">User Guide</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/user_guide.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="user-guide">
+<h1>User Guide<a class="headerlink" href="#user-guide" title="Link to this heading"></a></h1>
+<p>Aalto speech2text app is available to researchers of Aalto University. The app is run on the <a class="reference external" href="https://scicomp.aalto.fi/triton/">Aalto Triton cluster</a> and its usage is free for all Aalto researchers (master’s thesis workers, doctoral students, post docs, visiting researchers). The list of supported languages can be found <a class="reference external" href="https://github.com/openai/whisper#available-models-and-languages">here</a>.</p>
+<blockquote>
+<div><p><strong><em>IMPORTANT:</em></strong> If you use speech2text in your research, <a class="reference external" href="https://scicomp.aalto.fi/triton/acknowledgingtriton/">remember to acknowledge Triton and the Aalto Science-IT project in your publication</a>.</p>
+</div></blockquote>
+<p>In order to transcribe your speech files into text, apply the following steps (detailed instructions below):</p>
+<ol class="arabic simple">
+<li><p>Create a Triton cluster account (only done once)</p></li>
+<li><p>Connect to Triton using the web browser interface</p></li>
+<li><p>Copy your audio and/or video files to your Triton workspace</p></li>
+<li><p>Run speech2text app</p></li>
+<li><p>Process your result files on Triton or copy them to your personal computer</p></li>
+<li><p>Delete the audio and/or result files from Triton when not needed anymore</p></li>
+</ol>
+<p>The workflow described here is suitable for processing sensitive and personal data.
+All data uploaded to and processed on Triton are stored on servers managed by Aalto and can only be accessed from within Aalto network. The files and folders on Triton are protected by standard Unix permissions so that only their owner (you) has access to them.</p>
+<blockquote>
+<div><p><strong><em>IMPORTANT:</em></strong> <strong>If at any point something doesn’t work or you are unsure how to proceed, do not hesitate to contact <a class="reference external" href="https://scicomp.aalto.fi/rse/">the Aalto RSEs</a>. You can visit us at <a class="reference external" href="https://scicomp.aalto.fi/help/garage/#id1">the daily Zoom help session at 13.00-14.00</a> where we can e.g. create a Triton account for you, walk through the speech2text workflow together, answer questions, help with data analysis, and more.</strong></p>
+<p>You can also check the list of <a class="reference internal" href="#known-issues-and-troubleshooting">known issues and troubleshooting</a>.</p>
+</div></blockquote>
+<section id="create-a-triton-account">
+<h2>Create a Triton account<a class="headerlink" href="#create-a-triton-account" title="Link to this heading"></a></h2>
+<p>Triton is the Aalto high-performance computing cluster where we will run the speech2text app. Access is free for Aalto researchers.</p>
+<p>If you don’t already have a Triton account, please, visit the <a class="reference external" href="https://scicomp.aalto.fi/triton/accounts/">account page</a> and proceed to fill the account request form.</p>
+<blockquote>
+<div><p><strong><em>NOTE:</em></strong> Activating the account takes on average 1-2 work days. However, if you are in a hurry, visit us at <a class="reference external" href="https://scicomp.aalto.fi/help/garage/#id1">the daily Zoom help session at 13.00-14.00</a> and we can speed up the process.</p>
+</div></blockquote>
+</section>
+<section id="connect-to-triton">
+<h2>Connect to Triton<a class="headerlink" href="#connect-to-triton" title="Link to this heading"></a></h2>
+<p>If you are not familiar with Triton usage, we recommend connecting and transferring data to Triton using the web browser interface <a class="reference external" href="http://ood.triton.aalto.fi">Open On Demand</a>.</p>
+<p>Go to <a class="reference external" href="http://ood.triton.aalto.fi">Open On Demand</a> and log in with your Aalto username and password. (You will be granted access since your Aalto account has been synced with your Triton account.)</p>
+<blockquote>
+<div><p><strong><em>IMPORTANT:</em></strong> To connect to Open On Demand, you need to be inside Aalto network or use the Aalto VPN.</p>
+</div></blockquote>
+<blockquote>
+<div><p><strong><em>IMPORTANT:</em></strong> If you are using Triton for the very first time, do the following.</p>
+<p>On the Open On Demand front page, click on the Triton Shell Access button.</p>
+<p><img alt="" src="_images/triton_shell_access1.png" /></p>
+<p>The shell that opened into a new tab will ask you to confirm that you want to connect, answer “yes”.</p>
+<p>Subsequently, the shell will ask you for a password. This is your Aalto password. Note that your key presses do not show - just write your password and press enter.</p>
+<p>You can skip the following question about <code class="docutils literal notranslate"><span class="pre">.zshrc</span></code> file creation by pressing “q”.</p>
+<p>Afterwards, you can close this tab. Your Triton account is now fully operational.</p>
+</div></blockquote>
+</section>
+<section id="copy-your-data-to-triton">
+<h2>Copy your data to Triton<a class="headerlink" href="#copy-your-data-to-triton" title="Link to this heading"></a></h2>
+<p>On the Open On Demand front page, click the <code class="docutils literal notranslate"><span class="pre">Files</span></code> dropdown menu from the left upper corner and select <code class="docutils literal notranslate"><span class="pre">Work</span> <span class="pre">/scratch/work/yourusername</span></code>.</p>
+<p><img alt="" src="_images/files_workspace.png" /></p>
+<p>On the <code class="docutils literal notranslate"><span class="pre">Files</span></code> page, you can see the existing contents (files and folders) of your workspace on Triton.</p>
+<p>Click on the <code class="docutils literal notranslate"><span class="pre">Upload</span></code> button in the right upper corner.</p>
+<p><img alt="" src="_images/upload1.png" /></p>
+<p>In the following pop-up window, select <code class="docutils literal notranslate"><span class="pre">browse</span> <span class="pre">folders</span></code>.</p>
+<p><img alt="" src="_images/upload2.png" /></p>
+<p>In the following file browser, you will able to select the folder on your computer with the audio/video files. (Here, the folder we are uploading is called <code class="docutils literal notranslate"><span class="pre">my-audio-folder</span></code>.)</p>
+<p>A few things to note to make processing easier:</p>
+<ul class="simple">
+<li><p>While not strictly necessary, it is a good practice to put the audio files in a folder even if you only have one. This will keep your workspace organized on both Triton and your own computer.</p></li>
+<li><p>The audio files can be of any commonly used audio format, e.g. <code class="docutils literal notranslate"><span class="pre">.wav</span></code>, <code class="docutils literal notranslate"><span class="pre">.aiff</span></code>, <code class="docutils literal notranslate"><span class="pre">.mp3</span></code>, <code class="docutils literal notranslate"><span class="pre">.m4a</span></code>, <code class="docutils literal notranslate"><span class="pre">.aac</span></code>, <code class="docutils literal notranslate"><span class="pre">.ogg</span></code></p></li>
+<li><p>The files can also be of any commonly used video format, e.g. <code class="docutils literal notranslate"><span class="pre">.mp4</span></code>, <code class="docutils literal notranslate"><span class="pre">.mov</span></code>, <code class="docutils literal notranslate"><span class="pre">.avi</span></code></p></li>
+<li><p>Make sure your folder and file names do <strong>not</strong> contain white spaces or special characters apart from dash, underscore, and period, that is, use <code class="docutils literal notranslate"><span class="pre">my-audio-folder</span></code> and <code class="docutils literal notranslate"><span class="pre">my_audio_file.mp3</span></code> instead of <code class="docutils literal notranslate"><span class="pre">my</span> <span class="pre">audio</span> <span class="pre">folder</span></code> and <code class="docutils literal notranslate"><span class="pre">my&quot;audio&quot;file!.mp3</span></code>, respectively.</p></li>
+<li><p>It is recommended to divide files into folders according to language, that is, put English interview files in folder <code class="docutils literal notranslate"><span class="pre">my-english-interviews</span></code>, French interviews to <code class="docutils literal notranslate"><span class="pre">my-french-interviews</span></code>, and so forth.</p></li>
+</ul>
+<p>If your browser asks for confirmation, (<code class="docutils literal notranslate"><span class="pre">Are</span> <span class="pre">you</span> <span class="pre">sure</span> <span class="pre">you</span> <span class="pre">want</span> <span class="pre">to</span> <span class="pre">upload</span> <span class="pre">all</span> <span class="pre">files</span> <span class="pre">from</span> <span class="pre">“my-audio-folder”?</span> <span class="pre">Only</span> <span class="pre">do</span> <span class="pre">this</span> <span class="pre">if</span> <span class="pre">you</span> <span class="pre">trust</span> <span class="pre">the</span> <span class="pre">site.</span></code>), you can answer “yes”.</p>
+<p>Depending on the size of your audio files and the quality of your internet connection, the transfer can take a short or a long time (from a few seconds to several hours). Remember that video files are in general much bigger than audio files.</p>
+<p>After the transfer is done, you should see your folder in the list of existing content on the <code class="docutils literal notranslate"><span class="pre">Files</span></code> page.</p>
+<p><img alt="" src="_images/upload3.png" /></p>
+<blockquote>
+<div><p><strong><em>IMPORTANT:</em></strong> Some people have been experiencing difficulties with the Open On Demand file upload. If you receive a “File Upload Failed” error several times in a row, you can visit us at <a class="reference external" href="https://scicomp.aalto.fi/help/garage/#id1">the daily Zoom help session at 13.00-14.00</a> and we can figure it out.</p>
+</div></blockquote>
+</section>
+<section id="run-speech2text-on-triton">
+<h2>Run speech2text on Triton<a class="headerlink" href="#run-speech2text-on-triton" title="Link to this heading"></a></h2>
+<p>Go back to the Open On Demand front page by clicking the ASC logo in the utmost upper left corner.</p>
+<p>On the front page, click on the Triton Shell Access button.</p>
+<p><img alt="" src="_images/triton_shell_access1.png" /></p>
+<p>This will open a command line shell on Triton into a new tab.</p>
+<p>The command line shell looks roughly like the one below.</p>
+<p><img alt="" src="_images/triton_shell_access2.png" /></p>
+<p>On the command line, write (or copy and paste) the following commands.</p>
+<p>First, load the speech2text app with</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>module<span class="w"> </span>load<span class="w"> </span>speech2text
+</pre></div>
+</div>
+<p>This needs to be done only once in this terminal session. The session ends when you close your terminal tab. However, running it multiple times does not hurt.</p>
+<p>Next, replace <code class="docutils literal notranslate"><span class="pre">my.name&#64;aalto.fi</span></code> and <code class="docutils literal notranslate"><span class="pre">mylanguage</span></code> with your email address and the language of the audio files you are about to submit for processing, respectively, as follows:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">SPEECH2TEXT_EMAIL</span><span class="o">=</span>my.name@aalto.fi
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">SPEECH2TEXT_LANGUAGE</span><span class="o">=</span>mylanguage
+</pre></div>
+</div>
+<p>For example:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">SPEECH2TEXT_EMAIL</span><span class="o">=</span>john.smith@aalto.fi
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">SPEECH2TEXT_LANGUAGE</span><span class="o">=</span>finnish
+</pre></div>
+</div>
+<blockquote>
+<div><p><strong><em>IMPORTANT:</em></strong> Copy the commands verbatim, that is, make sure the UPPER CASE characters are upper case, lower case characters are lower case, and that there are no typos.</p>
+</div></blockquote>
+<p>These commands sets environment variables for</p>
+<ul class="simple">
+<li><p>the email address where to send notifications of started and completed submissions (recommended)</p></li>
+<li><p>the language of the audio files (recommended)</p></li>
+</ul>
+<p>These variables are valid until the end of current terminal session.</p>
+<blockquote>
+<div><p><strong><em>NOTE:</em></strong> If you don’t want email notifications about the jobs, simply unset the email variable with</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">unset</span><span class="w"> </span>SPEECH2TEXT_EMAIL
+</pre></div>
+</div>
+<p>This is equal to not running the <code class="docutils literal notranslate"><span class="pre">export</span> <span class="pre">EMAIL=my.name&#64;aalto.fi</span></code> command in the first place. However, receiving the notifications is recommended.</p>
+</div></blockquote>
+<p>Finally, submit all the audio files in your folder to the Triton job queue (remember to replace <code class="docutils literal notranslate"><span class="pre">my-audio-folder</span></code> with the name of the folder you just uploaded) with</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>speech2text $WRKDIR/my-audio-folder
+</pre></div>
+</div>
+<p>The command outputs information about the submission, for example:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>Submit<span class="w"> </span>speech2text<span class="w"> </span><span class="nb">jobs</span><span class="w"> </span>with<span class="w"> </span>arguments:
+<span class="w">	</span>INPUT:<span class="w"> </span>my-audio-files
+<span class="w">	</span>SPEECH2TEXT_TMP:<span class="w"> </span>/home/smithj1/.speech2text
+<span class="w">	</span>SPEECH2TEXT_MEM:<span class="w"> </span>12G
+<span class="w">	</span>SPEECH2TEXT_CPUS_PER_TASK:<span class="w"> </span><span class="m">6</span>
+<span class="w">	</span>SPEECH2TEXT_TIME:<span class="w"> </span><span class="m">24</span>:00:00
+<span class="w">	</span>SPEECH2TEXT_EMAIL:<span class="w"> </span>john.smith@aalto.fi
+<span class="w">	</span>SPEECH2TEXT_LANGUAGE:<span class="w"> </span>finnish
+Given<span class="w"> </span>language<span class="w"> </span><span class="s1">&#39;finnish&#39;</span><span class="w"> </span>is<span class="w"> </span>supported.
+Email<span class="w"> </span>notifications<span class="w"> </span>will<span class="w"> </span>be<span class="w"> </span>sent<span class="w"> </span>to:<span class="w"> </span>john.smith@aalto.fi
+Input<span class="w"> </span>directory:<span class="w"> </span>/scratch/work/smithj1/my-audio-folder
+Scan<span class="w"> </span>input<span class="w"> </span>audio<span class="w"> </span>files<span class="w"> </span>from:<span class="w"> </span>/scratch/work/smithj1/my-audio-folder
+/scratch/work/smithj1/my-audio-folder/test1.mp3:<span class="w"> </span>Submit
+/scratch/work/smithj1/my-audio-folder/test2.mp3:<span class="w"> </span>Submit
+Submitted<span class="w"> </span>batch<span class="w"> </span>job<span class="w"> </span><span class="m">24238902</span>
+</pre></div>
+</div>
+<blockquote>
+<div><p><strong><em>IMPORTANT:</em></strong> If you made a mistake while submitting, e.g., specified wrong folder, file, or language, you can cancel the submitted job simply with</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">scancel</span> <span class="n">JOBID</span>
+</pre></div>
+</div>
+<p>where the JOBID is printed at the last line of the submission message. (In the above example message, JOBID is 24238902).</p>
+</div></blockquote>
+<p>Alternatively, you can submit a single file instead of a folder simply by replacing the folder name with the file name</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>speech2text<span class="w"> </span><span class="nv">$WRKDIR</span>/my-audio-folder/test1.mp3
+</pre></div>
+</div>
+<p>The speech2text job(s) are now in the queue. You will receive email notifications when the jobs have begun and have completed.</p>
+<p>Optionally, you can also monitor the job states using the following command</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">slurm</span> <span class="n">queue</span>
+</pre></div>
+</div>
+<p>which tells you for each job ID if the job is still in the queue waiting for resources (<em>PENDING</em>) or already running (<em>RUNNING</em>).</p>
+<blockquote>
+<div><p><strong><em>NOTE:</em></strong> As a rule of thumb, you can expected to results to be ready within an hour. However, if you receive an email saying the processing has failed or have not received any emails within an hour of running the speech2text command, something has gone wrong. In this case, visit RSEs at <a class="reference external" href="https://scicomp.aalto.fi/help/garage/#id1">the daily Zoom help session at 13.00-14.00</a> and we will figure it out.</p>
+</div></blockquote>
+<p>If you have no more work to submit at this time, you are free to close the terminal window and log out from Open On Demand. If the browser asks for confirmation (<code class="docutils literal notranslate"><span class="pre">This</span> <span class="pre">page</span> <span class="pre">is</span> <span class="pre">asking</span> <span class="pre">you</span> <span class="pre">to</span> <span class="pre">confirm</span> <span class="pre">that</span> <span class="pre">you</span> <span class="pre">want</span> <span class="pre">to</span> <span class="pre">leave</span> <span class="pre">—</span> <span class="pre">information</span> <span class="pre">you’ve</span> <span class="pre">entered</span> <span class="pre">may</span> <span class="pre">not</span> <span class="pre">be</span> <span class="pre">saved.</span></code>), you can answer “yes”.</p>
+<p>However, if you wish to submit more audio folders or files for processing, you are free to do so in this same session. In this case, note that</p>
+<ul>
+<li><p>If you want to change audio language, simply set the language variable again with</p>
+<p><code class="docutils literal notranslate"><span class="pre">export</span> <span class="pre">SPEECH2TEXT_LANGUAGE=anotherlanguage</span></code></p>
+<p>Otherwise the next audio files will be submitted with the previously specified language.</p>
+</li>
+<li><p>If you want to change the email address for notifications, simply set the email variable again with</p>
+<p><code class="docutils literal notranslate"><span class="pre">export</span> <span class="pre">SPEECH2TEXT_LANGUAGE=jane.smith&#64;aalto.fi</span></code></p>
+<p>Otherwise the next notifications will be sent to the previously specified email address.</p>
+</li>
+<li><p>You don’t need to load the speech2text module again in this session. However, running <code class="docutils literal notranslate"><span class="pre">module</span> <span class="pre">load</span> <span class="pre">speech2text</span></code> multiple times does not hurt.</p></li>
+</ul>
+</section>
+<section id="inspect-and-copy-result-files-to-your-personal-computer">
+<h2>Inspect and copy result files to your personal computer<a class="headerlink" href="#inspect-and-copy-result-files-to-your-personal-computer" title="Link to this heading"></a></h2>
+<p>After receiving an email saying an audio file has finished processing, log back into <a class="reference external" href="http://ood.triton.aalto.fi">Open On Demand</a>.</p>
+<p>At the Open On Demand front page, select again the <code class="docutils literal notranslate"><span class="pre">Files</span></code> and <code class="docutils literal notranslate"><span class="pre">Work</span></code> page (upper left corner). Enter your audio folder. You should now see the newly created <code class="docutils literal notranslate"><span class="pre">results</span></code> folder.</p>
+<p>Enter the <code class="docutils literal notranslate"><span class="pre">results</span></code> folder and notice there are two result files corresponding to each audio file:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">.csv</span></code> files: e.g. <code class="docutils literal notranslate"><span class="pre">test.csv</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">.txt</span></code> files: e.g. <code class="docutils literal notranslate"><span class="pre">test.txt</span></code></p></li>
+</ul>
+<p>Example of <code class="docutils literal notranslate"><span class="pre">.csv</span></code> output format (computer-friendly):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">start</span><span class="p">,</span><span class="n">end</span><span class="p">,</span><span class="n">speaker</span><span class="p">,</span><span class="n">transcription</span>
+<span class="mi">00</span><span class="p">:</span><span class="mi">00</span><span class="p">:</span><span class="mi">00</span><span class="p">,</span><span class="mi">00</span><span class="p">:</span><span class="mi">00</span><span class="p">:</span><span class="mi">05</span><span class="p">,</span><span class="n">SPEAKER_00</span><span class="p">,</span><span class="s2">&quot;This is the first sentence of the first speaker.&quot;</span>
+<span class="mi">00</span><span class="p">:</span><span class="mi">00</span><span class="p">:</span><span class="mi">06</span><span class="p">,</span><span class="mi">00</span><span class="p">:</span><span class="mi">00</span><span class="p">:</span><span class="mi">10</span><span class="p">,</span><span class="n">SPEAKER_00</span><span class="p">,</span><span class="s2">&quot;This is the second sentence of the first speaker.&quot;</span>
+<span class="mi">00</span><span class="p">:</span><span class="mi">00</span><span class="p">:</span><span class="mi">11</span><span class="p">,</span><span class="mi">00</span><span class="p">:</span><span class="mi">00</span><span class="p">:</span><span class="mi">15</span><span class="p">,</span><span class="n">SPEAKER_01</span><span class="p">,</span><span class="s2">&quot;This is a sentence from the second speaker.&quot;</span>
+<span class="mi">00</span><span class="p">:</span><span class="mi">00</span><span class="p">:</span><span class="mi">16</span><span class="p">,</span><span class="mi">00</span><span class="p">:</span><span class="mi">00</span><span class="p">:</span><span class="mi">20</span><span class="p">,</span><span class="n">SPEAKER_00</span><span class="p">,</span><span class="s2">&quot;This is the first speaker speaking again.&quot;</span>
+</pre></div>
+</div>
+<p>Corresponding example of <code class="docutils literal notranslate"><span class="pre">.txt</span></code> output format (human-friendly):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="mi">00</span><span class="p">:</span><span class="mi">00</span><span class="p">:</span><span class="mi">00</span> <span class="o">-</span> <span class="mi">00</span><span class="p">:</span><span class="mi">00</span><span class="p">:</span><span class="mi">10</span><span class="p">)</span> <span class="n">SPEAKER_00</span>
+
+<span class="n">This</span> <span class="ow">is</span> <span class="n">the</span> <span class="n">first</span> <span class="n">sentence</span> <span class="n">of</span> <span class="n">the</span> <span class="n">first</span> <span class="n">speaker</span><span class="o">.</span> <span class="n">This</span> <span class="ow">is</span> <span class="n">the</span> <span class="n">second</span> <span class="n">sentence</span> <span class="n">of</span> <span class="n">the</span> <span class="n">first</span> <span class="n">speaker</span><span class="o">.</span>
+
+<span class="p">(</span><span class="mi">00</span><span class="p">:</span><span class="mi">00</span><span class="p">:</span><span class="mi">11</span> <span class="o">-</span> <span class="mi">00</span><span class="p">:</span><span class="mi">00</span><span class="p">:</span><span class="mi">15</span><span class="p">)</span> <span class="n">SPEAKER_01</span>
+
+<span class="n">This</span> <span class="ow">is</span> <span class="n">a</span> <span class="n">sentence</span> <span class="kn">from</span> <span class="nn">the</span> <span class="n">second</span> <span class="n">speaker</span><span class="o">.</span>
+
+<span class="p">(</span><span class="mi">00</span><span class="p">:</span><span class="mi">00</span><span class="p">:</span><span class="mi">16</span> <span class="o">-</span> <span class="mi">00</span><span class="p">:</span><span class="mi">00</span><span class="p">:</span><span class="mi">20</span><span class="p">)</span> <span class="n">SPEAKER_00</span>
+
+<span class="n">This</span> <span class="ow">is</span> <span class="n">the</span> <span class="n">first</span> <span class="n">speaker</span> <span class="n">speaking</span> <span class="n">again</span><span class="o">.</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">.txt</span></code> files have basic text format and can be opened in a text editor (e.g. Microsoft Word, Google Docs). The <code class="docutils literal notranslate"><span class="pre">.csv</span></code> files have comma separated table format which is easy to read by computers and can be opened in a spreadsheet software (e.g. Microsoft Excel, Google Sheets).</p>
+<p>You can either download individual result files or the whole <code class="docutils literal notranslate"><span class="pre">results</span></code> folder if you want to continue working on them on your personal computer using your preferred software. (Check the dropdown menus next to individual files and folders.)</p>
+<blockquote>
+<div><p><strong><em>NOTE:</em></strong> The result files for a single audio file are created only <strong>after</strong> the processing of that audio file has been fully completed. In other words, if you can see and access the result files, you are free to move/copy them as the processing has already completed.</p>
+</div></blockquote>
+</section>
+<section id="remove-unneeded-files-and-folders-from-triton-workspace">
+<h2>Remove unneeded files and folders from Triton workspace<a class="headerlink" href="#remove-unneeded-files-and-folders-from-triton-workspace" title="Link to this heading"></a></h2>
+<p>If you do not need your audio and/or result files and/or folders, you can remove them by selecting <code class="docutils literal notranslate"><span class="pre">Delete</span></code> from the dropdown menus next to individual files and folders.</p>
+</section>
+<section id="known-issues-and-troubleshooting">
+<h2>Known issues and troubleshooting<a class="headerlink" href="#known-issues-and-troubleshooting" title="Link to this heading"></a></h2>
+<p><strong>If at any point something doesn’t work or you are unsure how to proceed, do not hesitate to contact <a class="reference external" href="https://scicomp.aalto.fi/rse/">the Aalto RSEs</a>. You can visit us at <a class="reference external" href="https://scicomp.aalto.fi/help/garage/#id1">the daily Zoom help session at 13.00-14.00</a> where we can walk through the speech2text workflow together, debug problems, answer questions, help with data analysis, and more.</strong></p>
+<section id="my-transcription-has-a-weird-segment-where-a-word-or-two-are-repeated-over-and-over">
+<h3>My transcription has a weird segment where a word or two are repeated over and over.<a class="headerlink" href="#my-transcription-has-a-weird-segment-where-a-word-or-two-are-repeated-over-and-over" title="Link to this heading"></a></h3>
+<p>This is a quite known issue with the OpenAI Whisper speech recognition model. This behavior is sometimes triggered
+by bad audio quality during that segment (background noise, mic issues, people talking over each other). However, sometimes this seems to happen even with good audio quality. Unfortunately, there is nothing we can do about this at the moment: you have to go through that particular audio segment and transcribe it manually.</p>
+</section>
+<section id="i-accidentally-closed-the-browser-tab-window-when-speech2text-was-still-running">
+<h3>I accidentally closed the browser tab/window when speech2text was still running.<a class="headerlink" href="#i-accidentally-closed-the-browser-tab-window-when-speech2text-was-still-running" title="Link to this heading"></a></h3>
+<p>Successfully submitted jobs are running on the Triton Slurm queue so you can log out of Open On Demand, close your the browser tab/window, or shut down your computer while waiting for the results. You will get email notifications when the results are available.</p>
+</section>
+<section id="why-do-we-use-work-directory-work-scratch-work-user-name-instead-of-home-directory">
+<h3>Why do we use work directory <code class="docutils literal notranslate"><span class="pre">Work</span> <span class="pre">/scratch/work/user-name</span></code> instead of <code class="docutils literal notranslate"><span class="pre">Home</span> <span class="pre">Directory</span></code>?<a class="headerlink" href="#why-do-we-use-work-directory-work-scratch-work-user-name-instead-of-home-directory" title="Link to this heading"></a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">Home</span> <span class="pre">Directory</span></code> has a small disk space quota (10Gb) and <code class="docutils literal notranslate"><span class="pre">scratch/work/</span></code> has a large one (200Gb).
+Workspace disk is also faster than the home directory.</p>
+</section>
+<section id="my-work-directory-has-a-lot-of-files-named-slurm-22970577-out-slurm-22235218-out-etc">
+<h3>My work directory has a lot of files named slurm-22970577.out, slurm-22235218.out, etc.<a class="headerlink" href="#my-work-directory-has-a-lot-of-files-named-slurm-22970577-out-slurm-22235218-out-etc" title="Link to this heading"></a></h3>
+<p>They are log files from the Slurm jobs. They can be helpful if something goes wrong with the speech2text jobs. You can either leave them there, move them to a folder, or remove them completely after you have checked that the speech2text results look good.</p>
+</section>
+<section id="i-don-t-want-email-notifications-about-the-jobs">
+<h3>I don’t want email notifications about the jobs.<a class="headerlink" href="#i-don-t-want-email-notifications-about-the-jobs" title="Link to this heading"></a></h3>
+<p>Unset your email</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">unset</span><span class="w"> </span>EMAIL
+</pre></div>
+</div>
+<p>before running the speech2text command <a class="reference internal" href="#run-speech2text-on-triton">as usual</a>.</p>
+</section>
+<section id="what-if-i-don-t-specify-the-language">
+<h3>What if I don’t specify the language?<a class="headerlink" href="#what-if-i-don-t-specify-the-language" title="Link to this heading"></a></h3>
+<p>You can leave the language specification out by unsetting the language environment variable</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">unset</span><span class="w"> </span>LANGUAGE
+</pre></div>
+</div>
+<p>before running the speech2text command <a class="reference internal" href="#run-speech2text-on-triton">as usual</a>. In this case, speech2text will try to automatically detect the language. Results may vary.</p>
+</section>
+<section id="what-if-my-audio-file-contains-speech-in-more-than-one-language">
+<h3>What if my audio file contains speech in more than one language?<a class="headerlink" href="#what-if-my-audio-file-contains-speech-in-more-than-one-language" title="Link to this heading"></a></h3>
+<p>If a single audio file contains speech in more than one language, result files will (probably) still be produced but the results will (probably) be nonsensical to some extent. In some cases, this can be avoided easily. For example, if the language changes at the middle of the audio, just split the file into two parts and process them separately. You can use any available audio software to do this, for example, <a class="reference external" href="https://www.audacityteam.org/">Audacity</a>.</p>
+</section>
+<section id="what-happens-if-i-run-the-speech2text-command-for-audio-file-s-that-have-already-been-processed-and-completed">
+<h3>What happens if I run the speech2text command for audio file(s) that have already been processed and completed?<a class="headerlink" href="#what-happens-if-i-run-the-speech2text-command-for-audio-file-s-that-have-already-been-processed-and-completed" title="Link to this heading"></a></h3>
+<p>This is safe to do: speech2text checks if the expected result files already exist and if so, exits early without doing any further processing.</p>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="Welcome to Aalto speech2text’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="for_developers.html" class="btn btn-neutral float-right" title="For developers" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Teemu Ruokolainen, AaltoRSE.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
