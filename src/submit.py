@@ -41,7 +41,7 @@ def get_argument_parser():
     )
     parser.add_argument(
         "--SPEECH2TEXT_MEM",
-        type=int,
+        type=str,
         default=os.getenv("SPEECH2TEXT_MEM"),
         help="Requested memory per job. If not given, should be set as an environment variable.",
     )
