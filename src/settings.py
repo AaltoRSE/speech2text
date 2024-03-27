@@ -62,3 +62,5 @@ supported_languages_reverse = {value: key for key, value in supported_languages.
 
 available_whisper_models = ["large-v2", "large-v3"]
 default_whisper_model = "large-v3"
+
+compute_device='cuda'

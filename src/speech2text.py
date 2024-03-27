@@ -21,7 +21,7 @@ from whisperx.types import TranscriptionResult
 import settings
 from submit import parse_output_dir
 from utils import (DiarizationPipeline, calculate_max_batch_size, load_audio,
-                   seconds_to_human_readable_format)
+                   seconds_to_human_readable_format, assign_word_speakers)
 
 # https://numba.pydata.org/numba-doc/dev/reference/deprecation.html
 warnings.simplefilter("ignore", category=NumbaDeprecationWarning)
@@ -86,39 +86,10 @@ def get_argument_parser():
     return parser
 
 
-def compute_overlap(start1: float, end1: float, start2: float, end2: float) -> float:
-    """
-    Compute the overlap between two segments.
-
-    Parameters
-    ----------
-    start1 : float
-        Start time of the first segment.
-    end1 : float
-        End time of the first segment.
-    start2 : float
-        Start time of the second segment.
-    end2 : float
-        End time of the second segment.
-
-    Returns
-    -------
-    float:
-        The overlap in time between the two segments.
-    """
-    if start1 > end1 or start2 > end2:
-        raise ValueError("Start of segment can't be larger than its end.")
-
-    start_overlap = max(start1, start2)
-    end_overlap = min(end1, end2)
-
-    if start_overlap > end_overlap:
-        return 0
-
-    return abs(end_overlap - start_overlap)
-
-
-def align(segments, diarization) -> dict:
+def align_segments(segments, 
+                   diarization_results, 
+                   file, 
+                   language) -> dict:
     """
     Align diarization with transcription.
 
@@ -133,6 +104,10 @@ def align(segments, diarization) -> dict:
         Output of Whisper transcribe()
     diarization : list
         Output of Pyannote diarization()
+    file : str
+        The input audio file 
+    language: str
+        language in short format (e.g 'fi')
 
     Returns
     -------
@@ -142,37 +117,34 @@ def align(segments, diarization) -> dict:
         "start" : [0.0, 4.5, 7.0],
         "end"   : [3.3, 6.0, 10.0],
         "transcription" : ["This is first first speaker segment", "This is the second", "This is from an unknown speaker"],
-        "speaker": ["SPEAKER_00", "SPEAKER_01", None]
+        "speaker": ["SPEAKER_00", "SPEAKER_01", "SPEAKER_UNKNOWN"]
         }
     """
-    transcription_segments = [
-        (segment["start"], segment["end"], segment["text"]) for segment in segments
-    ]
-    diarization_segments = [
-        (start, end, speaker) for _, _, speaker, start, end in diarization.to_numpy()
-    ]
-    alignment = defaultdict(list)
-    for transcription_start, transcription_end, text in transcription_segments:
-        max_overlap, max_speaker = None, None
-        for diarization_start, diarization_end, speaker in diarization_segments:
-            overlap = compute_overlap(
-                transcription_start,
-                transcription_end,
-                diarization_start,
-                diarization_end,
-            )
-            if overlap > 0 and (max_overlap is None or overlap > max_overlap):
-                max_overlap, max_speaker = overlap, speaker
+    align_model, align_metadata = whisperx.load_align_model(language,
+                                                            settings.compute_device)
+    segments = whisperx.align(segments,
+                              align_model, 
+                              align_metadata,
+                              file, 
+                              settings.compute_device
+                              )
 
-        transcription_start = seconds_to_human_readable_format(transcription_start)
-        transcription_end = seconds_to_human_readable_format(transcription_end)
+    segments = assign_word_speakers(diarization_results, segments['segments'])
+    
+    alignment = defaultdict(list)
+    for segment in segments:
+        transcription_start = seconds_to_human_readable_format(segment['start'])
+        transcription_end = seconds_to_human_readable_format(segment['end'])
 
         alignment["start"].append(transcription_start)
         alignment["end"].append(transcription_end)
-        alignment["speaker"].append(max_speaker)
-        alignment["transcription"].append(text.strip())
-
-    return alignment
+        alignment["transcription"].append(segment['text'].strip())
+        try:
+            alignment["speaker"].append(segment['speaker'])
+        except KeyError:
+            alignment["speaker"].append("SPEAKER_UNKNOWN")
+        
+    return alignment, time.time()
 
 
 def parse_output_file_stem(output_dir: str, input_file: str) -> Path:
@@ -266,7 +238,7 @@ def write_alignment_to_txt_file(alignment: dict, output_file_stem: Path):
 def load_whisperx_model(
     name: str,
     language: Optional[str] = None,
-    device: Optional[Union[str, torch.device]] = "cuda",
+    device: Optional[Union[str, torch.device]] = settings.compute_device,
 ):
     """
     Load a Whisper model in GPU.
@@ -488,10 +460,15 @@ def main():
 
         segments = shared_dict["segments"]
         diarization_results = shared_dict["diarization"]
+    
+        torch.cuda.empty_cache()
 
-    # Alignment
+    t0 = time.time()
     logger.info(".. Align transcription and diarization")
-    alignment = align(segments, diarization_results)
+    alignment, align_time = align_segments(segments, diarization_results, input_file_wav, language)
+    logger.info(
+        f".. .. Diarization finished in {align_time-t0:.1f} seconds"
+    )
 
     logger.info(f".. Write alignment to output")
     output_dir = parse_output_dir(args.INPUT_FILE)
