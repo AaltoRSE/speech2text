@@ -19,7 +19,7 @@ import settings
 from utils import add_durations, load_audio
 
 # This is the speedup to realtime for transcribing the audio file.
-# The real number is higher than 15, this is just to make sure the job has enough time to complete.
+# The real number is higher than 15 (close to 25), this is just to make sure the job has enough time to complete.
 REALTIME_SPEEDUP = 15
 
 
@@ -207,7 +207,7 @@ def create_array_input_file(
 
 def estimate_job_time(input_path: PosixPath) -> str:
     """
-    Estimate total run time based on input file/folder
+    Estimate total run time based on input file/folder.
 
     Parameters
     ----------
@@ -219,8 +219,8 @@ def estimate_job_time(input_path: PosixPath) -> str:
     Duration: str
         Total estimate time in HH:MM:SS format.
     """
-    # Loading time for whisper + diarization pipeline
-    PIPELINE_LOADING_TIME = "00:05:00"
+    # Loading time for whisperx + diarization + diarization pipeline
+    PIPELINE_LOADING_TIME = "00:08:00"
     # Loading a 60 minute audio file takes ~5 seconds. This is an upper limit (equivalent to
     # loading a 24h file) to ensure sufficient time.
     AUDIO_LOADING_TIME = "00:01:00"

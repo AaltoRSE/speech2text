@@ -158,6 +158,42 @@ class DiarizationPipeline:
         diarize_df["end"] = diarize_df["segment"].apply(lambda x: x.end)
 
         return diarize_df
+    
+def assign_word_speakers(diarize_df, transcript_segments):
+    """
+    This function assigns speakers to words and segments in a transcript based on diarization results.
+
+    Args:
+        diarize_df (pd.DataFrame): The diarization dataframe.
+        transcript_segments (list): The list of transcript segments.
+
+    Returns:
+        list: The list of transcript segments with assigned speakers.
+    """
+    for seg in transcript_segments:
+        # assign speaker to segments
+        diarize_df['intersection'] = np.minimum(diarize_df['end'], seg['end']) - np.maximum(diarize_df['start'], seg['start'])
+        diarize_df['union'] = np.maximum(diarize_df['end'], seg['end']) - np.minimum(diarize_df['start'], seg['start'])
+        dia_tmp = diarize_df[diarize_df['intersection'] > 0]
+        
+        if len(dia_tmp) > 0:
+            # sum over speakers if there are many speakers
+            speaker = dia_tmp.groupby("speaker")["intersection"].sum().sort_values(ascending=False).index[0]
+            seg["speaker"] = speaker
+        
+        # assign speaker to each words
+        if 'words' in seg:
+            for word in seg['words']:
+                if 'start' in word:
+                    diarize_df['intersection'] = np.minimum(diarize_df['end'], word['end']) - np.maximum(diarize_df['start'], word['start'])
+                    diarize_df['union'] = np.maximum(diarize_df['end'], word['end']) - np.minimum(diarize_df['start'], word['start'])
+                    dia_tmp = diarize_df[diarize_df['intersection'] > 0]
+
+                    if len(dia_tmp) > 0:
+                        speaker = dia_tmp.groupby("speaker")["intersection"].sum().sort_values(ascending=False).index[0]
+                        word["speaker"] = speaker
+        
+    return transcript_segments
 
 
 def add_durations(time1: str, time2: str) -> str:
