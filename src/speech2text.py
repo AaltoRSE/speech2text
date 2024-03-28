@@ -120,8 +120,11 @@ def align_segments(segments,
         "speaker": ["SPEAKER_00", "SPEAKER_01", "SPEAKER_UNKNOWN"]
         }
     """
+    model_name=settings.wav2vec_models[language] if language in settings.wav2vec_models else None
+
     align_model, align_metadata = whisperx.load_align_model(language,
-                                                            settings.compute_device)
+                                                            settings.compute_device,
+                                                            model_name=model_name)
     segments = whisperx.align(segments,
                               align_model, 
                               align_metadata,
