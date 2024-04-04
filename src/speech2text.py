@@ -86,28 +86,29 @@ def get_argument_parser():
     return parser
 
 
-def align_segments(segments, 
-                   diarization_results, 
+def combine_transcription_and_diarization(transcription_segments, 
+                   diarization_segments, 
                    file, 
                    language) -> dict:
     """
-    Align diarization with transcription.
+    Combine transcription and diarization results:
 
-    Transcription and diarization segments is measured using overlap in time.
+    1. Convert transcription segments to word-level using wav2vec2 alignment
+    2. For each word-level transcription segment, find the most overlapping (in time) speaker segment
 
     If no diarization segment overlaps with a given transcription segment, the speaker
-    for that transcription segment is None.
+    for that transcription segment is "SPEAKER_UNKNOWN".
 
     Parameters
     ----------
-    transcription : list
+    transcription_segments : list
         Output of Whisper transcribe()
-    diarization : list
+    diarization_segments : list
         Output of Pyannote diarization()
     file : str
         The input audio file 
     language: str
-        language in short format (e.g 'fi')
+        language in short format (e.g. "fi")
 
     Returns
     -------
@@ -120,34 +121,39 @@ def align_segments(segments,
         "speaker": ["SPEAKER_00", "SPEAKER_01", "SPEAKER_UNKNOWN"]
         }
     """
-    model_name=settings.wav2vec_models[language] if language in settings.wav2vec_models else None
+
+    # Convert transcription segments to word-level using wav2vec2 alignment
+    wav2vec_model_name = settings.wav2vec_models[language] if language in settings.wav2vec_models else None
 
     align_model, align_metadata = whisperx.load_align_model(language,
                                                             settings.compute_device,
-                                                            model_name=model_name)
-    segments = whisperx.align(segments,
+                                                            model_name=wav2vec_model_name)
+    
+    transcription_segments = whisperx.align(transcription_segments,
                               align_model, 
                               align_metadata,
                               file, 
                               settings.compute_device
                               )
 
-    segments = assign_word_speakers(diarization_results, segments['segments'])
+    # Combine diarization and word-level transcription segments
+    segments = assign_word_speakers(diarization_segments, transcription_segments['segments'])
     
-    alignment = defaultdict(list)
+    # Reformat the result (return a dictionary of lists)
+    result = defaultdict(list)
     for segment in segments:
         transcription_start = seconds_to_human_readable_format(segment['start'])
         transcription_end = seconds_to_human_readable_format(segment['end'])
 
-        alignment["start"].append(transcription_start)
-        alignment["end"].append(transcription_end)
-        alignment["transcription"].append(segment['text'].strip())
+        result["start"].append(transcription_start)
+        result["end"].append(transcription_end)
+        result["transcription"].append(segment['text'].strip())
         try:
-            alignment["speaker"].append(segment['speaker'])
+            result["speaker"].append(segment['speaker'])
         except KeyError:
-            alignment["speaker"].append("SPEAKER_UNKNOWN")
+            result["speaker"].append("SPEAKER_UNKNOWN")
         
-    return alignment, time.time()
+    return result, time.time()
 
 
 def parse_output_file_stem(output_dir: str, input_file: str) -> Path:
@@ -157,18 +163,18 @@ def parse_output_file_stem(output_dir: str, input_file: str) -> Path:
     return Path(output_dir) / Path(Path(input_file).name)
 
 
-def write_alignment_to_csv_file(alignment: dict, output_file_stem: Path):
+def write_result_to_csv_file(result: dict, output_file_stem: Path):
     """
-    Write the alignment to a CSV file.
+    Write the transcription + diarization result to a CSV file.
 
     Parameters
     ----------
-    alignment : dict
-        The alignment dictionary for start, end, speaker, and transcription.
+    result : dict
+        The result dictionary of lists for start, end, speaker, and transcription.
     output_file_stem : Path
         The output file.
     """
-    df = pd.DataFrame.from_dict(alignment)
+    df = pd.DataFrame.from_dict(result)
     output_file = str(Path(output_file_stem).with_suffix(".csv"))
     df.to_csv(
         output_file,
@@ -179,14 +185,14 @@ def write_alignment_to_csv_file(alignment: dict, output_file_stem: Path):
     logger.info(f".. .. Wrote CSV output to: {output_file}")
 
 
-def write_alignment_to_txt_file(alignment: dict, output_file_stem: Path):
+def write_result_to_txt_file(result: dict, output_file_stem: Path):
     """
-    Write the alignment data to a text file.
+    Write the transcription + diarization result to a text file.
 
     Parameters
     ----------
-    alignment : dict
-        The alignment dictionary for start, end, speaker, and transcription.
+    result : dict
+        The result dictionary of lists for start, end, speaker, and transcription.
     output_file_stem : Path
         The output file.
     """
@@ -195,10 +201,10 @@ def write_alignment_to_txt_file(alignment: dict, output_file_stem: Path):
     lines_speaker = []
     prev_speaker = None
     for start, end, speaker, transcription in zip(
-        alignment["start"],
-        alignment["end"],
-        alignment["speaker"],
-        alignment["transcription"],
+        result["start"],
+        result["end"],
+        result["speaker"],
+        result["transcription"],
     ):
         if speaker != prev_speaker and lines_speaker:
             all_lines_grouped_by_speaker.append(lines_speaker)
@@ -303,7 +309,7 @@ def transcribe(
     file: str, model_name: str, language: str, result_list: dict
 ) -> TranscriptionResult:
     """
-    The main transcription fucntion based on WhisperX.
+    Transcribe audio file using WhisperX.
 
     Parameters
     ----------
@@ -312,7 +318,7 @@ def transcribe(
     model_name : str
         The Whisper model name.
     language : str
-        The language of the audio. Not setting the language would result in automatic language detection.
+        The language of the audio. Not setting the language will result in automatic language detection.
     result_list : dict
         The dictionary to store the result.
     """
@@ -320,7 +326,7 @@ def transcribe(
     model = load_whisperx_model(model_name, language)
 
     try:
-        segs, _ = model.transcribe(
+        segments, _ = model.transcribe(
             file, batch_size=batch_size, language=language
         ).values()
     # If the batch size is too large, reduce it by half and try again to avoid CUDA memory error.
@@ -333,34 +339,34 @@ def transcribe(
         torch.cuda.empty_cache()
 
         batch_size /= 2
-        segs, _ = model.transcribe(
+        segments, _ = model.transcribe(
             file, batch_size=int(batch_size), language=language
         ).values()
 
-    result_list["segments"] = segs
-    result_list["transcribe_time"] = time.time()
+    result_list["transcription_segments"] = segments
+    result_list["transcription_done_time"] = time.time()
 
 
-def diarization(file: str, config: str, token: str, result_list: dict):
+def diarize(file: str, config: str, token: str, result_list: dict):
     """
-    The main diarization fucntion based on PYANNOTE model.
+    Diarize audio file using Pyannote.
 
     Parameters
     ----------
     file : str
         The input audio file.
     config : str
-        Configutation for the PYANNOTE model.
+        Configuration for the Pyannote model.
     token : str
-        To the the HF model if the config file is not available.
+        Access token for the the Hugging Face model if the config file is not available.
     result_list : dict
         The dictionary to store the result.
     """
     diarization_pipeline = DiarizationPipeline(config_file=config, auth_token=token)
-    diarization = diarization_pipeline(file)
+    diarization_segments = diarization_pipeline(file)
 
-    result_list["diarization"] = diarization
-    result_list["diarize_time"] = time.time()
+    result_list["diarization_segments"] = diarization_segments
+    result_list["diarization_done_time"] = time.time()
 
 
 def main():
@@ -397,6 +403,14 @@ def main():
     # Check Whisper model name if given
     model_name = args.SPEECH2TEXT_WHISPER_MODEL
     if model_name is None:
+        logger.info(
+            f"Whisper model not given. Opting to use the default model '{settings.default_whisper_model}'"
+        )
+        model_name = settings.default_whisper_model
+    elif model_name not in settings.available_whisper_models:
+        logger.warning(
+            f"Given Whisper model '{model_name}' not among available models: {settings.available_whisper_models}. Opting to use the default model '{settings.default_whisper_model}' instead"
+        )
         model_name = settings.default_whisper_model
 
     # Check language if given
@@ -421,12 +435,12 @@ def main():
             )
             language = None
 
-    # Creating two seperate processes for transcription and diarization based on torch multiprocessing
+    # Creating two separate processes for transcription and diarization based on torch multiprocessing
     with mp.Manager() as manager:
         shared_dict = manager.dict()
 
         process1 = mp.Process(
-            target=transcribe,
+            target = transcribe,
             args=(
                 input_file_wav,
                 model_name,
@@ -435,7 +449,7 @@ def main():
             ),
         )
         process2 = mp.Process(
-            target=diarization,
+            target = diarize,
             args=(
                 input_file_wav,
                 args.PYANNOTE_CONFIG,
@@ -455,29 +469,29 @@ def main():
         process2.join()
 
         logger.info(
-            f".. .. Transcription finished in {shared_dict['transcribe_time']-t0:.1f} seconds"
+            f".. .. Transcription finished in {shared_dict['transcription_done_time']-t0:.1f} seconds"
         )
         logger.info(
-            f".. .. Diarization finished in {shared_dict['diarize_time']-t0:.1f} seconds"
+            f".. .. Diarization finished in {shared_dict['diarization_done_time']-t0:.1f} seconds"
         )
 
-        segments = shared_dict["segments"]
-        diarization_results = shared_dict["diarization"]
+        transcription_segments = shared_dict["transcription_segments"]
+        diarization_segments = shared_dict["diarization_segments"]
     
         torch.cuda.empty_cache()
 
     t0 = time.time()
-    logger.info(".. Align transcription and diarization")
-    alignment, align_time = align_segments(segments, diarization_results, input_file_wav, language)
+    logger.info(".. Combine transcription and diarization segments")
+    combination, combination_done_time = combine_transcription_and_diarization(transcription_segments, diarization_segments, input_file_wav, language)
     logger.info(
-        f".. .. Diarization finished in {align_time-t0:.1f} seconds"
+        f".. .. Combining finished in {combination_done_time-t0:.1f} seconds"
     )
 
-    logger.info(f".. Write alignment to output")
+    logger.info(f".. Write final output to: {output_file_stem}.txt {output_file_stem}.csv")
     output_dir = parse_output_dir(args.INPUT_FILE)
     output_file_stem = parse_output_file_stem(output_dir, args.INPUT_FILE)
-    write_alignment_to_csv_file(alignment, output_file_stem)
-    write_alignment_to_txt_file(alignment, output_file_stem)
+    write_result_to_csv_file(combination, output_file_stem)
+    write_result_to_txt_file(combination, output_file_stem)
 
     logger.info(f"Finished.")
 
