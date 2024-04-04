@@ -1,14 +1,26 @@
 # speech2text
 
-This repo contains instructions for setting up and applying the speech2text app on Aalto Triton cluster. The app utilizes [WhisperX](https://github.com/m-bain/whisperX) automatic speech recognition tool and [Pyannote](https://huggingface.co/pyannote/speaker-diarization) speaker detection (diarization) pipeline. The speech recognition and diarization steps are run independently and their result segments are combined (aligned) using a simple algorithm which for each transcription segment finds the most overlapping (in time) speaker segment.
+>*_NOTE:_* The non-technical user guide for the Open On Demand web interface can be found [here](https://aaltorse.github.io/speech2text/).
+
+This repo contains instructions for setting up and applying the speech2text app on Aalto Triton cluster. The app utilizes
+
+- [WhisperX](https://github.com/m-bain/whisperX) automatic speech recognition tool
+- FIXME: wav2vec word segmentation 
+- [Pyannote](https://huggingface.co/pyannote/speaker-diarization) speaker detection (diarization) tool 
+
+FIXME: The speech recognition and diarization steps are run independently and their result segments are combined (aligned) using a simple algorithm which for each transcription segment finds the most overlapping (in time) speaker segment.
 
 The required models are described [here](#models). 
 
 Conda environment and Lmod setup is described [here](#setup). 
 
-Usage is describe [here](#usage).
+Command line (technical) usage on Triton is described [here](#usage).
 
-The non-technical user guide using the Open On Demand web interface can be found [here](https://aaltorse.github.io/speech2text/).
+Open On Demand web interface (non-technical) usage is described [here](https://aaltorse.github.io/speech2text/)
+
+FIXME: Add supported languages here
+
+
 
 ## Models
 
@@ -18,6 +30,8 @@ The required models have been downloaded beforehand from Hugging Face and saved 
 ### Faster Whisper  
 
 We support `large-v2` and `large-v3` (default) multilingual [Faster Whisper](https://github.com/SYSTRAN/faster-whisper) models. Languages supported by the models are:
+
+FIXME: remove the language list, they are useless cause only a subset is supported
 
 afrikaans, arabic, armenian, azerbaijani, belarusian, bosnian, bulgarian, catalan, 
 chinese, croatian, czech, danish, dutch, english, estonian, finnish, french, galician, 
@@ -34,7 +48,12 @@ The models are covered by the [MIT licence]((https://huggingface.co/models?licen
 and
 
 `/scratch/shareddata/dldata/huggingface-hub-cache/hub/models--Systran--faster-whisper-large-v3`
- 
+
+### wav2vec
+
+FIXME: add wav2vec models and description
+
+
 ### Pyannote 
 
 The diarization is performed using the [pyannote/speaker-diarization-3.1](https://huggingface.co/pyannote/speaker-diarization-3.1) pipeline installed via [`pyannote.audio`](https://github.com/pyannote/pyannote-audio).
