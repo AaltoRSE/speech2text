@@ -122,6 +122,10 @@ def combine_transcription_and_diarization(transcription_segments,
     """
 
     # Convert transcription segments so that each segment corresponds to a word
+    if language is None:
+        logging.info(f".. Using detected language for wav2vec alignment: {language}")
+        language = transcription_segments["language"]
+
     wav2vec_model_name = settings.wav2vec_models[language] if language in settings.wav2vec_models else None
 
     align_model, align_metadata = whisperx.load_align_model(language,
@@ -129,11 +133,11 @@ def combine_transcription_and_diarization(transcription_segments,
                                                             model_name=wav2vec_model_name)
     
     transcription_segments = whisperx.align(transcription_segments,
-                              align_model, 
-                              align_metadata,
-                              file, 
-                              settings.compute_device
-                              )
+                            align_model, 
+                            align_metadata,
+                            file, 
+                            settings.compute_device
+                            )
 
     # Assign speaker to transcribed word segments
     segments = assign_word_speakers(diarization_segments, transcription_segments['segments'])
@@ -305,7 +309,7 @@ def read_input_file_from_array_file(input_file: str, slurm_array_task_id: str):
 
 
 def transcribe(
-    file: str, model_name: str, language: str, result_list: dict
+    file: str, model_name: str, language: str, result: dict
 ) -> TranscriptionResult:
     """
     Transcribe audio file using WhisperX.
@@ -318,16 +322,19 @@ def transcribe(
         The Whisper model name.
     language : str
         The language of the audio. Not setting the language will result in automatic language detection.
-    result_list : dict
+    result : dict
         The dictionary to store the result.
     """
     batch_size = calculate_max_batch_size()
     model = load_whisperx_model(model_name, language)
 
     try:
-        segments, _ = model.transcribe(
+        whisperx_result = model.transcribe(
             file, batch_size=batch_size, language=language
         ).values()
+        segments = whisperx_result["segments"]
+        language = whisperx_result["language"]
+
     # If the batch size is too large, reduce it by half and try again to avoid CUDA memory error.
     except RuntimeError:
         logger.warning(
@@ -338,13 +345,15 @@ def transcribe(
         torch.cuda.empty_cache()
 
         batch_size /= 2
-        segments, _ = model.transcribe(
+        whisperx_result = model.transcribe(
             file, batch_size=int(batch_size), language=language
-        ).values()
+        )
+        segments = whisperx_result["segments"]
+        language = whisperx_result["language"]
 
-    result_list["transcription_segments"] = segments
-    result_list["transcription_done_time"] = time.time()
-
+    result["transcription_segments"] = segments
+    result["transcription_done_time"] = time.time()
+    result["language"] = language
 
 def diarize(file: str, config: str, token: str, result_list: dict):
     """
