@@ -48,7 +48,6 @@ supported_languages = {
 
 supported_languages_reverse = {value: key for key, value in supported_languages.items()}
 
-
 wav2vec_models = {
     "hy": "infinitejoy/wav2vec2-large-xls-r-300m-armenian",
     "bg": "infinitejoy/wav2vec2-large-xls-r-300m-bulgarian",

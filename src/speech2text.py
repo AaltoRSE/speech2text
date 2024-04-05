@@ -93,11 +93,10 @@ def combine_transcription_and_diarization(transcription_segments,
     """
     Combine transcription and diarization results:
 
-    1. Convert transcription segments to word-level using wav2vec2 alignment
-    2. For each word-level transcription segment, find the most overlapping (in time) speaker segment
+    1. Convert transcription segments using wav2vec alignment so that each segment corresponds to a word
+    2. For each transcribed word, find the most overlapping (in time) diarization/speaker segment
 
-    If no diarization segment overlaps with a given transcription segment, the speaker
-    for that transcription segment is "SPEAKER_UNKNOWN".
+    If no diarization segment overlaps with a word, the speaker for that word is "SPEAKER_UNKNOWN".
 
     Parameters
     ----------
@@ -158,7 +157,7 @@ def combine_transcription_and_diarization(transcription_segments,
 
 def parse_output_file_stem(output_dir: str, input_file: str) -> Path:
     """
-    Create the output file from the input file and the output directory.
+    Create output file stem from output directory and input file name.
     """
     return Path(output_dir) / Path(Path(input_file).name)
 
@@ -170,9 +169,9 @@ def write_result_to_csv_file(result: dict, output_file_stem: Path):
     Parameters
     ----------
     result : dict
-        The result dictionary of lists for start, end, speaker, and transcription.
+        Dictionary of lists for start, end, speaker, and transcription.
     output_file_stem : Path
-        The output file.
+        Output file stem.
     """
     df = pd.DataFrame.from_dict(result)
     output_file = str(Path(output_file_stem).with_suffix(".csv"))
@@ -192,9 +191,9 @@ def write_result_to_txt_file(result: dict, output_file_stem: Path):
     Parameters
     ----------
     result : dict
-        The result dictionary of lists for start, end, speaker, and transcription.
+        Dictionary of lists for start, end, speaker, and transcription.
     output_file_stem : Path
-        The output file.
+        Output file stem.
     """
     # Group lines by speaker
     all_lines_grouped_by_speaker = []
@@ -250,7 +249,7 @@ def load_whisperx_model(
     device: Optional[Union[str, torch.device]] = settings.compute_device,
 ):
     """
-    Load a Whisper model in GPU.
+    Load a Whisper model on GPU.
 
     Will raise an error if CUDA is not available. This is due to batch_size optimization method in utils.py.
     The submitted script will run on a GPU node, so this should not be a problem. The only issue is with a
