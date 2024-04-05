@@ -331,7 +331,7 @@ def transcribe(
     try:
         whisperx_result = model.transcribe(
             file, batch_size=batch_size, language=language
-        ).values()
+        )
         segments = whisperx_result["segments"]
         language = whisperx_result["language"]
 
