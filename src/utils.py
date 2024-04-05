@@ -118,7 +118,7 @@ class DiarizationPipeline:
             device = torch.device(device)
 
         if Path(config_file).is_file():
-            logger.info(".. .. Local config file found")
+            logger.info(f".. .. Loading Local config file: {config_file}")
             self.model = Pipeline.from_pretrained(config_file).to(device)
         elif auth_token:
             logger.info(".. .. Downloading config from HuggingFace")

@@ -486,7 +486,7 @@ def main():
         f".. .. Combining finished in {combination_done_time-t0:.1f} seconds"
     )
 
-    logger.info(f".. Write final output to: {output_file_stem}.txt {output_file_stem}.csv")
+    logger.info(f".. Write final result to files")
     output_dir = parse_output_dir(args.INPUT_FILE)
     output_file_stem = parse_output_file_stem(output_dir, args.INPUT_FILE)
     write_result_to_csv_file(combination, output_file_stem)
