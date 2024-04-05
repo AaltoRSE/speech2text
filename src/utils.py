@@ -161,7 +161,7 @@ class DiarizationPipeline:
     
 def assign_word_speakers(diarize_df, transcript_segments):
     """
-    This function assigns speakers to words and segments in a transcript based on diarization results.
+    Assign speakers to words and segments in a transcript based on diarization results.
 
     Args:
         diarize_df (pd.DataFrame): The diarization dataframe.

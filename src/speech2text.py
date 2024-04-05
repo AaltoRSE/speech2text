@@ -121,7 +121,7 @@ def combine_transcription_and_diarization(transcription_segments,
         }
     """
 
-    # Convert transcription segments to word-level using wav2vec2 alignment
+    # Convert transcription segments so that each segment corresponds to a word
     wav2vec_model_name = settings.wav2vec_models[language] if language in settings.wav2vec_models else None
 
     align_model, align_metadata = whisperx.load_align_model(language,
@@ -135,7 +135,7 @@ def combine_transcription_and_diarization(transcription_segments,
                               settings.compute_device
                               )
 
-    # Combine diarization and word-level transcription segments
+    # Assign speaker to transcribed word segments
     segments = assign_word_speakers(diarization_segments, transcription_segments['segments'])
     
     # Reformat the result (return a dictionary of lists)
