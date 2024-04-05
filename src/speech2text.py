@@ -122,10 +122,6 @@ def combine_transcription_and_diarization(transcription_segments,
     """
 
     # Convert transcription segments so that each segment corresponds to a word
-    if language is None:
-        logging.info(f".. Using detected language for wav2vec alignment: {language}")
-        language = transcription_segments["language"]
-
     wav2vec_model_name = settings.wav2vec_models[language] if language in settings.wav2vec_models else None
 
     align_model, align_metadata = whisperx.load_align_model(language,
@@ -485,7 +481,11 @@ def main():
 
         transcription_segments = shared_dict["transcription_segments"]
         diarization_segments = shared_dict["diarization_segments"]
-    
+        if not language:
+            # Grab the detected language from the transcription result
+            logging.info(f".. Language not given. Detected language: {language}")
+            language = shared_dict["language"]
+
         torch.cuda.empty_cache()
 
     t0 = time.time()
