@@ -262,12 +262,15 @@ def convert_language_to_abbreviated_form(language: str) -> str:
         If the language is already in abbreviated form, it will be returned as its lower-cased form.
         If the conversion cannot be made, None will be returned.
     """
+    if not language:
+        return None
+
     # Language is given in OK long form: convert to short form (two-letter abbreviation)
-    if language.lower() in settings.supported_languages.keys():
+    elif language.lower() in settings.supported_languages.keys():
         return settings.supported_languages[language.lower()]
 
     # Language is given in OK short form (two-letter abbreviation)
-    if language.lower() in settings.supported_languages.values():
+    elif language.lower() in settings.supported_languages.values():
         return language.lower()
     
     # Conversion cannot be made
