@@ -16,6 +16,16 @@ Example run on a folder containing one or more audio file:
     export SPEECH2TEXT_LANGUAGE=finnish
     speech2text audiofiles/
 
+Language must be provided from the list of supported languages:
+
+arabic (ar), armenian (hy), bulgarian (bg), catalan (ca), chinese (zh), czech (cs), danish (da), 
+dutch (nl), english (en), estonian (et), finnish (fi), french (fr), galician (gl), german (de), 
+greek (el), hebrew (he), hindi (hi), hungarian (hu), icelandic (is), indonesian (id), 
+italian (it), japanese (ja), kazakh (kk), korean (ko), latvian (lv), lithuanian (lt), malay (ms), 
+marathi (mr), nepali (ne), norwegian (no), persian (fa), polish (pl), portuguese (pt), 
+romanian (ro), russian (ru), serbian (sr), slovak (sk), slovenian (sl), spanish (es), 
+swedish (sv), thai (th), turkish (tr), ukrainian (uk), urdu (ur), vietnamese (vi)
+
 The audio files can be in any common audio (.wav, .mp3, .aff, etc.) or video (.mp4, .mov, etc.) format.
 
 The speech2text app writes result files to a subfolder results/ next to each audio file.
@@ -26,19 +36,6 @@ Result files in a folder audiofiles/ will be written to folder audiofiles/result
 Notification emails will be sent to SPEECH2TEXT_EMAIL. If SPEECH2TEXT_EMAIL is left 
 unspecified, no notifications are sent.
 
-Supported languages are:
-
-afrikaans, arabic, armenian, azerbaijani, belarusian, bosnian, bulgarian, catalan, 
-chinese, croatian, czech, danish, dutch, english, estonian, finnish, french, galician, 
-german, greek, hebrew, hindi, hungarian, icelandic, indonesian, italian, japanese, 
-kannada, kazakh, korean, latvian, lithuanian, macedonian, malay, marathi, maori, nepali,
-norwegian, persian, polish, portuguese, romanian, russian, serbian, slovak, slovenian, 
-spanish, swahili, swedish, tagalog, tamil, thai, turkish, ukrainian, urdu, vietnamese, 
-welsh
-
-You can leave the language variable SPEECH2TEXT_LANGUAGE unspecified, in which case 
-speech2text tries to detect the language automatically. Specifying the language 
-explicitly is, however, recommended.
 EOF
 }
 
