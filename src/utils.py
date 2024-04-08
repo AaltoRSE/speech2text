@@ -10,6 +10,7 @@ import numpy as np
 import pandas as pd
 import torch
 from pyannote.audio import Pipeline
+import settings
 
 SAMPLE_RATE = 16000
 
@@ -118,10 +119,10 @@ class DiarizationPipeline:
             device = torch.device(device)
 
         if Path(config_file).is_file():
-            logger.info(f".. .. Loading Local config file: {config_file}")
+            logger.info(f".. .. Loading local config file: {config_file}")
             self.model = Pipeline.from_pretrained(config_file).to(device)
         elif auth_token:
-            logger.info(".. .. Downloading config from HuggingFace")
+            logger.info(".. .. Downloading config file from HuggingFace")
             self.model = Pipeline.from_pretrained(
                 model_name, use_auth_token=auth_token
             ).to(device)
@@ -243,3 +244,31 @@ def calculate_max_batch_size() -> int:
         batch_size /= 4
 
     return int(batch_size)
+
+
+def convert_language_to_abbreviated_form(language: str) -> str:
+    """
+    Convert language to abbreviated form if it is given in long form.
+
+    Parameters
+    ----------
+    language : str
+        The language to be converted. It can be given in long form.
+
+    Returns
+    -------
+    str
+        The language in abbreviated form (lower-cased two-letter abbreviation) if it is given in long form.
+        If the language is already in abbreviated form, it will be returned as its lower-cased form.
+        If the conversion cannot be made, None will be returned.
+    """
+    # Language is given in OK long form: convert to short form (two-letter abbreviation)
+    if language.lower() in settings.supported_languages.keys():
+        return settings.supported_languages[language.lower()]
+
+    # Language is given in OK short form (two-letter abbreviation)
+    if language.lower() in settings.supported_languages.values():
+        return language.lower()
+    
+    # Conversion cannot be made
+    return None

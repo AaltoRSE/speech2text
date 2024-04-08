@@ -21,7 +21,7 @@ from whisperx.types import TranscriptionResult
 import settings
 from submit import parse_output_dir
 from utils import (DiarizationPipeline, calculate_max_batch_size, load_audio,
-                   seconds_to_human_readable_format, assign_word_speakers)
+                   seconds_to_human_readable_format, assign_word_speakers, convert_language_to_abbreviated_form)
 
 # https://numba.pydata.org/numba-doc/dev/reference/deprecation.html
 warnings.simplefilter("ignore", category=NumbaDeprecationWarning)
@@ -329,7 +329,6 @@ def transcribe(
             file, batch_size=batch_size, language=language
         )
         segments = whisperx_result["segments"]
-        language = whisperx_result["language"]
 
     # If the batch size is too large, reduce it by half and try again to avoid CUDA memory error.
     except RuntimeError:
@@ -345,11 +344,10 @@ def transcribe(
             file, batch_size=int(batch_size), language=language
         )
         segments = whisperx_result["segments"]
-        language = whisperx_result["language"]
 
     result["transcription_segments"] = segments
     result["transcription_done_time"] = time.time()
-    result["language"] = language
+
 
 def diarize(file: str, config: str, token: str, result_list: dict):
     """
@@ -391,6 +389,15 @@ def main():
             args.INPUT_FILE, slurm_array_task_id
         )
 
+    # Check mandatory language argument
+    language = args.SPEECH2TEXT_LANGUAGE
+    language = convert_language_to_abbreviated_form(language)
+    if not language:
+        logger.error(
+            f"Language not given or not supported. Supported languages: {settings.supported_languages_pretty}"
+        )
+        return
+
     # .wav conversion
     logger.info(
         f".. Convert input file to wav format for pyannote diarization pipeline: {args.INPUT_FILE}"
@@ -416,28 +423,6 @@ def main():
             f"Given Whisper model '{model_name}' not among available models: {settings.available_whisper_models}. Opting to use the default model '{settings.default_whisper_model}' instead"
         )
         model_name = settings.default_whisper_model
-
-    # Check language if given
-    language = args.SPEECH2TEXT_LANGUAGE
-    if language:
-        if language.lower() in settings.supported_languages.keys():
-            # Language is given in OK long form: convert to short form (two-letter abbreviation)
-            language = settings.supported_languages[language.lower()]
-        elif language.lower() in settings.supported_languages.values():
-            # Language is given in OK short form
-            pass
-        else:
-            # Given language not OK
-            pretty_language_list = ", ".join(
-                [
-                    f"{lang} ({short})"
-                    for lang, short in settings.supported_languages.items()
-                ]
-            )
-            logger.warning(
-                f"Given language '{language}' not found among supported languages: {pretty_language_list}. Opting to detect language automatically"
-            )
-            language = None
 
     # Creating two separate processes for transcription and diarization based on torch multiprocessing
     with mp.Manager() as manager:

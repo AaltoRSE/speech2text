@@ -1,3 +1,5 @@
+# Supported languages
+
 supported_languages = {
     "arabic": "ar",
     "armenian": "hy",
@@ -48,6 +50,16 @@ supported_languages = {
 
 supported_languages_reverse = {value: key for key, value in supported_languages.items()}
 
+supported_languages_pretty = ", ".join(
+    [
+        f"{lang} ({short})"
+        for lang, short in supported_languages.items()
+    ]
+)
+
+
+# Wav2Vec models
+
 wav2vec_models = {
     "hy": "infinitejoy/wav2vec2-large-xls-r-300m-armenian",
     "bg": "infinitejoy/wav2vec2-large-xls-r-300m-bulgarian",
@@ -69,7 +81,8 @@ wav2vec_models = {
     "th": "sakares/wav2vec2-large-xlsr-thai-demo"
 }
 
+# Whisper models
+
 available_whisper_models = ["large-v2", "large-v3"]
 default_whisper_model = "large-v3"
-
 compute_device='cuda'

@@ -16,7 +16,7 @@ from argparse import Namespace
 from pathlib import Path, PosixPath
 
 import settings
-from utils import add_durations, load_audio
+from utils import add_durations, load_audio, convert_language_to_abbreviated_form
 
 # This is the speedup to realtime for transcribing the audio file.
 # The real number is higher than 15 (close to 25), this is just to make sure the job has enough time to complete.
@@ -445,18 +445,16 @@ def check_language(language: str) -> bool:
     Booleam
         True if the language is supported, False otherwise.
     """
-    supported_languages = list(settings.supported_languages.keys())
-
     if language is None:
         print(
-            f"""No language given. The language will be detected automatically. To specify language explicitly (recommended), use
+            f"""Language must be specified. To specify language, use
               
     export SPEECH2TEXT_LANGUAGE=mylanguage
 
-where mylanguage is one of:\n\n{' '.join(supported_languages)}\n"""
+where 'mylanguage' is one of:\n\n{settings.supported_languages_pretty}\n"""
         )
 
-        return True
+        return False
 
     if language.lower() in supported_languages:
         print(f"Given language '{language}' is supported.\n")
@@ -532,8 +530,13 @@ def main():
         print(f"\t{key}: {value}")
     print()
 
-    # Check language
-    if not check_language(args.SPEECH2TEXT_LANGUAGE):
+    # Check mandatory language argument
+    language = args.SPEECH2TEXT_LANGUAGE
+    language = convert_language_to_abbreviated_form(language)
+    if not language:
+        print(
+            f"Language not given or not supported. Supported languages: {settings.supported_languages_pretty}"
+        )
         return
 
     # Check email
