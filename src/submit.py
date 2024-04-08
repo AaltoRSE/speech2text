@@ -431,42 +431,6 @@ def submit_file(args: Namespace, job_name: Path):
     subprocess.run(cmd)
 
 
-def check_language(language: str) -> bool:
-    """
-    Check if the given language is supported.
-
-    Parameters
-    ----------
-    language: str
-        The language to check.
-
-    Returns
-    -------
-    Booleam
-        True if the language is supported, False otherwise.
-    """
-    if language is None:
-        print(
-            f"""Language must be specified. To specify language, use
-              
-    export SPEECH2TEXT_LANGUAGE=mylanguage
-
-where 'mylanguage' is one of:\n\n{settings.supported_languages_pretty}\n"""
-        )
-
-        return False
-
-    if language.lower() in supported_languages:
-        print(f"Given language '{language}' is supported.\n")
-        return True
-
-    print(
-        f"Submission failed: Given language '{language}' not found in supported languages:\n\n{' '.join(supported_languages)}\n"
-    )
-
-    return False
-
-
 def check_email(email: str):
     """
     Check if the given email is valid.
@@ -531,8 +495,7 @@ def main():
     print()
 
     # Check mandatory language argument
-    language = args.SPEECH2TEXT_LANGUAGE
-    language = convert_language_to_abbreviated_form(language)
+    language = convert_language_to_abbreviated_form(args.SPEECH2TEXT_LANGUAGE)
     if not language:
         print(
             f"Language not given or not supported. Supported languages: {settings.supported_languages_pretty}"
