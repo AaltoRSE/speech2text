@@ -498,7 +498,16 @@ def main():
     language = convert_language_to_abbreviated_form(args.SPEECH2TEXT_LANGUAGE)
     if not language:
         print(
-            f"Language not given or not supported. Supported languages: {settings.supported_languages_pretty}"
+            f"""Language not given or not supported.
+
+Please specify the language using
+
+export SPEECH2TEXT_LANGUAGE=mylanguage
+
+where 'mylanguage' is one of the supported languages:
+
+{settings.supported_languages_pretty}
+"""
         )
         return
 
