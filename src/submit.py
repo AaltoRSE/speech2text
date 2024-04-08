@@ -496,7 +496,9 @@ def main():
 
     # Check mandatory language argument
     language = convert_language_to_abbreviated_form(args.SPEECH2TEXT_LANGUAGE)
-    if not language:
+    if language:
+        print(f"Language: {language}\n")
+    else:
         print(
             f"""Language not given or not supported.
 
