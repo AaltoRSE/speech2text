@@ -73,7 +73,7 @@ def get_argument_parser():
         "--SPEECH2TEXT_LANGUAGE",
         type=str,
         default=os.getenv("SPEECH2TEXT_LANGUAGE"),
-        help="Audio language. Optional but recommended.",
+        help="Audio language. Required; otherwise will raise an error.",
     )
     parser.add_argument(
         "--SPEECH2TEXT_WHISPER_MODEL",
@@ -393,10 +393,11 @@ def main():
     language = args.SPEECH2TEXT_LANGUAGE
     language = convert_language_to_abbreviated_form(language)
     if not language:
-        logger.error(
-            f"Language not given or not supported. Supported languages: {settings.supported_languages_pretty}"
-        )
-        return
+        error_message = f"\
+            Language not given or not supported. Supported languages:\
+            {settings.supported_languages_pretty}"
+        logger.error(error_message)
+        raise ValueError(error_message)
 
     # .wav conversion
     logger.info(

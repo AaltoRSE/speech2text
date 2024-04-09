@@ -61,7 +61,7 @@ def get_argument_parser():
         "--SPEECH2TEXT_LANGUAGE",
         type=str,
         default=os.getenv("SPEECH2TEXT_LANGUAGE"),
-        help="Language. Optional.",
+        help="Language. Mandatory.",
     )
     parser.add_argument(
         "--SPEECH2TEXT_WHISPER_MODEL",
