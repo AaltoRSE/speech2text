@@ -20,8 +20,10 @@ from whisperx.types import TranscriptionResult
 
 import settings
 from submit import parse_output_dir
-from utils import (DiarizationPipeline, calculate_max_batch_size, load_audio,
-                   seconds_to_human_readable_format, assign_word_speakers, convert_language_to_abbreviated_form)
+from utils import (DiarizationPipeline, assign_word_speakers,
+                   calculate_max_batch_size,
+                   convert_language_to_abbreviated_form, load_audio,
+                   seconds_to_human_readable_format)
 
 # https://numba.pydata.org/numba-doc/dev/reference/deprecation.html
 warnings.simplefilter("ignore", category=NumbaDeprecationWarning)
@@ -86,10 +88,9 @@ def get_argument_parser():
     return parser
 
 
-def combine_transcription_and_diarization(transcription_segments, 
-                   diarization_segments, 
-                   file, 
-                   language) -> dict:
+def combine_transcription_and_diarization(
+    transcription_segments, diarization_segments, file, language
+) -> dict:
     """
     Combine transcription and diarization results:
 
@@ -105,7 +106,7 @@ def combine_transcription_and_diarization(transcription_segments,
     diarization_segments : list
         Output of Pyannote diarization()
     file : str
-        The input audio file 
+        The input audio file
     language: str
         language in short format (e.g. "fi")
 
@@ -122,36 +123,43 @@ def combine_transcription_and_diarization(transcription_segments,
     """
 
     # Convert transcription segments so that each segment corresponds to a word
-    wav2vec_model_name = settings.wav2vec_models[language] if language in settings.wav2vec_models else None
+    wav2vec_model_name = (
+        settings.wav2vec_models[language]
+        if language in settings.wav2vec_models
+        else None
+    )
 
-    align_model, align_metadata = whisperx.load_align_model(language,
-                                                            settings.compute_device,
-                                                            model_name=wav2vec_model_name)
-    
-    transcription_segments = whisperx.align(transcription_segments,
-                            align_model, 
-                            align_metadata,
-                            file, 
-                            settings.compute_device
-                            )
+    align_model, align_metadata = whisperx.load_align_model(
+        language, settings.compute_device, model_name=wav2vec_model_name
+    )
+
+    transcription_segments = whisperx.align(
+        transcription_segments,
+        align_model,
+        align_metadata,
+        file,
+        settings.compute_device,
+    )
 
     # Assign speaker to transcribed word segments
-    segments = assign_word_speakers(diarization_segments, transcription_segments['segments'])
-    
+    segments = assign_word_speakers(
+        diarization_segments, transcription_segments["segments"]
+    )
+
     # Reformat the result (return a dictionary of lists)
     result = defaultdict(list)
     for segment in segments:
-        transcription_start = seconds_to_human_readable_format(segment['start'])
-        transcription_end = seconds_to_human_readable_format(segment['end'])
+        transcription_start = seconds_to_human_readable_format(segment["start"])
+        transcription_end = seconds_to_human_readable_format(segment["end"])
 
         result["start"].append(transcription_start)
         result["end"].append(transcription_end)
-        result["transcription"].append(segment['text'].strip())
+        result["transcription"].append(segment["text"].strip())
         try:
-            result["speaker"].append(segment['speaker'])
+            result["speaker"].append(segment["speaker"])
         except KeyError:
             result["speaker"].append("SPEAKER_UNKNOWN")
-        
+
     return result, time.time()
 
 
@@ -430,7 +438,7 @@ def main():
         shared_dict = manager.dict()
 
         process1 = mp.Process(
-            target = transcribe,
+            target=transcribe,
             args=(
                 input_file_wav,
                 model_name,
@@ -439,7 +447,7 @@ def main():
             ),
         )
         process2 = mp.Process(
-            target = diarize,
+            target=diarize,
             args=(
                 input_file_wav,
                 args.PYANNOTE_CONFIG,
@@ -476,10 +484,10 @@ def main():
 
     t0 = time.time()
     logger.info(".. Combine transcription and diarization segments")
-    combination, combination_done_time = combine_transcription_and_diarization(transcription_segments, diarization_segments, input_file_wav, language)
-    logger.info(
-        f".. .. Combining finished in {combination_done_time-t0:.1f} seconds"
+    combination, combination_done_time = combine_transcription_and_diarization(
+        transcription_segments, diarization_segments, input_file_wav, language
     )
+    logger.info(f".. .. Combining finished in {combination_done_time-t0:.1f} seconds")
 
     logger.info(f".. Write final result to files")
     output_dir = parse_output_dir(args.INPUT_FILE)

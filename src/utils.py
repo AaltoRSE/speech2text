@@ -10,6 +10,7 @@ import numpy as np
 import pandas as pd
 import torch
 from pyannote.audio import Pipeline
+
 import settings
 
 SAMPLE_RATE = 16000
@@ -159,7 +160,8 @@ class DiarizationPipeline:
         diarize_df["end"] = diarize_df["segment"].apply(lambda x: x.end)
 
         return diarize_df
-    
+
+
 def assign_word_speakers(diarize_df, transcript_segments):
     """
     Assign speakers to words and segments in a transcript based on diarization results.
@@ -173,27 +175,45 @@ def assign_word_speakers(diarize_df, transcript_segments):
     """
     for seg in transcript_segments:
         # assign speaker to segments
-        diarize_df['intersection'] = np.minimum(diarize_df['end'], seg['end']) - np.maximum(diarize_df['start'], seg['start'])
-        diarize_df['union'] = np.maximum(diarize_df['end'], seg['end']) - np.minimum(diarize_df['start'], seg['start'])
-        dia_tmp = diarize_df[diarize_df['intersection'] > 0]
-        
+        diarize_df["intersection"] = np.minimum(
+            diarize_df["end"], seg["end"]
+        ) - np.maximum(diarize_df["start"], seg["start"])
+        diarize_df["union"] = np.maximum(diarize_df["end"], seg["end"]) - np.minimum(
+            diarize_df["start"], seg["start"]
+        )
+        dia_tmp = diarize_df[diarize_df["intersection"] > 0]
+
         if len(dia_tmp) > 0:
             # sum over speakers if there are many speakers
-            speaker = dia_tmp.groupby("speaker")["intersection"].sum().sort_values(ascending=False).index[0]
+            speaker = (
+                dia_tmp.groupby("speaker")["intersection"]
+                .sum()
+                .sort_values(ascending=False)
+                .index[0]
+            )
             seg["speaker"] = speaker
-        
+
         # assign speaker to each words
-        if 'words' in seg:
-            for word in seg['words']:
-                if 'start' in word:
-                    diarize_df['intersection'] = np.minimum(diarize_df['end'], word['end']) - np.maximum(diarize_df['start'], word['start'])
-                    diarize_df['union'] = np.maximum(diarize_df['end'], word['end']) - np.minimum(diarize_df['start'], word['start'])
-                    dia_tmp = diarize_df[diarize_df['intersection'] > 0]
+        if "words" in seg:
+            for word in seg["words"]:
+                if "start" in word:
+                    diarize_df["intersection"] = np.minimum(
+                        diarize_df["end"], word["end"]
+                    ) - np.maximum(diarize_df["start"], word["start"])
+                    diarize_df["union"] = np.maximum(
+                        diarize_df["end"], word["end"]
+                    ) - np.minimum(diarize_df["start"], word["start"])
+                    dia_tmp = diarize_df[diarize_df["intersection"] > 0]
 
                     if len(dia_tmp) > 0:
-                        speaker = dia_tmp.groupby("speaker")["intersection"].sum().sort_values(ascending=False).index[0]
+                        speaker = (
+                            dia_tmp.groupby("speaker")["intersection"]
+                            .sum()
+                            .sort_values(ascending=False)
+                            .index[0]
+                        )
                         word["speaker"] = speaker
-        
+
     return transcript_segments
 
 
@@ -272,6 +292,6 @@ def convert_language_to_abbreviated_form(language: str) -> str:
     # Language is given in OK short form (two-letter abbreviation)
     elif language.lower() in settings.supported_languages.values():
         return language.lower()
-    
+
     # Conversion cannot be made
     return None

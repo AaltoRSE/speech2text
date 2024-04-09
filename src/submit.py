@@ -16,7 +16,8 @@ from argparse import Namespace
 from pathlib import Path, PosixPath
 
 import settings
-from utils import add_durations, load_audio, convert_language_to_abbreviated_form
+from utils import (add_durations, convert_language_to_abbreviated_form,
+                   load_audio)
 
 # This is the speedup to realtime for transcribing the audio file.
 # The real number is higher than 15 (close to 25), this is just to make sure the job has enough time to complete.

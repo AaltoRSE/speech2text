@@ -51,10 +51,7 @@ supported_languages = {
 supported_languages_reverse = {value: key for key, value in supported_languages.items()}
 
 supported_languages_pretty = ", ".join(
-    [
-        f"{lang} ({short})"
-        for lang, short in supported_languages.items()
-    ]
+    [f"{lang} ({short})" for lang, short in supported_languages.items()]
 )
 
 
@@ -78,11 +75,11 @@ wav2vec_models = {
     "sk": "infinitejoy/wav2vec2-large-xls-r-300m-slovak",
     "sl": "infinitejoy/wav2vec2-large-xls-r-300m-slovenian",
     "sv": "KBLab/wav2vec2-large-xlsr-53-swedish",
-    "th": "sakares/wav2vec2-large-xlsr-thai-demo"
+    "th": "sakares/wav2vec2-large-xlsr-thai-demo",
 }
 
 # Whisper models
 
 available_whisper_models = ["large-v2", "large-v3"]
 default_whisper_model = "large-v3"
-compute_device='cuda'
+compute_device = "cuda"
