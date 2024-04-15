@@ -42,8 +42,9 @@ and
 
 ### wav2vec
 
-FIXME: add wav2vec models, descriptions, licenses
+We use [wav2vec](https://ai.meta.com/blog/wav2vec-20-learning-the-structure-of-speech-from-raw-audio/) models as part of the diarization pipeline which efines the timestamps from whisper transcriptions using forced alignment a phoneme-based ASR model (wav2vec 2.0). This provides word-level timestamps, as well as improved segment timestamps.
 
+We use a fine-tuned wav2vec model for each of the supported languages. All the models are fine-tuned over the [Meta's XLRS](https://huggingface.co/facebook/wav2vec2-large-xlsr-53) model.
 
 ### Pyannote 
 
