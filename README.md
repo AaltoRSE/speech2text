@@ -1,14 +1,27 @@
 # speech2text
 
-This repo contains instructions for setting up and applying the speech2text app on Aalto Triton cluster. The app utilizes [WhisperX](https://github.com/m-bain/whisperX) automatic speech recognition tool and [Pyannote](https://huggingface.co/pyannote/speaker-diarization) speaker detection (diarization) pipeline. The speech recognition and diarization steps are run independently and their result segments are combined (aligned) using a simple algorithm which for each transcription segment finds the most overlapping (in time) speaker segment.
+>*_NOTE:_* The non-technical user guide for the Open On Demand web interface can be found [here](https://aaltorse.github.io/speech2text/).
+
+This repo contains instructions for setting up and applying the speech2text app on Aalto Triton cluster. The app utilizes
+
+- [WhisperX](https://github.com/m-bain/whisperX) automatic speech recognition tool
+- [wav2vec]() to find word start and end timestamps for WhisperX transcription
+- [Pyannote](https://huggingface.co/pyannote/speaker-diarization) speaker detection (diarization) tool 
+
+The speech recognition and diarization steps are run independently and their result segments are combined using a simple algorithm which for each transcription word segment finds the most overlapping (in time) speaker segment.
 
 The required models are described [here](#models). 
 
 Conda environment and Lmod setup is described [here](#setup). 
 
-Usage is describe [here](#usage).
+Command line (technical) usage on Triton is described [here](#usage).
 
-The non-technical user guide using the Open On Demand web interface can be found [here](https://aaltorse.github.io/speech2text/).
+Open On Demand web interface (non-technical) usage is described [here](https://aaltorse.github.io/speech2text/)
+
+Supported languages are:
+
+arabic (ar), armenian (hy), bulgarian (bg), catalan (ca), chinese (zh), czech (cs), danish (da), dutch (nl), english (en), estonian (et), finnish (fi), french (fr), galician (gl), german (de), greek (el), hebrew (he), hindi (hi), hungarian (hu), icelandic (is), indonesian (id), italian (it), japanese (ja), kazakh (kk), korean (ko), latvian (lv), lithuanian (lt), malay (ms), marathi (mr), nepali (ne), norwegian (no), persian (fa), polish (pl), portuguese (pt), romanian (ro), russian (ru), serbian (sr), slovak (sk), slovenian (sl), spanish (es), swedish (sv), thai (th), turkish (tr), ukrainian (uk), urdu (ur), vietnamese (vi)
+
 
 ## Models
 
@@ -19,14 +32,6 @@ The required models have been downloaded beforehand from Hugging Face and saved 
 
 We support `large-v2` and `large-v3` (default) multilingual [Faster Whisper](https://github.com/SYSTRAN/faster-whisper) models. Languages supported by the models are:
 
-afrikaans, arabic, armenian, azerbaijani, belarusian, bosnian, bulgarian, catalan, 
-chinese, croatian, czech, danish, dutch, english, estonian, finnish, french, galician, 
-german, greek, hebrew, hindi, hungarian, icelandic, indonesian, italian, japanese, 
-kannada, kazakh, korean, latvian, lithuanian, macedonian, malay, marathi, maori, nepali,
-norwegian, persian, polish, portuguese, romanian, russian, serbian, slovak, slovenian, 
-spanish, swahili, swedish, tagalog, tamil, thai, turkish, ukrainian, urdu, vietnamese, 
-welsh
-
 The models are covered by the [MIT licence]((https://huggingface.co/models?license=license:mit)) and have been pre-downloaded from Hugging Face to 
 
 `/scratch/shareddata/dldata/huggingface-hub-cache/hub/models--Systran--faster-whisper-large-v2`
@@ -34,7 +39,13 @@ The models are covered by the [MIT licence]((https://huggingface.co/models?licen
 and
 
 `/scratch/shareddata/dldata/huggingface-hub-cache/hub/models--Systran--faster-whisper-large-v3`
- 
+
+### wav2vec
+
+We use [wav2vec](https://ai.meta.com/blog/wav2vec-20-learning-the-structure-of-speech-from-raw-audio/) models as part of the diarization pipeline which efines the timestamps from whisper transcriptions using forced alignment a phoneme-based ASR model (wav2vec 2.0). This provides word-level timestamps, as well as improved segment timestamps.
+
+We use a fine-tuned wav2vec model for each of the supported languages. All the models are fine-tuned over the [Meta's XLRS](https://huggingface.co/facebook/wav2vec2-large-xlsr-53) model.
+
 ### Pyannote 
 
 The diarization is performed using the [pyannote/speaker-diarization-3.1](https://huggingface.co/pyannote/speaker-diarization-3.1) pipeline installed via [`pyannote.audio`](https://github.com/pyannote/pyannote-audio).
@@ -148,7 +159,9 @@ SPEECH2TEXT_MEM
 SPEECH2TEXT_CPUS_PER_TASK
 ```
 
-Note that you can leave the language variable unspecified, in which case speech2text tries to detect the language automatically. Specifying the language explicitly is, however, recommended.
+The language must be provided by the user from the list of supported languages:
+
+arabic (ar), armenian (hy), bulgarian (bg), catalan (ca), chinese (zh), czech (cs), danish (da), dutch (nl), english (en), estonian (et), finnish (fi), french (fr), galician (gl), german (de), greek (el), hebrew (he), hindi (hi), hungarian (hu), icelandic (is), indonesian (id), italian (it), japanese (ja), kazakh (kk), korean (ko), latvian (lv), lithuanian (lt), malay (ms), marathi (mr), nepali (ne), norwegian (no), persian (fa), polish (pl), portuguese (pt), romanian (ro), russian (ru), serbian (sr), slovak (sk), slovenian (sl), spanish (es), swedish (sv), thai (th), turkish (tr), ukrainian (uk), urdu (ur), vietnamese (vi)
 
 Notification emails will be sent to given email address. If the addresss is left unspecified,
 no notifications are sent.
@@ -267,9 +280,9 @@ The documentation can be found in `docs/build/`. A good place to start is the in
 
 ### Audio files with more than one language
 
-If a single audio file contains speech in more than one language, result files will (probably) still be produced but the results will (probably) be nonsensical to some extent. This is because even when using automatic language detection, Whisper appears to [detect the first language it encounters (if not given specifically) and stick to it until the end of the audio file, translating other encountered languages to the first language](https://github.com/openai/whisper/discussions/49).
+If a single audio file contains speech in more than one language, result files will (probably) still be produced but the results will (probably) be nonsensical to some extent. This is because WhisperX appears to translate languages to the specified target language (mandatory argument SPEECH2TEXT_LANGUAGE). Related discussion: [https://github.com/openai/whisper/discussions/49](https://github.com/openai/whisper/discussions/49).
 
-In some cases, this problem is easily avoided. For example, if the language changes only once in the middle of the audio, you can just split the file into two and process the parts separately.  You can use any audio processing software to do this, e.g. [Audacity](https://www.audacityteam.org/).
+In some cases, this problem can avoided relatively easily. For example, if the language changes only once in the middle of the audio, you can just split the file into two and process the parts separately.  You can use any audio processing software to do this, e.g. [Audacity](https://www.audacityteam.org/).
 
 ## Licensing
 

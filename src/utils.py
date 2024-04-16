@@ -11,6 +11,8 @@ import pandas as pd
 import torch
 from pyannote.audio import Pipeline
 
+import settings
+
 SAMPLE_RATE = 16000
 
 logger = logging.getLogger("__name__")
@@ -118,10 +120,10 @@ class DiarizationPipeline:
             device = torch.device(device)
 
         if Path(config_file).is_file():
-            logger.info(".. .. Local config file found")
+            logger.info(f".. .. Loading local config file: {config_file}")
             self.model = Pipeline.from_pretrained(config_file).to(device)
         elif auth_token:
-            logger.info(".. .. Downloading config from HuggingFace")
+            logger.info(".. .. Downloading config file from HuggingFace")
             self.model = Pipeline.from_pretrained(
                 model_name, use_auth_token=auth_token
             ).to(device)
@@ -158,6 +160,61 @@ class DiarizationPipeline:
         diarize_df["end"] = diarize_df["segment"].apply(lambda x: x.end)
 
         return diarize_df
+
+
+def assign_word_speakers(diarize_df, transcript_segments):
+    """
+    Assign speakers to words and segments in a transcript based on diarization results.
+
+    Args:
+        diarize_df (pd.DataFrame): The diarization dataframe.
+        transcript_segments (list): The list of transcript segments.
+
+    Returns:
+        list: The list of transcript segments with assigned speakers.
+    """
+    for seg in transcript_segments:
+        # assign speaker to segments
+        diarize_df["intersection"] = np.minimum(
+            diarize_df["end"], seg["end"]
+        ) - np.maximum(diarize_df["start"], seg["start"])
+        diarize_df["union"] = np.maximum(diarize_df["end"], seg["end"]) - np.minimum(
+            diarize_df["start"], seg["start"]
+        )
+        dia_tmp = diarize_df[diarize_df["intersection"] > 0]
+
+        if len(dia_tmp) > 0:
+            # sum over speakers if there are many speakers
+            speaker = (
+                dia_tmp.groupby("speaker")["intersection"]
+                .sum()
+                .sort_values(ascending=False)
+                .index[0]
+            )
+            seg["speaker"] = speaker
+
+        # assign speaker to each words
+        if "words" in seg:
+            for word in seg["words"]:
+                if "start" in word:
+                    diarize_df["intersection"] = np.minimum(
+                        diarize_df["end"], word["end"]
+                    ) - np.maximum(diarize_df["start"], word["start"])
+                    diarize_df["union"] = np.maximum(
+                        diarize_df["end"], word["end"]
+                    ) - np.minimum(diarize_df["start"], word["start"])
+                    dia_tmp = diarize_df[diarize_df["intersection"] > 0]
+
+                    if len(dia_tmp) > 0:
+                        speaker = (
+                            dia_tmp.groupby("speaker")["intersection"]
+                            .sum()
+                            .sort_values(ascending=False)
+                            .index[0]
+                        )
+                        word["speaker"] = speaker
+
+    return transcript_segments
 
 
 def add_durations(time1: str, time2: str) -> str:
@@ -207,3 +264,34 @@ def calculate_max_batch_size() -> int:
         batch_size /= 4
 
     return int(batch_size)
+
+
+def convert_language_to_abbreviated_form(language: str) -> str:
+    """
+    Convert language to abbreviated form if it is given in long form.
+
+    Parameters
+    ----------
+    language : str
+        The language to be converted. It can be given in long form.
+
+    Returns
+    -------
+    str
+        The language in abbreviated form (lower-cased two-letter abbreviation) if it is given in long form.
+        If the language is already in abbreviated form, it will be returned as its lower-cased form.
+        If the conversion cannot be made, None will be returned.
+    """
+    if not language:
+        return None
+
+    # Language is given in OK long form: convert to short form (two-letter abbreviation)
+    elif language.lower() in settings.supported_languages.keys():
+        return settings.supported_languages[language.lower()]
+
+    # Language is given in OK short form (two-letter abbreviation)
+    elif language.lower() in settings.supported_languages.values():
+        return language.lower()
+
+    # Conversion cannot be made
+    return None

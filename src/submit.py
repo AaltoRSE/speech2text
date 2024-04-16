@@ -16,10 +16,11 @@ from argparse import Namespace
 from pathlib import Path, PosixPath
 
 import settings
-from utils import add_durations, load_audio
+from utils import (add_durations, convert_language_to_abbreviated_form,
+                   load_audio)
 
 # This is the speedup to realtime for transcribing the audio file.
-# The real number is higher than 15, this is just to make sure the job has enough time to complete.
+# The real number is higher than 15 (close to 25), this is just to make sure the job has enough time to complete.
 REALTIME_SPEEDUP = 15
 
 
@@ -61,7 +62,7 @@ def get_argument_parser():
         "--SPEECH2TEXT_LANGUAGE",
         type=str,
         default=os.getenv("SPEECH2TEXT_LANGUAGE"),
-        help="Language. Optional.",
+        help="Language. Mandatory.",
     )
     parser.add_argument(
         "--SPEECH2TEXT_WHISPER_MODEL",
@@ -207,7 +208,7 @@ def create_array_input_file(
 
 def estimate_job_time(input_path: PosixPath) -> str:
     """
-    Estimate total run time based on input file/folder
+    Estimate total run time based on input file/folder.
 
     Parameters
     ----------
@@ -219,8 +220,8 @@ def estimate_job_time(input_path: PosixPath) -> str:
     Duration: str
         Total estimate time in HH:MM:SS format.
     """
-    # Loading time for whisper + diarization pipeline
-    PIPELINE_LOADING_TIME = "00:05:00"
+    # Loading time for whisperx + diarization + diarization pipeline
+    PIPELINE_LOADING_TIME = "00:08:00"
     # Loading a 60 minute audio file takes ~5 seconds. This is an upper limit (equivalent to
     # loading a 24h file) to ensure sufficient time.
     AUDIO_LOADING_TIME = "00:01:00"
@@ -431,44 +432,6 @@ def submit_file(args: Namespace, job_name: Path):
     subprocess.run(cmd)
 
 
-def check_language(language: str) -> bool:
-    """
-    Check if the given language is supported.
-
-    Parameters
-    ----------
-    language: str
-        The language to check.
-
-    Returns
-    -------
-    Booleam
-        True if the language is supported, False otherwise.
-    """
-    supported_languages = list(settings.supported_languages.keys())
-
-    if language is None:
-        print(
-            f"""No language given. The language will be detected automatically. To specify language explicitly (recommended), use
-              
-    export SPEECH2TEXT_LANGUAGE=mylanguage
-
-where mylanguage is one of:\n\n{' '.join(supported_languages)}\n"""
-        )
-
-        return True
-
-    if language.lower() in supported_languages:
-        print(f"Given language '{language}' is supported.\n")
-        return True
-
-    print(
-        f"Submission failed: Given language '{language}' not found in supported languages:\n\n{' '.join(supported_languages)}\n"
-    )
-
-    return False
-
-
 def check_email(email: str):
     """
     Check if the given email is valid.
@@ -532,8 +495,23 @@ def main():
         print(f"\t{key}: {value}")
     print()
 
-    # Check language
-    if not check_language(args.SPEECH2TEXT_LANGUAGE):
+    # Check mandatory language argument
+    language = convert_language_to_abbreviated_form(args.SPEECH2TEXT_LANGUAGE)
+    if language:
+        print(f"Language: {language}\n")
+    else:
+        print(
+            f"""Language not given or not supported.
+
+Please specify the language using
+
+export SPEECH2TEXT_LANGUAGE=mylanguage
+
+where 'mylanguage' is one of the supported languages:
+
+{settings.supported_languages_pretty}
+"""
+        )
         return
 
     # Check email
