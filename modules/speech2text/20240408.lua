@@ -1,7 +1,5 @@
-#!/usr/bin/env bash
+help_text = [[
 
-usage() {                                    
-     cat << EOF
 This app does speech2text with diarization.
 
 Example run on a single file: 
@@ -35,35 +33,45 @@ Result files in a folder audiofiles/ will be written to folder audiofiles/result
 
 Notification emails will be sent to SPEECH2TEXT_EMAIL. If SPEECH2TEXT_EMAIL is left 
 unspecified, no notifications are sent.
+]]
 
-EOF
-}
+local version = "20240408"
+whatis("Name : Aalto speech2text")
+whatis("Version :" .. version)
+help(help_text)
 
-if [[ $# -eq 0 ]]; then
-    usage
-    exit 0
-fi
+local speech2text = "/share/apps/manual_installations/speech2text/" .. version .. "/bin/"
+local conda_env = "/share/apps/manual_installations/speech2text/" .. version .. "/env/bin/"
 
-for ARG in "$@"                              
-do                                         
-     case $ARG in                               
-          -h|--help)                               
-          usage                                                                                       
-          exit 0                                   
-          ;;                                                                                     
-     esac                                       
-done
+prepend_path("PATH", speech2text)
+prepend_path("PATH", conda_env)
 
-# Folder in which this script is located
-# https://stackoverflow.com/questions/39340169/dir-cd-dirname-bash-source0-pwd-how-does-that-work
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+local hf_home = "/scratch/shareddata/dldata/huggingface-hub-cache/"
+local pyannote_cache = hf_home .. "hub/"
+local torch_home = "/scratch/shareddata/speech2text"
+local pyannote_config = "/share/apps/manual_installations/speech2text/" .. version .. "/pyannote/config.yml"
+local numba_cache = "/tmp" 
+local mplconfigdir = "/tmp"
 
-# Submit
-python3 ${SCRIPT_DIR}/../src/submit.py $1
+pushenv("HF_HOME", hf_home)
+pushenv("PYANNOTE_CACHE", pyannote_cache)
+pushenv("TORCH_HOME", torch_home)
+pushenv("XDG_CACHE_HOME", torch_home)
+pushenv("PYANNOTE_CONFIG", pyannote_config)
+pushenv("NUMBA_CACHE_DIR", numba_cache)
+pushenv("MPLCONFIGDIR", mplconfigdir)
 
+local speech2text_mem = "8G"
+local speech2text_cpus_per_task = "6"
+local speech2text_tmp = os.getenv("WRKDIR") .. "/.speech2text"
 
+pushenv("SPEECH2TEXT_MEM", speech2text_mem)
+pushenv("SPEECH2TEXT_CPUS_PER_TASK", speech2text_cpus_per_task)
+pushenv("SPEECH2TEXT_TMP", speech2text_tmp)
 
+pushenv("HF_HUB_OFFLINE", "1")
 
-
-
-
+if mode() == "load" then
+    LmodMessage("For more information, run 'module spider speech2text/" .. version .. "'")
+end
+ 

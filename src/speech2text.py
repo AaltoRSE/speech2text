@@ -20,7 +20,9 @@ from whisperx.types import TranscriptionResult
 
 import settings
 from submit import parse_output_dir
-from utils import (DiarizationPipeline, calculate_max_batch_size, load_audio,
+from utils import (DiarizationPipeline, assign_word_speakers,
+                   calculate_max_batch_size,
+                   convert_language_to_abbreviated_form, load_audio,
                    seconds_to_human_readable_format)
 
 # https://numba.pydata.org/numba-doc/dev/reference/deprecation.html
@@ -73,7 +75,7 @@ def get_argument_parser():
         "--SPEECH2TEXT_LANGUAGE",
         type=str,
         default=os.getenv("SPEECH2TEXT_LANGUAGE"),
-        help="Audio language. Optional but recommended.",
+        help="Audio language. Required; otherwise will raise an error.",
     )
     parser.add_argument(
         "--SPEECH2TEXT_WHISPER_MODEL",
@@ -86,53 +88,27 @@ def get_argument_parser():
     return parser
 
 
-def compute_overlap(start1: float, end1: float, start2: float, end2: float) -> float:
+def combine_transcription_and_diarization(
+    transcription_segments, diarization_segments, file, language
+) -> dict:
     """
-    Compute the overlap between two segments.
+    Combine transcription and diarization results:
+
+    1. Convert transcription segments using wav2vec alignment so that each segment corresponds to a word
+    2. For each transcribed word, find the most overlapping (in time) diarization/speaker segment
+
+    If no diarization segment overlaps with a word, the speaker for that word is "SPEAKER_UNKNOWN".
 
     Parameters
     ----------
-    start1 : float
-        Start time of the first segment.
-    end1 : float
-        End time of the first segment.
-    start2 : float
-        Start time of the second segment.
-    end2 : float
-        End time of the second segment.
-
-    Returns
-    -------
-    float:
-        The overlap in time between the two segments.
-    """
-    if start1 > end1 or start2 > end2:
-        raise ValueError("Start of segment can't be larger than its end.")
-
-    start_overlap = max(start1, start2)
-    end_overlap = min(end1, end2)
-
-    if start_overlap > end_overlap:
-        return 0
-
-    return abs(end_overlap - start_overlap)
-
-
-def align(segments, diarization) -> dict:
-    """
-    Align diarization with transcription.
-
-    Transcription and diarization segments is measured using overlap in time.
-
-    If no diarization segment overlaps with a given transcription segment, the speaker
-    for that transcription segment is None.
-
-    Parameters
-    ----------
-    transcription : list
+    transcription_segments : list
         Output of Whisper transcribe()
-    diarization : list
+    diarization_segments : list
         Output of Pyannote diarization()
+    file : str
+        The input audio file
+    language: str
+        language in short format (e.g. "fi")
 
     Returns
     -------
@@ -142,58 +118,70 @@ def align(segments, diarization) -> dict:
         "start" : [0.0, 4.5, 7.0],
         "end"   : [3.3, 6.0, 10.0],
         "transcription" : ["This is first first speaker segment", "This is the second", "This is from an unknown speaker"],
-        "speaker": ["SPEAKER_00", "SPEAKER_01", None]
+        "speaker": ["SPEAKER_00", "SPEAKER_01", "SPEAKER_UNKNOWN"]
         }
     """
-    transcription_segments = [
-        (segment["start"], segment["end"], segment["text"]) for segment in segments
-    ]
-    diarization_segments = [
-        (start, end, speaker) for _, _, speaker, start, end in diarization.to_numpy()
-    ]
-    alignment = defaultdict(list)
-    for transcription_start, transcription_end, text in transcription_segments:
-        max_overlap, max_speaker = None, None
-        for diarization_start, diarization_end, speaker in diarization_segments:
-            overlap = compute_overlap(
-                transcription_start,
-                transcription_end,
-                diarization_start,
-                diarization_end,
-            )
-            if overlap > 0 and (max_overlap is None or overlap > max_overlap):
-                max_overlap, max_speaker = overlap, speaker
 
-        transcription_start = seconds_to_human_readable_format(transcription_start)
-        transcription_end = seconds_to_human_readable_format(transcription_end)
+    # Convert transcription segments so that each segment corresponds to a word
+    wav2vec_model_name = (
+        settings.wav2vec_models[language]
+        if language in settings.wav2vec_models
+        else None
+    )
 
-        alignment["start"].append(transcription_start)
-        alignment["end"].append(transcription_end)
-        alignment["speaker"].append(max_speaker)
-        alignment["transcription"].append(text.strip())
+    align_model, align_metadata = whisperx.load_align_model(
+        language, settings.compute_device, model_name=wav2vec_model_name
+    )
 
-    return alignment
+    transcription_segments = whisperx.align(
+        transcription_segments,
+        align_model,
+        align_metadata,
+        file,
+        settings.compute_device,
+    )
+
+    # Assign speaker to transcribed word segments
+    segments = assign_word_speakers(
+        diarization_segments, transcription_segments["segments"]
+    )
+
+    # Reformat the result (return a dictionary of lists)
+    result = defaultdict(list)
+    for segment in segments:
+        transcription_start = seconds_to_human_readable_format(segment["start"])
+        transcription_end = seconds_to_human_readable_format(segment["end"])
+
+        result["start"].append(transcription_start)
+        result["end"].append(transcription_end)
+        result["transcription"].append(segment["text"].strip())
+        try:
+            result["speaker"].append(segment["speaker"])
+        except KeyError:
+            result["speaker"].append("SPEAKER_UNKNOWN")
+
+    return result, time.time()
 
 
 def parse_output_file_stem(output_dir: str, input_file: str) -> Path:
     """
-    Create the output file from the input file and the output directory.
+    Create output file stem from output directory and input file name.
     """
     return Path(output_dir) / Path(Path(input_file).name)
 
 
-def write_alignment_to_csv_file(alignment: dict, output_file_stem: Path):
+def write_result_to_csv_file(result: dict, output_file_stem: Path):
     """
-    Write the alignment to a CSV file.
+    Write the transcription + diarization result to a CSV file.
 
     Parameters
     ----------
-    alignment : dict
-        The alignment dictionary for start, end, speaker, and transcription.
+    result : dict
+        Dictionary of lists for start, end, speaker, and transcription.
     output_file_stem : Path
-        The output file.
+        Output file stem.
     """
-    df = pd.DataFrame.from_dict(alignment)
+    df = pd.DataFrame.from_dict(result)
     output_file = str(Path(output_file_stem).with_suffix(".csv"))
     df.to_csv(
         output_file,
@@ -204,26 +192,26 @@ def write_alignment_to_csv_file(alignment: dict, output_file_stem: Path):
     logger.info(f".. .. Wrote CSV output to: {output_file}")
 
 
-def write_alignment_to_txt_file(alignment: dict, output_file_stem: Path):
+def write_result_to_txt_file(result: dict, output_file_stem: Path):
     """
-    Write the alignment data to a text file.
+    Write the transcription + diarization result to a text file.
 
     Parameters
     ----------
-    alignment : dict
-        The alignment dictionary for start, end, speaker, and transcription.
+    result : dict
+        Dictionary of lists for start, end, speaker, and transcription.
     output_file_stem : Path
-        The output file.
+        Output file stem.
     """
     # Group lines by speaker
     all_lines_grouped_by_speaker = []
     lines_speaker = []
     prev_speaker = None
     for start, end, speaker, transcription in zip(
-        alignment["start"],
-        alignment["end"],
-        alignment["speaker"],
-        alignment["transcription"],
+        result["start"],
+        result["end"],
+        result["speaker"],
+        result["transcription"],
     ):
         if speaker != prev_speaker and lines_speaker:
             all_lines_grouped_by_speaker.append(lines_speaker)
@@ -266,10 +254,10 @@ def write_alignment_to_txt_file(alignment: dict, output_file_stem: Path):
 def load_whisperx_model(
     name: str,
     language: Optional[str] = None,
-    device: Optional[Union[str, torch.device]] = "cuda",
+    device: Optional[Union[str, torch.device]] = settings.compute_device,
 ):
     """
-    Load a Whisper model in GPU.
+    Load a Whisper model on GPU.
 
     Will raise an error if CUDA is not available. This is due to batch_size optimization method in utils.py.
     The submitted script will run on a GPU node, so this should not be a problem. The only issue is with a
@@ -325,10 +313,10 @@ def read_input_file_from_array_file(input_file: str, slurm_array_task_id: str):
 
 
 def transcribe(
-    file: str, model_name: str, language: str, result_list: dict
+    file: str, model_name: str, language: str, result: dict
 ) -> TranscriptionResult:
     """
-    The main transcription fucntion based on WhisperX.
+    Transcribe audio file using WhisperX.
 
     Parameters
     ----------
@@ -337,17 +325,19 @@ def transcribe(
     model_name : str
         The Whisper model name.
     language : str
-        The language of the audio. Not setting the language would result in automatic language detection.
-    result_list : dict
+        The language of the audio. Not setting the language will result in automatic language detection.
+    result : dict
         The dictionary to store the result.
     """
     batch_size = calculate_max_batch_size()
     model = load_whisperx_model(model_name, language)
 
     try:
-        segs, _ = model.transcribe(
+        whisperx_result = model.transcribe(
             file, batch_size=batch_size, language=language
-        ).values()
+        )
+        segments = whisperx_result["segments"]
+
     # If the batch size is too large, reduce it by half and try again to avoid CUDA memory error.
     except RuntimeError:
         logger.warning(
@@ -358,34 +348,35 @@ def transcribe(
         torch.cuda.empty_cache()
 
         batch_size /= 2
-        segs, _ = model.transcribe(
+        whisperx_result = model.transcribe(
             file, batch_size=int(batch_size), language=language
-        ).values()
+        )
+        segments = whisperx_result["segments"]
 
-    result_list["segments"] = segs
-    result_list["transcribe_time"] = time.time()
+    result["transcription_segments"] = segments
+    result["transcription_done_time"] = time.time()
 
 
-def diarization(file: str, config: str, token: str, result_list: dict):
+def diarize(file: str, config: str, token: str, result_list: dict):
     """
-    The main diarization fucntion based on PYANNOTE model.
+    Diarize audio file using Pyannote.
 
     Parameters
     ----------
     file : str
         The input audio file.
     config : str
-        Configutation for the PYANNOTE model.
+        Configuration for the Pyannote model.
     token : str
-        To the the HF model if the config file is not available.
+        Access token for the the Hugging Face model if the config file is not available.
     result_list : dict
         The dictionary to store the result.
     """
     diarization_pipeline = DiarizationPipeline(config_file=config, auth_token=token)
-    diarization = diarization_pipeline(file)
+    diarization_segments = diarization_pipeline(file)
 
-    result_list["diarization"] = diarization
-    result_list["diarize_time"] = time.time()
+    result_list["diarization_segments"] = diarization_segments
+    result_list["diarization_done_time"] = time.time()
 
 
 def main():
@@ -406,6 +397,16 @@ def main():
             args.INPUT_FILE, slurm_array_task_id
         )
 
+    # Check mandatory language argument
+    language = args.SPEECH2TEXT_LANGUAGE
+    language = convert_language_to_abbreviated_form(language)
+    if not language:
+        error_message = f"\
+            Language not given or not supported. Supported languages:\
+            {settings.supported_languages_pretty}"
+        logger.error(error_message)
+        raise ValueError(error_message)
+
     # .wav conversion
     logger.info(
         f".. Convert input file to wav format for pyannote diarization pipeline: {args.INPUT_FILE}"
@@ -422,31 +423,17 @@ def main():
     # Check Whisper model name if given
     model_name = args.SPEECH2TEXT_WHISPER_MODEL
     if model_name is None:
+        logger.info(
+            f"Whisper model not given. Opting to use the default model '{settings.default_whisper_model}'"
+        )
+        model_name = settings.default_whisper_model
+    elif model_name not in settings.available_whisper_models:
+        logger.warning(
+            f"Given Whisper model '{model_name}' not among available models: {settings.available_whisper_models}. Opting to use the default model '{settings.default_whisper_model}' instead"
+        )
         model_name = settings.default_whisper_model
 
-    # Check language if given
-    language = args.SPEECH2TEXT_LANGUAGE
-    if language:
-        if language.lower() in settings.supported_languages.keys():
-            # Language is given in OK long form: convert to short form (two-letter abbreviation)
-            language = settings.supported_languages[language.lower()]
-        elif language.lower() in settings.supported_languages.values():
-            # Language is given in OK short form
-            pass
-        else:
-            # Given language not OK
-            pretty_language_list = ", ".join(
-                [
-                    f"{lang} ({short})"
-                    for lang, short in settings.supported_languages.items()
-                ]
-            )
-            logger.warning(
-                f"Given language '{language}' not found among supported languages: {pretty_language_list}. Opting to detect language automatically"
-            )
-            language = None
-
-    # Creating two seperate processes for transcription and diarization based on torch multiprocessing
+    # Creating two separate processes for transcription and diarization based on torch multiprocessing
     with mp.Manager() as manager:
         shared_dict = manager.dict()
 
@@ -460,7 +447,7 @@ def main():
             ),
         )
         process2 = mp.Process(
-            target=diarization,
+            target=diarize,
             args=(
                 input_file_wav,
                 args.PYANNOTE_CONFIG,
@@ -480,24 +467,33 @@ def main():
         process2.join()
 
         logger.info(
-            f".. .. Transcription finished in {shared_dict['transcribe_time']-t0:.1f} seconds"
+            f".. .. Transcription finished in {shared_dict['transcription_done_time']-t0:.1f} seconds"
         )
         logger.info(
-            f".. .. Diarization finished in {shared_dict['diarize_time']-t0:.1f} seconds"
+            f".. .. Diarization finished in {shared_dict['diarization_done_time']-t0:.1f} seconds"
         )
 
-        segments = shared_dict["segments"]
-        diarization_results = shared_dict["diarization"]
+        transcription_segments = shared_dict["transcription_segments"]
+        diarization_segments = shared_dict["diarization_segments"]
+        if not language:
+            # Grab the detected language from the transcription result
+            logging.info(f".. Language not given. Detected language: {language}")
+            language = shared_dict["language"]
 
-    # Alignment
-    logger.info(".. Align transcription and diarization")
-    alignment = align(segments, diarization_results)
+        torch.cuda.empty_cache()
 
-    logger.info(f".. Write alignment to output")
+    t0 = time.time()
+    logger.info(".. Combine transcription and diarization segments")
+    combination, combination_done_time = combine_transcription_and_diarization(
+        transcription_segments, diarization_segments, input_file_wav, language
+    )
+    logger.info(f".. .. Combining finished in {combination_done_time-t0:.1f} seconds")
+
+    logger.info(f".. Write final result to files")
     output_dir = parse_output_dir(args.INPUT_FILE)
     output_file_stem = parse_output_file_stem(output_dir, args.INPUT_FILE)
-    write_alignment_to_csv_file(alignment, output_file_stem)
-    write_alignment_to_txt_file(alignment, output_file_stem)
+    write_result_to_csv_file(combination, output_file_stem)
+    write_result_to_txt_file(combination, output_file_stem)
 
     logger.info(f"Finished.")
 
