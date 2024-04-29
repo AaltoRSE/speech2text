@@ -1,0 +1,95 @@
+# ${HOME}/ondemand/dev/test-speech2text/form.yml
+---
+
+# the cluster(s) this app can submit jobs to.
+cluster: "triton"
+
+# 'form' is a list of form choices for this app. Here we're allowing users to set
+# the account and the number of cores they want to request for this job.
+form:
+  - folder_path
+  - email_field
+  - language_field
+
+# By default, everything defined in 'form' above is a text_field. Let's leave account alone
+# We do however, want cores to be a number_field and with some min & max values.
+attributes:
+  folder_path:
+    label: Path
+    required: true
+    help: |
+      Select the file for transcription OR a folder containing mutiple audio files.
+    
+  language_field:
+    label: Language
+    widget: select
+    display: true
+    help: |
+      Select the language for the audio file(s).
+    options:
+    - afrikaans
+    - arabic
+    - armenian
+    - azerbaijani
+    - belarusian
+    - bosnian
+    - bulgarian
+    - catalan
+    - chinese
+    - croatian
+    - czech
+    - danish
+    - dutch
+    - english
+    - estonian
+    - finnish
+    - french
+    - galician
+    - german
+    - greek
+    - hebrew
+    - hindi
+    - hungarian
+    - icelandic
+    - indonesian
+    - italian
+    - japanese
+    - kannada
+    - kazakh
+    - korean
+    - latvian
+    - lithuanian
+    - macedonian
+    - malay
+    - marathi
+    - maori
+    - nepali
+    - norwegian
+    - persian
+    - polish
+    - portuguese
+    - romanian
+    - russian
+    - serbian
+    - slovak
+    - slovenian
+    - spanish
+    - swahili
+    - swedish
+    - tagalog
+    - tamil
+    - thai
+    - turkish
+    - ukrainian
+    - urdu
+    - vietnamese
+    - welsh
+  
+  email_field:
+    label: Email
+    display: true
+    widget: "email_field"
+    pattern: ".+[.].+@aalto.fi"  
+    help: |
+      Only works with aalto email.
+      You will get an email when the transcription is done.

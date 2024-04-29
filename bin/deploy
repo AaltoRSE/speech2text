@@ -40,12 +40,12 @@ if ! date -d "$VERSION" &> /dev/null; then
 fi
 
 # Other variables
-SPEECH2TEXT="/share/apps/manual_installations/speech2text/$VERSION/bin/"
-CONDA_ENV="/share/apps/manual_installations/speech2text/$VERSION/env/bin/"
+SPEECH2TEXT="/appl/manual_installations/software/speech2text/$VERSION/bin/"
+CONDA_ENV="/appl/manual_installations/software/speech2text/$VERSION/env/bin/"
 HF_HOME="/scratch/shareddata/dldata/huggingface-hub-cache/"
 PYANNOTE_CACHE="${HF_HOME}/hub/"
 TORCH_HOME="/scratch/shareddata/speech2text"
-PYANNOTE_CONFIG="/share/apps/manual_installations/speech2text/$VERSION/pyannote/config.yml"
+PYANNOTE_CONFIG="/appl/manual_installations/software/speech2text/$VERSION/pyannote/config.yml"
 NUMBA_CACHE="/tmp"
 MPLCONFIGDIR="/tmp"
 SPEECH2TEXT_MEM="8G"
@@ -56,7 +56,7 @@ SPEECH2TEXT_TMP="/scratch/work/$USER/.speech2text"
 # --------------------------------------------------
 # Deploy as an Open OnDemand app
 
-SCRIPT="$SCRIPT_DIR/../deploy/ood/template/script.sh"
+SCRIPT="$SCRIPT_DIR/deploy-data/ood/template/script.sh"
 
 sed -i "s/<VERSION>/$VERSION/g" $SCRIPT
 sed -i "s/<SPEECH2TEXT>/$SPEECH2TEXT/g" $SCRIPT
@@ -72,13 +72,13 @@ sed -i "s/<SPEECH2TEXT_CPUS_PER_TASK>/$SPEECH2TEXT_CPUS_PER_TASK/g" $SCRIPT
 sed -i "s/<SPEECH2TEXT_TMP>/$SPEECH2TEXT_TMP/g" $SCRIPT
 
 # Copy the Open OnDemand scripts to the system deployment location
-# TODO
+# TODO: Copy the whole deploy
 
 
 # --------------------------------------------------
 # Deploy as a module
 
-$SCRIPT="$SCRIPT_DIR/../deploy/module/module.lua"
+$SCRIPT="$SCRIPT_DIR/deploy-data/module/module.lua"
 
 sed -i "s/<VERSION>/$VERSION/g" $SCRIPT
 sed -i "s/<SPEECH2TEXT>/$SPEECH2TEXT/g" $SCRIPT
@@ -94,4 +94,4 @@ sed -i "s/<SPEECH2TEXT_CPUS_PER_TASK>/$SPEECH2TEXT_CPUS_PER_TASK/g" $SCRIPT
 sed -i "s/<SPEECH2TEXT_TMP>/$SPEECH2TEXT_TMP/g" $SCRIPT
 
 # Copy 
-# TODO
+cp $SCRIPT /appl/manual_installations/modules/speech2text/$VERSION.lua

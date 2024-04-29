@@ -16,7 +16,7 @@ Conda environment and Lmod setup is described [here](#setup).
 
 Command line (technical) usage on Triton is described [here](#usage).
 
-Open On Demand web interface (non-technical) usage is described [here](https://aaltorse.github.io/speech2text/)
+Open On Demand web interface (non-technical) usage is described [here](https://aaltorse.github.io/speech2text/).
 
 Supported languages are:
 
@@ -78,11 +78,7 @@ test-data/en/test2.mp3
 test-data/fi/test1.mp3
 ```
 
-## Setup 
-
-How to setup speech2text on Aalto Triton cluster.
-
-### Conda environment
+## Setup on Aalto Triton
 
 Create a base folder for the app and change directory
 
@@ -94,35 +90,36 @@ cd /share/apps/manual_installations/speech2text
 Clone git repo and change directory
 
 ```bash
-git clone https://github.com/AaltoRSE/speech2text.git 00000000
-cd 00000000
+git clone https://github.com/AaltoRSE/speech2text.git YYYY-N
+cd YYYY-N
 ```
 
-where `00000000` is the version number ("date") for development. 
+where `YYYY` is current year and `N` the running version number for the year. 
 
 Create a conda environment to `env/`
 
 ```bash
-module load miniconda
+module load mamba
 mamba env create --file env.yml --prefix env/
 ```
 
-Finally, make sure the path to [Pyannote segmentation model](#pyannote) in `pyannote/config.yml:8` is valid.
-
-### Lmod
-
-Activate the speech2text module with
+Run 
 
 ```bash
-module use /share/apps/manual_installations/speech2text/modules/speech2text/00000000.lua
+bin/deploy
 ```
 
-Alternatively, copy the .lua script to `/share/apps/modules/speech2text/` so that it gets activated automatically at login.
-
-Essentially, the module implementation prepends `/share/apps/manual_installations/speech2text/bin` and `/share/apps/manual_installations/speech2text/env/bin` to `PATH` and sets good default values for Slurm job resource requests for easy load and usage. Check [modules/speech2text/00000000.lua](modules/speech2text/00000000.lua) and [bin/speech2text](bin/speech2text) for details. 
+Check the contents of the script for details.
 
 
 ## Usage
+
+### OnDemand
+
+TODO: non-techincal user guide (video?)
+
+
+### Command line
 
 After the conda environment and Lmod have been [setup and activated](#setup), speech2text is used in three steps:
 
@@ -145,23 +142,6 @@ For example:
 export SPEECH2TEXT_EMAIL=john.smith@aalto.fi
 export SPEECH2TEXT_LANGUAGE=finnish
 ```
-
-The following variables are already set by the Lmod .lua script. They can be ignored by user.
-
-```
-HF_HOME
-TORCH_HOME
-PYANNOTE_CONFIG
-NUMBA_CACHE
-MPLCONFIGDIR
-SPEECH2TEXT_TMP
-SPEECH2TEXT_MEM
-SPEECH2TEXT_CPUS_PER_TASK
-```
-
-The language must be provided by the user from the list of supported languages:
-
-arabic (ar), armenian (hy), bulgarian (bg), catalan (ca), chinese (zh), czech (cs), danish (da), dutch (nl), english (en), estonian (et), finnish (fi), french (fr), galician (gl), german (de), greek (el), hebrew (he), hindi (hi), hungarian (hu), icelandic (is), indonesian (id), italian (it), japanese (ja), kazakh (kk), korean (ko), latvian (lv), lithuanian (lt), malay (ms), marathi (mr), nepali (ne), norwegian (no), persian (fa), polish (pl), portuguese (pt), romanian (ro), russian (ru), serbian (sr), slovak (sk), slovenian (sl), spanish (es), swedish (sv), thai (th), turkish (tr), ukrainian (uk), urdu (ur), vietnamese (vi)
 
 Notification emails will be sent to given email address. If the addresss is left unspecified,
 no notifications are sent.
@@ -242,7 +222,7 @@ black src && isort src
 
 ## Build and run with Singularity
 
->**__NOTE:__** This maybe out of date!
+>**__IMPORTANT:__** This is out of date!
 
 Although currently not needed, the repo also contains a Singularity definition file `speech2text.def` in project root. 
 
