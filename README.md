@@ -83,8 +83,8 @@ test-data/fi/test1.mp3
 Create a base folder for the app and change directory
 
 ```
-mkdir /share/apps/manual_installations/speech2text
-cd /share/apps/manual_installations/speech2text
+mkdir /appl/manual_installations/speech2text
+cd /appl/manual_installations/speech2text
 ```
 
 Clone git repo and change directory
