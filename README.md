@@ -51,6 +51,7 @@ mamba env create --file env.yml --prefix env/
 Run 
 
 ```bash
+module load model-huggingface
 bin/deploy
 ```
 

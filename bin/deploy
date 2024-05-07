@@ -10,21 +10,6 @@ Example:
 EOF
 }
 
-if [[ $# -eq 0 ]]; then
-    usage
-    exit 0
-fi
-
-for ARG in "$@"                              
-do                                         
-     case $ARG in                               
-          -h|--help)                               
-          usage                                                                                       
-          exit 0                                   
-          ;;                                                                                     
-     esac                                       
-done
-
 # Folder in which this script is located
 # https://stackoverflow.com/questions/39340169/dir-cd-dirname-bash-source0-pwd-how-does-that-work
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
@@ -32,12 +17,6 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 # Version variables is the second to last path component
 # e.g. /path/to/speech2text/20240314/bin/ -> version = 20240314
 VERSION=$(basename "$(dirname "$SCRIPT_DIR")")
-
-# Ensure the version is a valid date
-if ! date -d "$VERSION" &> /dev/null; then
-    echo "Version is not a valid date: $VERSION"
-    exit 1
-fi
 
 # Other variables
 SPEECH2TEXT="/appl/manual_installations/software/speech2text/$VERSION/bin/"
