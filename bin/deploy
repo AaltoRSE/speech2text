@@ -29,7 +29,6 @@ NUMBA_CACHE_DIR="/tmp"
 MPLCONFIGDIR="/tmp"
 SPEECH2TEXT_MEM="8G"
 SPEECH2TEXT_CPUS_PER_TASK="6"
-SPEECH2TEXT_TMP="/scratch/work/$USER/.speech2text"
 
 
 # --------------------------------------------------
@@ -48,7 +47,6 @@ sed -i "s|<NUMBA_CACHE_DIR>|$NUMBA_CACHE_DIR|g" $SCRIPT
 sed -i "s|<MPLCONFIGDIR>|$MPLCONFIGDIR|g" $SCRIPT
 sed -i "s|<SPEECH2TEXT_MEM>|$SPEECH2TEXT_MEM|g" $SCRIPT
 sed -i "s|<SPEECH2TEXT_CPUS_PER_TASK>|$SPEECH2TEXT_CPUS_PER_TASK|g" $SCRIPT
-sed -i "s|<SPEECH2TEXT_TMP>|$SPEECH2TEXT_TMP|g" $SCRIPT
 
 # Copy the Open OnDemand scripts to the system deployment location
 # https://osc.github.io/ood-documentation/release-1.8/app-development/tutorials-interactive-apps/add-jupyter/deploy.html
@@ -70,7 +68,6 @@ sed -i "s|<NUMBA_CACHE_DIR>|$NUMBA_CACHE_DIR|g" $SCRIPT
 sed -i "s|<MPLCONFIGDIR>|$MPLCONFIGDIR|g" $SCRIPT
 sed -i "s|<SPEECH2TEXT_MEM>|$SPEECH2TEXT_MEM|g" $SCRIPT
 sed -i "s|<SPEECH2TEXT_CPUS_PER_TASK>|$SPEECH2TEXT_CPUS_PER_TASK|g" $SCRIPT
-sed -i "s|<SPEECH2TEXT_TMP>|$SPEECH2TEXT_TMP|g" $SCRIPT
 
 # Copy 
 cp "$SCRIPT" /appl/manual_installations/modules/speech2text/"$VERSION".lua

@@ -38,7 +38,7 @@ def get_argument_parser():
         "--SPEECH2TEXT_TMP",
         type=str,
         default=os.getenv("SPEECH2TEXT_TMP"),
-        help="Temporary folder. If not given, should be set as an environment variable.",
+        help="Temporary folder. If not given, can be set as an environment variable. Optional, defaults to: /scratch/work/$USER/.speech2text/",
     )
     parser.add_argument(
         "--SPEECH2TEXT_MEM",
@@ -494,6 +494,12 @@ def main():
     for key, value in vars(args).items():
         print(f"\t{key}: {value}")
     print()
+
+    # Check temporary folder
+    if args.SPEECH2TEXT_TMP is None:
+        args.SPEECH2TEXT_TMP = "/scratch/work/$USER/.speech2text/"
+        Path(args.SPEECH2TEXT_TMP).mkdir(parents=True, exist_ok=True)
+    print(f"Temporary folder: {args.SPEECH2TEXT_TMP}\n")
 
     # Check mandatory language argument
     language = convert_language_to_abbreviated_form(args.SPEECH2TEXT_LANGUAGE)
