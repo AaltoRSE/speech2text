@@ -40,27 +40,27 @@ explicitly is, however, recommended.
 ]]
 
 whatis("Name : Aalto speech2text")
-whatis("Version :" .. <VERSION>)
+whatis("Version :" .. "<VERSION>")
 help(help_text)
 
-prepend_path("PATH", <SPEECH2TEXT>)
-prepend_path("PATH", <CONDA_ENV>)
+prepend_path("PATH", "<SPEECH2TEXT>")
+prepend_path("PATH", "<CONDA_ENV>")
 
-pushenv("HF_HOME", <HF_HOME>)
-pushenv("PYANNOTE_CACHE", <PYANNOTE_CACHE>)
-pushenv("TORCH_HOME", <TORCH_HOME>)
-pushenv("XDG_CACHE_HOME", <TORCH_HOME>)
-pushenv("PYANNOTE_CONFIG", <PYANNOTE_CONFIG>)
-pushenv("NUMBA_CACHE_DIR", <NUMBA_CACHE_DIR>)
-pushenv("MPLCONFIGDIR", <MPLCONFIGDIR>)
+pushenv("HF_HOME", "<HF_HOME>")
+pushenv("PYANNOTE_CACHE", "<PYANNOTE_CACHE>")
+pushenv("TORCH_HOME", "<TORCH_HOME>")
+pushenv("XDG_CACHE_HOME", "<TORCH_HOME>")
+pushenv("PYANNOTE_CONFIG", "<PYANNOTE_CONFIG>")
+pushenv("NUMBA_CACHE_DIR", "<NUMBA_CACHE_DIR>")
+pushenv("MPLCONFIGDIR", "<MPLCONFIGDIR>")
 
-pushenv("SPEECH2TEXT_MEM", <SPEECH2TEXT_MEM>)
-pushenv("SPEECH2TEXT_CPUS_PER_TASK", <SPEECH2TEXT_CPUS_PER_TASK>)
-pushenv("SPEECH2TEXT_TMP", <SPEECH2TEXT_TMP>)
+pushenv("SPEECH2TEXT_MEM", "<SPEECH2TEXT_MEM>")
+pushenv("SPEECH2TEXT_CPUS_PER_TASK", "<SPEECH2TEXT_CPUS_PER_TASK>")
+pushenv("SPEECH2TEXT_TMP", "<SPEECH2TEXT_TMP>")
 
 pushenv("HF_HUB_OFFLINE", "1")
 
 if mode() == "load" then
-    LmodMessage("For more information, run 'module spider speech2text/" .. <VERSION> .. "'")
+    LmodMessage("For more information, run 'module spider speech2text/" .. "<VERSION>" .. "'")
 end
  
