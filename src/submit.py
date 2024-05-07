@@ -497,7 +497,8 @@ def main():
 
     # Check temporary folder
     if args.SPEECH2TEXT_TMP is None:
-        args.SPEECH2TEXT_TMP = "/scratch/work/$USER/.speech2text/"
+        user = os.getenv("USER")
+        args.SPEECH2TEXT_TMP = f"/scratch/work/{user}/.speech2text/"
         Path(args.SPEECH2TEXT_TMP).mkdir(parents=True, exist_ok=True)
     print(f"Temporary folder: {args.SPEECH2TEXT_TMP}\n")
 
