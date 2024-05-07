@@ -23,68 +23,13 @@ Supported languages are:
 arabic (ar), armenian (hy), bulgarian (bg), catalan (ca), chinese (zh), czech (cs), danish (da), dutch (nl), english (en), estonian (et), finnish (fi), french (fr), galician (gl), german (de), greek (el), hebrew (he), hindi (hi), hungarian (hu), icelandic (is), indonesian (id), italian (it), japanese (ja), kazakh (kk), korean (ko), latvian (lv), lithuanian (lt), malay (ms), marathi (mr), nepali (ne), norwegian (no), persian (fa), polish (pl), portuguese (pt), romanian (ro), russian (ru), serbian (sr), slovak (sk), slovenian (sl), spanish (es), swedish (sv), thai (th), turkish (tr), ukrainian (uk), urdu (ur), vietnamese (vi)
 
 
-## Models
-
-The required models have been downloaded beforehand from Hugging Face and saved into a shared data folder on the cluster. Therefore, users do not have to download the models themselves.
-**Make sure the following models have been downloaded and accessible**.
-
-### Faster Whisper  
-
-We support `large-v2` and `large-v3` (default) multilingual [Faster Whisper](https://github.com/SYSTRAN/faster-whisper) models. Languages supported by the models are:
-
-The models are covered by the [MIT licence]((https://huggingface.co/models?license=license:mit)) and have been pre-downloaded from Hugging Face to 
-
-`/scratch/shareddata/dldata/huggingface-hub-cache/hub/models--Systran--faster-whisper-large-v2`
-
-and
-
-`/scratch/shareddata/dldata/huggingface-hub-cache/hub/models--Systran--faster-whisper-large-v3`
-
-### wav2vec
-
-We use [wav2vec](https://ai.meta.com/blog/wav2vec-20-learning-the-structure-of-speech-from-raw-audio/) models as part of the diarization pipeline which efines the timestamps from whisper transcriptions using forced alignment a phoneme-based ASR model (wav2vec 2.0). This provides word-level timestamps, as well as improved segment timestamps.
-
-We use a fine-tuned wav2vec model for each of the supported languages. All the models are fine-tuned over the [Meta's XLRS](https://huggingface.co/facebook/wav2vec2-large-xlsr-53) model.
-
-### Pyannote 
-
-The diarization is performed using the [pyannote/speaker-diarization-3.1](https://huggingface.co/pyannote/speaker-diarization-3.1) pipeline installed via [`pyannote.audio`](https://github.com/pyannote/pyannote-audio).
-> **_NOTE:_**
-> pyannote.audio is covered by [MIT licence]((https://huggingface.co/models?license=license:mit)) but the diarization pipeline is gated. In order to use it, log in to [Hugging Face](https://huggingface.co/pyannote/speaker-diarization-3.1) and accept the conditions to access it.
-
-The [pyannote/segmentation-3.0](https://huggingface.co/pyannote/segmentation/blob/main/pytorch_model.bin) model used by the pipeline has been pre-downloaded from Hugging Face to 
-
-`/scratch/shareddata/speech2text/pyannote/segmentation-3.0/blob/main/pytorch_model.bin`
-
-This path has been hard-coded to the [Pyannote config file](https://huggingface.co/pyannote/speaker-diarization-3.1/blob/main/config.yaml) located in [pyannote/config.yml](pyannote/config.yml).
-
-
-> **_NOTE:_**
-> pyannote/segmentation-3.0 is also covered by [MIT licence]((https://huggingface.co/models?license=license:mit)) but is gated separately. In order to use it, log in to [pyannote/segmentation-3.0](https://huggingface.co/pyannote/segmentation-3.0) and accept the conditions to access it.
->
-> Due to gating, the model has **not** been saved to `/scratch/shareddata/dldata/huggingface-hub-cache/` which is meant for models accessible more generally to Triton users.
-
-Wrapper around the [wespeaker-voxceleb-resnet34-LM](https://huggingface.co/pyannote/wespeaker-voxceleb-resnet34-LM) pretrained speaker embedding model is used by pyannote-audio version 3.1 and higher (see [pyannote/config.yml](pyannote/config.yml)). The model is covered by the [MIT licence]((https://huggingface.co/models?license=license:mit)) and has been pre-downloaded from Hugging Face to 
-
-`/scratch/shareddata/dldata/huggingface-hub-cache/hub/models--pyannote--wespeaker-voxceleb-resnet34-LM`.
-
-
-## Data
-
-Repository contains three example audio files for testing purposes
-```
-test-data/en/test1.mp3
-test-data/en/test2.mp3
-test-data/fi/test1.mp3
-```
-
-## Setup on Aalto Triton
+## Deploy on Aalto Triton
 
 Create a base folder for the app and change directory
 
 ```
-mkdir /appl/manual_installations/speech2text
-cd /appl/manual_installations/speech2text
+mkdir /appl/manual_installations/software/speech2text
+cd /appl/manual_installations/software/speech2text
 ```
 
 Clone git repo and change directory
@@ -201,6 +146,63 @@ This is the first sentence of the first speaker. This is the second sentence of 
 
 This is a sentence from the second speaker.
 ```
+
+
+## Models
+
+The required models have been downloaded beforehand from Hugging Face and saved into a shared data folder on the cluster. Therefore, users do not have to download the models themselves.
+**Make sure the following models have been downloaded and accessible**.
+
+### Faster Whisper  
+
+We support `large-v2` and `large-v3` (default) multilingual [Faster Whisper](https://github.com/SYSTRAN/faster-whisper) models. Languages supported by the models are:
+
+The models are covered by the [MIT licence]((https://huggingface.co/models?license=license:mit)) and have been pre-downloaded from Hugging Face to 
+
+`/scratch/shareddata/dldata/huggingface-hub-cache/hub/models--Systran--faster-whisper-large-v2`
+
+and
+
+`/scratch/shareddata/dldata/huggingface-hub-cache/hub/models--Systran--faster-whisper-large-v3`
+
+### wav2vec
+
+We use [wav2vec](https://ai.meta.com/blog/wav2vec-20-learning-the-structure-of-speech-from-raw-audio/) models as part of the diarization pipeline which efines the timestamps from whisper transcriptions using forced alignment a phoneme-based ASR model (wav2vec 2.0). This provides word-level timestamps, as well as improved segment timestamps.
+
+We use a fine-tuned wav2vec model for each of the supported languages. All the models are fine-tuned over the [Meta's XLRS](https://huggingface.co/facebook/wav2vec2-large-xlsr-53) model.
+
+### Pyannote 
+
+The diarization is performed using the [pyannote/speaker-diarization-3.1](https://huggingface.co/pyannote/speaker-diarization-3.1) pipeline installed via [`pyannote.audio`](https://github.com/pyannote/pyannote-audio).
+> **_NOTE:_**
+> pyannote.audio is covered by [MIT licence]((https://huggingface.co/models?license=license:mit)) but the diarization pipeline is gated. In order to use it, log in to [Hugging Face](https://huggingface.co/pyannote/speaker-diarization-3.1) and accept the conditions to access it.
+
+The [pyannote/segmentation-3.0](https://huggingface.co/pyannote/segmentation/blob/main/pytorch_model.bin) model used by the pipeline has been pre-downloaded from Hugging Face to 
+
+`/scratch/shareddata/speech2text/pyannote/segmentation-3.0/blob/main/pytorch_model.bin`
+
+This path has been hard-coded to the [Pyannote config file](https://huggingface.co/pyannote/speaker-diarization-3.1/blob/main/config.yaml) located in [pyannote/config.yml](pyannote/config.yml).
+
+
+> **_NOTE:_**
+> pyannote/segmentation-3.0 is also covered by [MIT licence]((https://huggingface.co/models?license=license:mit)) but is gated separately. In order to use it, log in to [pyannote/segmentation-3.0](https://huggingface.co/pyannote/segmentation-3.0) and accept the conditions to access it.
+>
+> Due to gating, the model has **not** been saved to `/scratch/shareddata/dldata/huggingface-hub-cache/` which is meant for models accessible more generally to Triton users.
+
+Wrapper around the [wespeaker-voxceleb-resnet34-LM](https://huggingface.co/pyannote/wespeaker-voxceleb-resnet34-LM) pretrained speaker embedding model is used by pyannote-audio version 3.1 and higher (see [pyannote/config.yml](pyannote/config.yml)). The model is covered by the [MIT licence]((https://huggingface.co/models?license=license:mit)) and has been pre-downloaded from Hugging Face to 
+
+`/scratch/shareddata/dldata/huggingface-hub-cache/hub/models--pyannote--wespeaker-voxceleb-resnet34-LM`.
+
+
+## Data
+
+Repository contains three example audio files for testing purposes
+```
+test-data/en/test1.mp3
+test-data/en/test2.mp3
+test-data/fi/test1.mp3
+```
+
 
 ## Tests and linting
 

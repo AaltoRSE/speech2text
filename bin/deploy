@@ -73,7 +73,7 @@ sed -i "s/<SPEECH2TEXT_TMP>/$SPEECH2TEXT_TMP/g" $SCRIPT
 
 # Copy the Open OnDemand scripts to the system deployment location
 # https://osc.github.io/ood-documentation/release-1.8/app-development/tutorials-interactive-apps/add-jupyter/deploy.html
-sudo cp -r "$SCRIPT_DIR"/deploy-data/ood/ /var/www/ood/apps/sys/speech2text
+sudo cp -r "$SCRIPT_DIR"/deploy-data/ood/ /var/www/ood/apps/sys/speech2text # FIXME: wrong path
 
 # --------------------------------------------------
 # Deploy as a module
