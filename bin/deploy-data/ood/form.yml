@@ -1,21 +1,20 @@
 # ${HOME}/ondemand/dev/test-speech2text/form.yml
 ---
 
-# the cluster(s) this app can submit jobs to.
 cluster: "triton"
-
+cacheable: false
 # 'form' is a list of form choices for this app. Here we're allowing users to set
 # the account and the number of cores they want to request for this job.
 form:
-  - folder_path
+  - audio_path
   - email_field
   - language_field
 
-# By default, everything defined in 'form' above is a text_field. Let's leave account alone
-# We do however, want cores to be a number_field and with some min & max values.
+
 attributes:
-  folder_path:
-    label: Path
+  audio_path:
+    widget: "path_selector"
+    display: true
     required: true
     help: |
       Select the file for transcription OR a folder containing mutiple audio files.
@@ -27,16 +26,11 @@ attributes:
     help: |
       Select the language for the audio file(s).
     options:
-    - afrikaans
     - arabic
     - armenian
-    - azerbaijani
-    - belarusian
-    - bosnian
     - bulgarian
     - catalan
     - chinese
-    - croatian
     - czech
     - danish
     - dutch
@@ -54,15 +48,12 @@ attributes:
     - indonesian
     - italian
     - japanese
-    - kannada
     - kazakh
     - korean
     - latvian
     - lithuanian
-    - macedonian
     - malay
     - marathi
-    - maori
     - nepali
     - norwegian
     - persian
@@ -74,19 +65,16 @@ attributes:
     - slovak
     - slovenian
     - spanish
-    - swahili
     - swedish
-    - tagalog
-    - tamil
     - thai
     - turkish
     - ukrainian
     - urdu
     - vietnamese
-    - welsh
   
   email_field:
     label: Email
+    cacheable: true
     display: true
     widget: "email_field"
     pattern: ".+[.].+@aalto.fi"  
