@@ -57,7 +57,7 @@ sudo cp -r "$SCRIPT_DIR"/deploy-data/ood/ /var/www/ood/apps/sys/speech2text # FI
 # --------------------------------------------------
 # Deploy as a module
 
-$SCRIPT="$SCRIPT_DIR"/deploy-data/module/module.lua
+SCRIPT="$SCRIPT_DIR"/deploy-data/module/module.lua
 
 sed -i "s|<VERSION>|$VERSION|g" $SCRIPT
 sed -i "s|<SPEECH2TEXT>|$SPEECH2TEXT|g" $SCRIPT
