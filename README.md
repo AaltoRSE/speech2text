@@ -25,16 +25,16 @@ arabic (ar), armenian (hy), bulgarian (bg), catalan (ca), chinese (zh), czech (c
 
 ## Deploy on Aalto Triton
 
-Create a base folder for the app and change directory
+Create a base folder for the app if haven't been created
 
 ```
 mkdir /appl/manual_installations/software/speech2text
-cd /appl/manual_installations/software/speech2text
 ```
 
 Clone git repo and change directory
 
 ```bash
+cd /appl/manual_installations/software/speech2text
 git clone https://github.com/AaltoRSE/speech2text.git YYYY-N
 cd YYYY-N
 ```
