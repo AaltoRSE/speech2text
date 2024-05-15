@@ -71,3 +71,31 @@ sed -i "s|<SPEECH2TEXT_CPUS_PER_TASK>|$SPEECH2TEXT_CPUS_PER_TASK|g" $SCRIPT
 
 # Copy 
 cp "$SCRIPT" /appl/manual_installations/modules/speech2text/"$VERSION".lua
+
+# Deploy to Github for ondemand installation
+REPO_URL="https://github.com/AaltoSciComp/speech2text-ood-ansible.git"
+TEMP_DIR=$(mktemp -d)
+git clone "$REPO_URL" "$TEMP_DIR"
+
+# Check if clone was successful
+if [ $? -ne 0 ]; then
+  echo "Failed to clone the repository $TARGET_REPO_URL"
+  exit 1
+fi
+
+cp -r bin/deploy-data/ood/*  "$TEMP_DIR"
+cd "$TEMP_DIR"
+git add .
+git commit -m "Update to $VERSION"
+git push --force "$REPO_URL"
+
+# Print status
+if [ $? -eq 0 ]; then
+  echo "Successfully force pushed $VERSION to $REPO_URL."
+else
+  echo "Failed to force push to $REPO_URL."
+fi
+
+# Cleanup
+cd ..
+rm -rf "$TEMP_DIR"
