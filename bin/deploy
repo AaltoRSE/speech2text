@@ -30,28 +30,6 @@ MPLCONFIGDIR="/tmp"
 SPEECH2TEXT_MEM="12G"
 SPEECH2TEXT_CPUS_PER_TASK="6"
 
-
-# --------------------------------------------------
-# Deploy as an Open OnDemand app
-
-SCRIPT="$SCRIPT_DIR"/deploy-data/ood/template/script.sh
-
-sed -i "s|<VERSION>|$VERSION|g" $SCRIPT
-sed -i "s|<SPEECH2TEXT>|$SPEECH2TEXT|g" $SCRIPT
-sed -i "s|<CONDA_ENV>|$CONDA_ENV|g" $SCRIPT
-sed -i "s|<HF_HOME>|$HF_HOME|g" $SCRIPT
-sed -i "s|<PYANNOTE_CACHE>|$PYANNOTE_CACHE|g" $SCRIPT
-sed -i "s|<TORCH_HOME>|$TORCH_HOME|g" $SCRIPT
-sed -i "s|<PYANNOTE_CONFIG>|$PYANNOTE_CONFIG|g" $SCRIPT
-sed -i "s|<NUMBA_CACHE_DIR>|$NUMBA_CACHE_DIR|g" $SCRIPT
-sed -i "s|<MPLCONFIGDIR>|$MPLCONFIGDIR|g" $SCRIPT
-sed -i "s|<SPEECH2TEXT_MEM>|$SPEECH2TEXT_MEM|g" $SCRIPT
-sed -i "s|<SPEECH2TEXT_CPUS_PER_TASK>|$SPEECH2TEXT_CPUS_PER_TASK|g" $SCRIPT
-
-# Copy the Open OnDemand scripts to the system deployment location
-# https://osc.github.io/ood-documentation/release-1.8/app-development/tutorials-interactive-apps/add-jupyter/deploy.html
-sudo cp -r "$SCRIPT_DIR"/deploy-data/ood/ /var/www/ood/apps/sys/speech2text # FIXME: wrong path
-
 # --------------------------------------------------
 # Deploy as a module
 
@@ -71,6 +49,23 @@ sed -i "s|<SPEECH2TEXT_CPUS_PER_TASK>|$SPEECH2TEXT_CPUS_PER_TASK|g" $SCRIPT
 
 # Copy 
 cp "$SCRIPT" /appl/manual_installations/modules/speech2text/"$VERSION".lua
+
+# --------------------------------------------------
+# Deploy as an Open OnDemand app
+
+SCRIPT="$SCRIPT_DIR"/deploy-data/ood/template/script.sh
+
+sed -i "s|<VERSION>|$VERSION|g" $SCRIPT
+sed -i "s|<SPEECH2TEXT>|$SPEECH2TEXT|g" $SCRIPT
+sed -i "s|<CONDA_ENV>|$CONDA_ENV|g" $SCRIPT
+sed -i "s|<HF_HOME>|$HF_HOME|g" $SCRIPT
+sed -i "s|<PYANNOTE_CACHE>|$PYANNOTE_CACHE|g" $SCRIPT
+sed -i "s|<TORCH_HOME>|$TORCH_HOME|g" $SCRIPT
+sed -i "s|<PYANNOTE_CONFIG>|$PYANNOTE_CONFIG|g" $SCRIPT
+sed -i "s|<NUMBA_CACHE_DIR>|$NUMBA_CACHE_DIR|g" $SCRIPT
+sed -i "s|<MPLCONFIGDIR>|$MPLCONFIGDIR|g" $SCRIPT
+sed -i "s|<SPEECH2TEXT_MEM>|$SPEECH2TEXT_MEM|g" $SCRIPT
+sed -i "s|<SPEECH2TEXT_CPUS_PER_TASK>|$SPEECH2TEXT_CPUS_PER_TASK|g" $SCRIPT
 
 # Deploy to Github for ondemand installation
 REPO_URL="https://github.com/AaltoSciComp/speech2text-ood-ansible.git"
