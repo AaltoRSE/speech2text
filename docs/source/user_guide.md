@@ -4,11 +4,11 @@ Aalto speech2text app is available to researchers of Aalto University. The app i
 
 >**_IMPORTANT:_** If you use speech2text in your research, [remember to acknowledge Triton and the Aalto Science-IT project in your publication](https://scicomp.aalto.fi/triton/acknowledgingtriton/).
 
-In order to transcribe your speech files into text, apply the following steps (detailed instructions below):
+In order to transcribe your speech files into text, apply the following steps (detailed instructions in the sections below):
 
 1. Create a Triton cluster account (only done once)
 
-2. Connect to Triton using the web browser interface
+2. Connect to Triton using web browser
 
 3. Copy your audio and/or video files to your Triton workspace
 
@@ -38,9 +38,11 @@ If you don't already have a Triton account, please, visit the [account page](htt
 
 ## Connect to Triton
 
-If you are not familiar with Triton usage, we recommend connecting and transferring data to Triton using the web browser interface [Open On Demand](http://ood.triton.aalto.fi). 
+Go to Triton's the web browser interface [Open On Demand](http://ondemand.triton.aalto.fi). 
 
-Go to [Open On Demand](http://ood.triton.aalto.fi) and log in with your Aalto username and password. (You will be granted access since your Aalto account has been synced with your Triton account.)
+Log in with your Aalto username and password. (You will be granted access since your Aalto account has been synced with your Triton account.)
+
+//-- TODO: remove this block 
 
 > **_IMPORTANT:_** To connect to Open On Demand, you need to be inside Aalto network or use the Aalto VPN.
 
@@ -57,6 +59,8 @@ Go to [Open On Demand](http://ood.triton.aalto.fi) and log in with your Aalto us
 > You can skip the following question about `.zshrc` file creation by pressing "q".
 >
 > Afterwards, you can close this tab. Your Triton account is now fully operational.
+
+--// TODO: remove this block 
 
 
 ## Copy your data to Triton
@@ -77,30 +81,60 @@ In the following pop-up window, select `browse folders`.
 
 In the following file browser, you will able to select the folder on your computer with the audio/video files. (Here, the folder we are uploading is called `my-audio-folder`.)
 
-A few things to note to make processing easier:
-
-- While not strictly necessary, it is a good practice to put the audio files in a folder even if you only have one. This will keep your workspace organized on both Triton and your own computer.
+Note that 
 
 - The audio files can be of any commonly used audio format, e.g. `.wav`, `.aiff`, `.mp3`, `.m4a`, `.aac`, `.ogg`
   
 - The files can also be of any commonly used video format, e.g. `.mp4`, `.mov`, `.avi`
+ 
+Also make note of the following good practices:
+
+- While not strictly necessary, it is a good practice to put the audio files in a folder even if you only have one. This will keep your workspace organized on both Triton and your own computer.
 
 - Make sure your folder and file names do **not** contain white spaces or special characters apart from dash, underscore, and period, that is, use `my-audio-folder` and `my_audio_file.mp3` instead of `my audio folder` and `my"audio"file!.mp3`, respectively.
 
 - It is recommended to divide files into folders according to language, that is, put English interview files in folder `my-english-interviews`, French interviews to `my-french-interviews`, and so forth.
 
-If your browser asks for confirmation, (`Are you sure you want to upload all files from “my-audio-folder”? Only do this if you trust the site.`), you can answer "yes".
+Finally, if your browser asks for confirmation, (`Are you sure you want to upload all files from “my-audio-folder”? Only do this if you trust the site.`), you can answer "yes".
 
 Depending on the size of your audio files and the quality of your internet connection, the transfer can take a short or a long time (from a few seconds to several hours). Remember that video files are in general much bigger than audio files.
 
 After the transfer is done, you should see your folder in the list of existing content on the `Files` page.
 
+//-- TODO: remove this block 
+
 ![](images/upload3.png)
 
 > **_IMPORTANT:_** Some people have been experiencing difficulties with the Open On Demand file upload. If you receive a "File Upload Failed" error several times in a row, you can visit us at [the daily Zoom help session at 13.00-14.00](https://scicomp.aalto.fi/help/garage/#id1) and we can figure it out.
 
+--// TODO: remove this block 
 
-## Run speech2text on Triton
+
+
+## Submit the audio files
+
+Open the `Applications` drop down menu from the left upper corner and choose `speech2text`.
+
+![](images/applications_speech2text.png)
+
+This opens the speech2text submission form. 
+
+![](images/submit_speech2text.png)
+
+Use the `Select Path` button to browse and select your audio file/folder you just uploaded to Triton. This field is mandatory.
+
+>**_NOTE:_** You can only access files and folders that are uploaded to Triton in this browser.
+
+Add your Aalto email address and the language of the audio. These fields are also mandatory.
+
+You can leave the Model version field to "default" - this will use the latest available model.
+
+Finally, press `Launch` and you're done! 
+
+You will get an email notification when the results are available.
+
+
+//-- TODO: remove this block 
 
 Go back to the Open On Demand front page by clicking the ASC logo in the utmost upper left corner.
 
@@ -225,12 +259,13 @@ However, if you wish to submit more audio folders or files for processing, you a
     
 - You don't need to load the speech2text module again in this session. However, running `module load speech2text` multiple times does not hurt.
 
+--// TODO: remove this block 
 
 
 
 ## Inspect and copy result files to your personal computer
 
-After receiving an email saying an audio file has finished processing, log back into [Open On Demand](http://ood.triton.aalto.fi).
+After receiving an email saying audio file(s) has finished processing, log back into [Open On Demand](http://ondemand.triton.aalto.fi).
 
 At the Open On Demand front page, select again the `Files` and `Work` page (upper left corner). Enter your audio folder. You should now see the newly created `results` folder.
 
@@ -286,53 +321,23 @@ If you do not need your audio and/or result files and/or folders, you can remove
 
 
 
-
-
-
-
 ## Known issues and troubleshooting
 
 **If at any point something doesn't work or you are unsure how to proceed, do not hesitate to contact [the Aalto RSEs](https://scicomp.aalto.fi/rse/). You can visit us at [the daily Zoom help session at 13.00-14.00](https://scicomp.aalto.fi/help/garage/#id1) where we can walk through the speech2text workflow together, debug problems, answer questions, help with data analysis, and more.**
 
 ### My transcription has a weird segment where a word or two are repeated over and over.
 
-This is a quite known issue with the OpenAI Whisper speech recognition model. This behavior is sometimes triggered 
-by bad audio quality during that segment (background noise, mic issues, people talking over each other). However, sometimes this seems to happen even with good audio quality. Unfortunately, there is nothing we can do about this at the moment: you have to go through that particular audio segment and transcribe it manually. 
-
-### I accidentally closed the browser tab/window when speech2text was still running.
-
-Successfully submitted jobs are running on the Triton Slurm queue so you can log out of Open On Demand, close your the browser tab/window, or shut down your computer while waiting for the results. You will get email notifications when the results are available.
+This is a quite known issue with the OpenAI Whisper speech recognition model. This behavior is sometimes triggered by bad audio quality during that segment (background noise, mic issues, people talking over each other). However, sometimes this seems to happen even with good audio quality. Unfortunately, there is nothing we can do about this at the moment: you have to go through that particular audio segment and transcribe it manually.
 
 ### Why do we use work directory `Work /scratch/work/user-name` instead of `Home Directory`?
 
- `Home Directory` has a small disk space quota (10Gb) and `scratch/work/` has a large one (200Gb).
- Workspace disk is also faster than the home directory.
-
-### My work directory has a lot of files named slurm-22970577.out, slurm-22235218.out, etc.
-
-They are log files from the Slurm jobs. They can be helpful if something goes wrong with the speech2text jobs. You can either leave them there, move them to a folder, or remove them completely after you have checked that the speech2text results look good.
-
-### I don't want email notifications about the jobs.
-
-Unset your email
-```bash
-unset EMAIL
-```
-before running the speech2text command [as usual](#run-speech2text-on-triton).
-
-### What if I don't specify the language?
-
-You can leave the language specification out by unsetting the language environment variable
-```bash
-unset LANGUAGE
-```
-before running the speech2text command [as usual](#run-speech2text-on-triton). In this case, speech2text will try to automatically detect the language. Results may vary.
+ `Home Directory` has a small disk space quota (10Gb) and `scratch/work/` has a large one (200Gb). Workspace disk is also faster than the home directory.
 
 ### What if my audio file contains speech in more than one language?
 
 If a single audio file contains speech in more than one language, result files will (probably) still be produced but the results will (probably) be nonsensical to some extent. In some cases, this can be avoided easily. For example, if the language changes at the middle of the audio, just split the file into two parts and process them separately. You can use any available audio software to do this, for example, [Audacity](https://www.audacityteam.org/).
 
-### What happens if I run the speech2text command for audio file(s) that have already been processed and completed?
+### What happens if I submit speech2text audio file(s) that have already been processed and completed?
 
 This is safe to do: speech2text checks if the expected result files already exist and if so, exits early without doing any further processing.
 
