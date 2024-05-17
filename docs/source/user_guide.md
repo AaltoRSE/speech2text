@@ -123,7 +123,7 @@ This opens the speech2text submission form.
 
 In the submission form
 
-1. Use the `Select Path` button to browse and select your audio file/folder you just uploaded to Triton. This field is mandatory. (Note that yuou can only access files and folders that were uploaded to Triton.)
+1. Use the `Select Path` button to browse and select your audio file/folder you just uploaded to Triton. This field is mandatory.
 
 2. Add your Aalto email address. This field is mandatory.
 
