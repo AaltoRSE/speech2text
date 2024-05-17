@@ -1,0 +1,95 @@
+# ${HOME}/ondemand/dev/test-speech2text/form.yml
+---
+
+cluster: "triton"
+cacheable: false
+# 'form' is a list of form choices for this app. Here we're allowing users to set
+# the account and the number of cores they want to request for this job.
+form:
+  - audio_path
+  - email_field
+  - language_field
+  - model_selector
+
+
+attributes:
+  audio_path:
+    widget: "path_selector"
+    display: true
+    required: true
+    help: |
+      Select the file for transcription OR a folder containing mutiple audio files.
+    
+  language_field:
+    label: Language
+    widget: select
+    display: true
+    help: |
+      Select the language for the audio file(s).
+    options:
+    - arabic
+    - armenian
+    - bulgarian
+    - catalan
+    - chinese
+    - czech
+    - danish
+    - dutch
+    - english
+    - estonian
+    - finnish
+    - french
+    - galician
+    - german
+    - greek
+    - hebrew
+    - hindi
+    - hungarian
+    - icelandic
+    - indonesian
+    - italian
+    - japanese
+    - kazakh
+    - korean
+    - latvian
+    - lithuanian
+    - malay
+    - marathi
+    - nepali
+    - norwegian
+    - persian
+    - polish
+    - portuguese
+    - romanian
+    - russian
+    - serbian
+    - slovak
+    - slovenian
+    - spanish
+    - swedish
+    - thai
+    - turkish
+    - ukrainian
+    - urdu
+    - vietnamese
+  
+  email_field:
+    label: Email
+    cacheable: true
+    display: true
+    widget: "email_field"
+    pattern: ".+[.].+@aalto.fi"  
+    help: |
+      Only works with aalto email.
+      You will get an email when the transcription is done.
+
+  model_selector:
+    label: Model
+    widget: select
+    display: true
+    help: |
+      (Optional) Select the whisper model.
+    options:
+    - [ "default",  "large-v3" ]
+    - [ "v2",  "large-v2" ]
+    - [ "v3",  "large-v3" ]

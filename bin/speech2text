@@ -59,7 +59,7 @@ done
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 
 # Submit
-python3 ${SCRIPT_DIR}/../src/submit.py $1
+python3 -u ${SCRIPT_DIR}/../src/submit.py $1
 
 
 

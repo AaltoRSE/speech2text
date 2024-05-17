@@ -16,113 +16,56 @@ Conda environment and Lmod setup is described [here](#setup).
 
 Command line (technical) usage on Triton is described [here](#usage).
 
-Open On Demand web interface (non-technical) usage is described [here](https://aaltorse.github.io/speech2text/)
+Open On Demand web interface (non-technical) usage is described [here](https://aaltorse.github.io/speech2text/).
 
 Supported languages are:
 
 arabic (ar), armenian (hy), bulgarian (bg), catalan (ca), chinese (zh), czech (cs), danish (da), dutch (nl), english (en), estonian (et), finnish (fi), french (fr), galician (gl), german (de), greek (el), hebrew (he), hindi (hi), hungarian (hu), icelandic (is), indonesian (id), italian (it), japanese (ja), kazakh (kk), korean (ko), latvian (lv), lithuanian (lt), malay (ms), marathi (mr), nepali (ne), norwegian (no), persian (fa), polish (pl), portuguese (pt), romanian (ro), russian (ru), serbian (sr), slovak (sk), slovenian (sl), spanish (es), swedish (sv), thai (th), turkish (tr), ukrainian (uk), urdu (ur), vietnamese (vi)
 
 
-## Models
+## Deploy on Aalto Triton
 
-The required models have been downloaded beforehand from Hugging Face and saved into a shared data folder on the cluster. Therefore, users do not have to download the models themselves.
-**Make sure the following models have been downloaded and accessible**.
-
-### Faster Whisper  
-
-We support `large-v2` and `large-v3` (default) multilingual [Faster Whisper](https://github.com/SYSTRAN/faster-whisper) models. Languages supported by the models are:
-
-The models are covered by the [MIT licence]((https://huggingface.co/models?license=license:mit)) and have been pre-downloaded from Hugging Face to 
-
-`/scratch/shareddata/dldata/huggingface-hub-cache/hub/models--Systran--faster-whisper-large-v2`
-
-and
-
-`/scratch/shareddata/dldata/huggingface-hub-cache/hub/models--Systran--faster-whisper-large-v3`
-
-### wav2vec
-
-We use [wav2vec](https://ai.meta.com/blog/wav2vec-20-learning-the-structure-of-speech-from-raw-audio/) models as part of the diarization pipeline which efines the timestamps from whisper transcriptions using forced alignment a phoneme-based ASR model (wav2vec 2.0). This provides word-level timestamps, as well as improved segment timestamps.
-
-We use a fine-tuned wav2vec model for each of the supported languages. All the models are fine-tuned over the [Meta's XLRS](https://huggingface.co/facebook/wav2vec2-large-xlsr-53) model.
-
-### Pyannote 
-
-The diarization is performed using the [pyannote/speaker-diarization-3.1](https://huggingface.co/pyannote/speaker-diarization-3.1) pipeline installed via [`pyannote.audio`](https://github.com/pyannote/pyannote-audio).
-> **_NOTE:_**
-> pyannote.audio is covered by [MIT licence]((https://huggingface.co/models?license=license:mit)) but the diarization pipeline is gated. In order to use it, log in to [Hugging Face](https://huggingface.co/pyannote/speaker-diarization-3.1) and accept the conditions to access it.
-
-The [pyannote/segmentation-3.0](https://huggingface.co/pyannote/segmentation/blob/main/pytorch_model.bin) model used by the pipeline has been pre-downloaded from Hugging Face to 
-
-`/scratch/shareddata/speech2text/pyannote/segmentation-3.0/blob/main/pytorch_model.bin`
-
-This path has been hard-coded to the [Pyannote config file](https://huggingface.co/pyannote/speaker-diarization-3.1/blob/main/config.yaml) located in [pyannote/config.yml](pyannote/config.yml).
-
-
-> **_NOTE:_**
-> pyannote/segmentation-3.0 is also covered by [MIT licence]((https://huggingface.co/models?license=license:mit)) but is gated separately. In order to use it, log in to [pyannote/segmentation-3.0](https://huggingface.co/pyannote/segmentation-3.0) and accept the conditions to access it.
->
-> Due to gating, the model has **not** been saved to `/scratch/shareddata/dldata/huggingface-hub-cache/` which is meant for models accessible more generally to Triton users.
-
-Wrapper around the [wespeaker-voxceleb-resnet34-LM](https://huggingface.co/pyannote/wespeaker-voxceleb-resnet34-LM) pretrained speaker embedding model is used by pyannote-audio version 3.1 and higher (see [pyannote/config.yml](pyannote/config.yml)). The model is covered by the [MIT licence]((https://huggingface.co/models?license=license:mit)) and has been pre-downloaded from Hugging Face to 
-
-`/scratch/shareddata/dldata/huggingface-hub-cache/hub/models--pyannote--wespeaker-voxceleb-resnet34-LM`.
-
-
-## Data
-
-Repository contains three example audio files for testing purposes
-```
-test-data/en/test1.mp3
-test-data/en/test2.mp3
-test-data/fi/test1.mp3
-```
-
-## Setup 
-
-How to setup speech2text on Aalto Triton cluster.
-
-### Conda environment
-
-Create a base folder for the app and change directory
+Create a base folder for the app if haven't been created
 
 ```
-mkdir /share/apps/manual_installations/speech2text
-cd /share/apps/manual_installations/speech2text
+mkdir /appl/manual_installations/software/speech2text
 ```
 
 Clone git repo and change directory
 
 ```bash
-git clone https://github.com/AaltoRSE/speech2text.git 00000000
-cd 00000000
+cd /appl/manual_installations/software/speech2text
+git clone https://github.com/AaltoRSE/speech2text.git YYYY-N
+cd YYYY-N
 ```
 
-where `00000000` is the version number ("date") for development. 
+where `YYYY` is current year and `N` the running version number for the year. 
 
 Create a conda environment to `env/`
 
 ```bash
-module load miniconda
+module load mamba
 mamba env create --file env.yml --prefix env/
 ```
 
-Finally, make sure the path to [Pyannote segmentation model](#pyannote) in `pyannote/config.yml:8` is valid.
-
-### Lmod
-
-Activate the speech2text module with
+Run 
 
 ```bash
-module use /share/apps/manual_installations/speech2text/modules/speech2text/00000000.lua
+module load model-huggingface
+bin/deploy
 ```
 
-Alternatively, copy the .lua script to `/share/apps/modules/speech2text/` so that it gets activated automatically at login.
-
-Essentially, the module implementation prepends `/share/apps/manual_installations/speech2text/bin` and `/share/apps/manual_installations/speech2text/env/bin` to `PATH` and sets good default values for Slurm job resource requests for easy load and usage. Check [modules/speech2text/00000000.lua](modules/speech2text/00000000.lua) and [bin/speech2text](bin/speech2text) for details. 
+Check the contents of the script for details.
 
 
 ## Usage
+
+### OnDemand
+
+TODO: non-techincal user guide (video?)
+
+
+### Command line
 
 After the conda environment and Lmod have been [setup and activated](#setup), speech2text is used in three steps:
 
@@ -145,23 +88,6 @@ For example:
 export SPEECH2TEXT_EMAIL=john.smith@aalto.fi
 export SPEECH2TEXT_LANGUAGE=finnish
 ```
-
-The following variables are already set by the Lmod .lua script. They can be ignored by user.
-
-```
-HF_HOME
-TORCH_HOME
-PYANNOTE_CONFIG
-NUMBA_CACHE
-MPLCONFIGDIR
-SPEECH2TEXT_TMP
-SPEECH2TEXT_MEM
-SPEECH2TEXT_CPUS_PER_TASK
-```
-
-The language must be provided by the user from the list of supported languages:
-
-arabic (ar), armenian (hy), bulgarian (bg), catalan (ca), chinese (zh), czech (cs), danish (da), dutch (nl), english (en), estonian (et), finnish (fi), french (fr), galician (gl), german (de), greek (el), hebrew (he), hindi (hi), hungarian (hu), icelandic (is), indonesian (id), italian (it), japanese (ja), kazakh (kk), korean (ko), latvian (lv), lithuanian (lt), malay (ms), marathi (mr), nepali (ne), norwegian (no), persian (fa), polish (pl), portuguese (pt), romanian (ro), russian (ru), serbian (sr), slovak (sk), slovenian (sl), spanish (es), swedish (sv), thai (th), turkish (tr), ukrainian (uk), urdu (ur), vietnamese (vi)
 
 Notification emails will be sent to given email address. If the addresss is left unspecified,
 no notifications are sent.
@@ -222,6 +148,63 @@ This is the first sentence of the first speaker. This is the second sentence of 
 This is a sentence from the second speaker.
 ```
 
+
+## Models
+
+The required models have been downloaded beforehand from Hugging Face and saved into a shared data folder on the cluster. Therefore, users do not have to download the models themselves.
+**Make sure the following models have been downloaded and accessible**.
+
+### Faster Whisper  
+
+We support `large-v2` and `large-v3` (default) multilingual [Faster Whisper](https://github.com/SYSTRAN/faster-whisper) models. Languages supported by the models are:
+
+The models are covered by the [MIT licence]((https://huggingface.co/models?license=license:mit)) and have been pre-downloaded from Hugging Face to 
+
+`/scratch/shareddata/dldata/huggingface-hub-cache/hub/models--Systran--faster-whisper-large-v2`
+
+and
+
+`/scratch/shareddata/dldata/huggingface-hub-cache/hub/models--Systran--faster-whisper-large-v3`
+
+### wav2vec
+
+We use [wav2vec](https://ai.meta.com/blog/wav2vec-20-learning-the-structure-of-speech-from-raw-audio/) models as part of the diarization pipeline which efines the timestamps from whisper transcriptions using forced alignment a phoneme-based ASR model (wav2vec 2.0). This provides word-level timestamps, as well as improved segment timestamps.
+
+We use a fine-tuned wav2vec model for each of the supported languages. All the models are fine-tuned over the [Meta's XLRS](https://huggingface.co/facebook/wav2vec2-large-xlsr-53) model.
+
+### Pyannote 
+
+The diarization is performed using the [pyannote/speaker-diarization-3.1](https://huggingface.co/pyannote/speaker-diarization-3.1) pipeline installed via [`pyannote.audio`](https://github.com/pyannote/pyannote-audio).
+> **_NOTE:_**
+> pyannote.audio is covered by [MIT licence]((https://huggingface.co/models?license=license:mit)) but the diarization pipeline is gated. In order to use it, log in to [Hugging Face](https://huggingface.co/pyannote/speaker-diarization-3.1) and accept the conditions to access it.
+
+The [pyannote/segmentation-3.0](https://huggingface.co/pyannote/segmentation/blob/main/pytorch_model.bin) model used by the pipeline has been pre-downloaded from Hugging Face to 
+
+`/scratch/shareddata/speech2text/pyannote/segmentation-3.0/blob/main/pytorch_model.bin`
+
+This path has been hard-coded to the [Pyannote config file](https://huggingface.co/pyannote/speaker-diarization-3.1/blob/main/config.yaml) located in [pyannote/config.yml](pyannote/config.yml).
+
+
+> **_NOTE:_**
+> pyannote/segmentation-3.0 is also covered by [MIT licence]((https://huggingface.co/models?license=license:mit)) but is gated separately. In order to use it, log in to [pyannote/segmentation-3.0](https://huggingface.co/pyannote/segmentation-3.0) and accept the conditions to access it.
+>
+> Due to gating, the model has **not** been saved to `/scratch/shareddata/dldata/huggingface-hub-cache/` which is meant for models accessible more generally to Triton users.
+
+Wrapper around the [wespeaker-voxceleb-resnet34-LM](https://huggingface.co/pyannote/wespeaker-voxceleb-resnet34-LM) pretrained speaker embedding model is used by pyannote-audio version 3.1 and higher (see [pyannote/config.yml](pyannote/config.yml)). The model is covered by the [MIT licence]((https://huggingface.co/models?license=license:mit)) and has been pre-downloaded from Hugging Face to 
+
+`/scratch/shareddata/dldata/huggingface-hub-cache/hub/models--pyannote--wespeaker-voxceleb-resnet34-LM`.
+
+
+## Data
+
+Repository contains three example audio files for testing purposes
+```
+test-data/en/test1.mp3
+test-data/en/test2.mp3
+test-data/fi/test1.mp3
+```
+
+
 ## Tests and linting
 
 Create development environment
@@ -242,7 +225,7 @@ black src && isort src
 
 ## Build and run with Singularity
 
->**__NOTE:__** This maybe out of date!
+>**__IMPORTANT:__** This is out of date!
 
 Although currently not needed, the repo also contains a Singularity definition file `speech2text.def` in project root. 
 

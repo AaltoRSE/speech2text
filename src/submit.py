@@ -38,7 +38,7 @@ def get_argument_parser():
         "--SPEECH2TEXT_TMP",
         type=str,
         default=os.getenv("SPEECH2TEXT_TMP"),
-        help="Temporary folder. If not given, should be set as an environment variable.",
+        help="Temporary folder. If not given, can be set as an environment variable. Optional, defaults to: /scratch/work/$USER/.speech2text/",
     )
     parser.add_argument(
         "--SPEECH2TEXT_MEM",
@@ -279,7 +279,7 @@ def create_sbatch_script_for_array_job(
     job_name: Path
         The job name extracted from the input path.
     mem: str
-        Requested memory per job. Default is 8GB.
+        Requested memory per job. Default is 12GB.
     cpus_per_task: int
         Requested cpus per task. Default is 6.
     time: str
@@ -304,7 +304,6 @@ def create_sbatch_script_for_array_job(
 #SBATCH --gres=gpu:1
 #SBATCH --time={time}
 #SBATCH --mail-user={email}
-#SBATCH --mail-type=BEGIN
 #SBATCH --mail-type=END
 #SBATCH --mail-type=FAIL
 export OMP_NUM_THREADS={cpus_per_task}
@@ -375,7 +374,6 @@ def create_sbatch_script_for_single_file(
 #SBATCH --gres=gpu:1
 #SBATCH --time={time}
 #SBATCH --mail-user={email}
-#SBATCH --mail-type=BEGIN
 #SBATCH --mail-type=END
 #SBATCH --mail-type=FAIL
 python3 {python_source_dir}/speech2text.py {input_file}
@@ -494,6 +492,13 @@ def main():
     for key, value in vars(args).items():
         print(f"\t{key}: {value}")
     print()
+
+    # Check temporary folder
+    if args.SPEECH2TEXT_TMP is None:
+        user = os.getenv("USER")
+        args.SPEECH2TEXT_TMP = f"/scratch/work/{user}/.speech2text/"
+        Path(args.SPEECH2TEXT_TMP).mkdir(parents=True, exist_ok=True)
+    print(f"Temporary folder: {args.SPEECH2TEXT_TMP}\n")
 
     # Check mandatory language argument
     language = convert_language_to_abbreviated_form(args.SPEECH2TEXT_LANGUAGE)

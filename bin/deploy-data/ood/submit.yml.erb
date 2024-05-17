@@ -1,0 +1,11 @@
+# ${HOME}/ondemand/dev/test-speech2text/submit.yml.erb
+---
+batch_connect:
+  template: "basic"
+  script_wrapper: |
+    export SPEECH2TEXT_LANGUAGE=<%= language_field %>
+    export SPEECH2TEXT_EMAIL=<%= email_field %>
+    export audio_path=<%= audio_path %>
+    export SPEECH2TEXT_WHISPER_MODEL=<%= model_selector %>
+    %s
+

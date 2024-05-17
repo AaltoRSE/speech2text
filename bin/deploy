@@ -1,0 +1,96 @@
+#!/usr/bin/env bash
+
+usage() {                                    
+     cat << EOF
+Deploy a new speech2text version on Triton.
+
+Example:
+
+    deploy
+EOF
+}
+
+# Folder in which this script is located
+# https://stackoverflow.com/questions/39340169/dir-cd-dirname-bash-source0-pwd-how-does-that-work
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+
+# Version variables is the second to last path component
+# e.g. /path/to/speech2text/20240314/bin/ -> version = 20240314
+VERSION=$(basename "$(dirname "$SCRIPT_DIR")")
+
+# Other variables
+SPEECH2TEXT="/appl/manual_installations/software/speech2text/$VERSION/bin/"
+CONDA_ENV="/appl/manual_installations/software/speech2text/$VERSION/env/bin/"
+HF_HOME="/scratch/shareddata/dldata/huggingface-hub-cache/"
+PYANNOTE_CACHE="${HF_HOME}/hub/"
+TORCH_HOME="/scratch/shareddata/speech2text"
+PYANNOTE_CONFIG="/appl/manual_installations/software/speech2text/$VERSION/pyannote/config.yml"
+NUMBA_CACHE_DIR="/tmp"
+MPLCONFIGDIR="/tmp"
+SPEECH2TEXT_MEM="12G"
+SPEECH2TEXT_CPUS_PER_TASK="6"
+
+# --------------------------------------------------
+# Deploy as a module
+
+SCRIPT="$SCRIPT_DIR"/deploy-data/module/module.lua
+
+sed -i "s|<VERSION>|$VERSION|g" $SCRIPT
+sed -i "s|<SPEECH2TEXT>|$SPEECH2TEXT|g" $SCRIPT
+sed -i "s|<CONDA_ENV>|$CONDA_ENV|g" $SCRIPT
+sed -i "s|<HF_HOME>|$HF_HOME|g" $SCRIPT
+sed -i "s|<PYANNOTE_CACHE>|$PYANNOTE_CACHE|g" $SCRIPT
+sed -i "s|<TORCH_HOME>|$TORCH_HOME|g" $SCRIPT
+sed -i "s|<PYANNOTE_CONFIG>|$PYANNOTE_CONFIG|g" $SCRIPT
+sed -i "s|<NUMBA_CACHE_DIR>|$NUMBA_CACHE_DIR|g" $SCRIPT
+sed -i "s|<MPLCONFIGDIR>|$MPLCONFIGDIR|g" $SCRIPT
+sed -i "s|<SPEECH2TEXT_MEM>|$SPEECH2TEXT_MEM|g" $SCRIPT
+sed -i "s|<SPEECH2TEXT_CPUS_PER_TASK>|$SPEECH2TEXT_CPUS_PER_TASK|g" $SCRIPT
+
+# Copy 
+cp "$SCRIPT" /appl/manual_installations/modules/speech2text/"$VERSION".lua
+
+# --------------------------------------------------
+# Deploy as an Open OnDemand app
+
+SCRIPT="$SCRIPT_DIR"/deploy-data/ood/template/script.sh
+
+sed -i "s|<VERSION>|$VERSION|g" $SCRIPT
+sed -i "s|<SPEECH2TEXT>|$SPEECH2TEXT|g" $SCRIPT
+sed -i "s|<CONDA_ENV>|$CONDA_ENV|g" $SCRIPT
+sed -i "s|<HF_HOME>|$HF_HOME|g" $SCRIPT
+sed -i "s|<PYANNOTE_CACHE>|$PYANNOTE_CACHE|g" $SCRIPT
+sed -i "s|<TORCH_HOME>|$TORCH_HOME|g" $SCRIPT
+sed -i "s|<PYANNOTE_CONFIG>|$PYANNOTE_CONFIG|g" $SCRIPT
+sed -i "s|<NUMBA_CACHE_DIR>|$NUMBA_CACHE_DIR|g" $SCRIPT
+sed -i "s|<MPLCONFIGDIR>|$MPLCONFIGDIR|g" $SCRIPT
+sed -i "s|<SPEECH2TEXT_MEM>|$SPEECH2TEXT_MEM|g" $SCRIPT
+sed -i "s|<SPEECH2TEXT_CPUS_PER_TASK>|$SPEECH2TEXT_CPUS_PER_TASK|g" $SCRIPT
+
+# Deploy to Github for ondemand installation
+REPO_URL="https://github.com/AaltoSciComp/speech2text-ood-ansible.git"
+TEMP_DIR=$(mktemp -d)
+git clone "$REPO_URL" "$TEMP_DIR"
+
+# Check if clone was successful
+if [ $? -ne 0 ]; then
+  echo "Failed to clone the repository $TARGET_REPO_URL"
+  exit 1
+fi
+
+cp -r bin/deploy-data/ood/*  "$TEMP_DIR"
+cd "$TEMP_DIR"
+git add .
+git commit -m "Update to $VERSION"
+git push --force "$REPO_URL"
+
+# Print status
+if [ $? -eq 0 ]; then
+  echo "Successfully force pushed $VERSION to $REPO_URL."
+else
+  echo "Failed to force push to $REPO_URL."
+fi
+
+# Cleanup
+cd ..
+rm -rf "$TEMP_DIR"

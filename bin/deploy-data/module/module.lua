@@ -39,43 +39,27 @@ speech2text tries to detect the language automatically. Specifying the language
 explicitly is, however, recommended.
 ]]
 
-local version = "20240221"
 whatis("Name : Aalto speech2text")
-whatis("Version :" .. version)
+whatis("Version :" .. "<VERSION>")
 help(help_text)
 
-local speech2text = "/share/apps/manual_installations/speech2text/" .. version .. "/bin/"
-local conda_env = "/share/apps/manual_installations/speech2text/" .. version .. "/env/bin/"
+prepend_path("PATH", "<SPEECH2TEXT>")
+prepend_path("PATH", "<CONDA_ENV>")
 
-prepend_path("PATH", speech2text)
-prepend_path("PATH", conda_env)
+pushenv("HF_HOME", "<HF_HOME>")
+pushenv("PYANNOTE_CACHE", "<PYANNOTE_CACHE>")
+pushenv("TORCH_HOME", "<TORCH_HOME>")
+pushenv("XDG_CACHE_HOME", "<TORCH_HOME>")
+pushenv("PYANNOTE_CONFIG", "<PYANNOTE_CONFIG>")
+pushenv("NUMBA_CACHE_DIR", "<NUMBA_CACHE_DIR>")
+pushenv("MPLCONFIGDIR", "<MPLCONFIGDIR>")
 
-local hf_home = "/scratch/shareddata/dldata/huggingface-hub-cache/"
-local pyannote_cache = hf_home .. "hub/"
-local torch_home = "/scratch/shareddata/speech2text"
-local pyannote_config = "/share/apps/manual_installations/speech2text/" .. version .. "/pyannote/config.yml"
-local numba_cache = "/tmp" 
-local mplconfigdir = "/tmp"
-
-pushenv("HF_HOME", hf_home)
-pushenv("PYANNOTE_CACHE", pyannote_cache)
-pushenv("TORCH_HOME", torch_home)
-pushenv("XDG_CACHE_HOME", torch_home)
-pushenv("PYANNOTE_CONFIG", pyannote_config)
-pushenv("NUMBA_CACHE_DIR", numba_cache)
-pushenv("MPLCONFIGDIR", mplconfigdir)
-
-local speech2text_mem = "8G"
-local speech2text_cpus_per_task = "6"
-local speech2text_tmp = os.getenv("WRKDIR") .. "/.speech2text"
-
-pushenv("SPEECH2TEXT_MEM", speech2text_mem)
-pushenv("SPEECH2TEXT_CPUS_PER_TASK", speech2text_cpus_per_task)
-pushenv("SPEECH2TEXT_TMP", speech2text_tmp)
+pushenv("SPEECH2TEXT_MEM", "<SPEECH2TEXT_MEM>")
+pushenv("SPEECH2TEXT_CPUS_PER_TASK", "<SPEECH2TEXT_CPUS_PER_TASK>")
 
 pushenv("HF_HUB_OFFLINE", "1")
 
 if mode() == "load" then
-    LmodMessage("For more information, run 'module spider speech2text/" .. version .. "'")
+    LmodMessage("For more information, run 'module spider speech2text/" .. "<VERSION>" .. "'")
 end
  
