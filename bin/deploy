@@ -27,7 +27,7 @@ TORCH_HOME="/scratch/shareddata/speech2text"
 PYANNOTE_CONFIG="/appl/manual_installations/software/speech2text/$VERSION/pyannote/config.yml"
 NUMBA_CACHE_DIR="/tmp"
 MPLCONFIGDIR="/tmp"
-SPEECH2TEXT_MEM="12G"
+SPEECH2TEXT_MEM="24G"
 SPEECH2TEXT_CPUS_PER_TASK="6"
 
 # --------------------------------------------------

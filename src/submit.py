@@ -279,7 +279,7 @@ def create_sbatch_script_for_array_job(
     job_name: Path
         The job name extracted from the input path.
     mem: str
-        Requested memory per job. Default is 12GB.
+        Requested memory per job. Default is 24GB.
     cpus_per_task: int
         Requested cpus per task. Default is 6.
     time: str

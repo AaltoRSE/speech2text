@@ -68,7 +68,7 @@ Make sure the path to Pyannote segmentation model in `pyannote/config.yml:8` is 
 Run using an interactive Slurm job:
 ```bash
 srun --time=12:00:00 \
-     --mem=12G \
+     --mem=24G \
      --cpus-per-task 8 \
      env/bin/python3 src/speech2text.py test-data/
 ```
@@ -76,7 +76,7 @@ srun --time=12:00:00 \
 The `speech2text.py` app loops over all audio files in the target folder (`test-data/`) and writes result files to a `results/` subfolder (`test-data/results/`). Output filenames for each input file are the input filename with `.txt` and `.csv` extensions. For example, the result files corresponding to `test-data/audiofile.wav` are `test-data/results/audiofile.txt` and `test-data/results/audiofile.csv`. The default output folder can be changed using the `--output-dir` option, for example
 ```bash
 srun --time=12:00:00 \
-     --mem=12G \
+     --mem=24G \
      --cpus-per-task 8 \
      env/bin/python3 src/speech2text.py data/ --output-dir my-results/
 ```
