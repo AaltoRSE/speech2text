@@ -339,7 +339,7 @@ def transcribe(
         segments = whisperx_result["segments"]
 
     # If the batch size is too large, reduce it by half and try again to avoid CUDA memory error.
-    except RuntimeError:
+    except torch.cuda.CudaError:
         logger.warning(
             f"Current CUDA device {torch.cuda.current_device()} doesn't have enough memory. Reducing batch_size {batch_size} by half."
         )
