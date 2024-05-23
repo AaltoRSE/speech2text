@@ -62,8 +62,7 @@ Check the contents of the script for details.
 
 ### OnDemand
 
-TODO: non-techincal user guide (video?)
-
+The non-technical user guide for the On Demand web interface can be found [here](https://aaltorse.github.io/speech2text/).
 
 ### Command line
 
