@@ -41,6 +41,12 @@ def get_argument_parser():
         help="Temporary folder. If not given, can be set as an environment variable. Optional, defaults to: /scratch/work/$USER/.speech2text/",
     )
     parser.add_argument(
+        "--SPEECH2TEXT_MEM",
+        type=str,
+        default=None,
+        help="Requested memory per job. If not given, should be set as an environment variable.",
+    )
+    parser.add_argument(
         "--SPEECH2TEXT_CPUS_PER_TASK",
         type=int,
         default=os.getenv("SPEECH2TEXT_CPUS_PER_TASK"),
@@ -347,6 +353,9 @@ def submit_dir(args: Namespace, job_name: Path):
         return
 
     est_time, req_ram = estimate_job_requirements(tmp_file_array)
+    # For debugging
+    if args.SPEECH2TEXT_MEM:
+        req_ram = args.SPEECH2TEXT_MEM
     tmp_file_sh = create_sbatch_script_for_array_job(
         tmp_file_array,
         job_name,
@@ -417,6 +426,9 @@ def submit_file(args: Namespace, job_name: Path):
         )
         return
     est_time, req_ram = estimate_job_requirements(args.INPUT)
+    # For debugging
+    if args.SPEECH2TEXT_MEM:
+        req_ram = args.SPEECH2TEXT_MEM
     tmp_file_sh = create_sbatch_script_for_single_file(
         args.INPUT,
         job_name,
