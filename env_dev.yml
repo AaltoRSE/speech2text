@@ -7,3 +7,6 @@ dependencies:
   - pytest
   - black
   - isort
+  - pip
+  - pip:
+    - debugpy

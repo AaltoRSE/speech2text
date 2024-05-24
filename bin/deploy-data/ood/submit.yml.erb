@@ -10,4 +10,5 @@ batch_connect:
     %s
 
 script:
-  native: ["--mem", "4G"]
+  # Requesting 2Gb for each file
+  native: ["--mem", <%= (Dir.glob("#{audio_path}/*").select { |f| File.file?(f) }.count * 2).to_s + "G" %>]
