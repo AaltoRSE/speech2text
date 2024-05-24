@@ -2,6 +2,7 @@ import logging
 import math
 import re
 import subprocess
+import sys
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Optional, Union
@@ -70,6 +71,8 @@ def load_audio(file: str, sr: int = SAMPLE_RATE):
         Containing the audio waveform, in float32 dtype.
     Duration: str
         Audio Duration in HH:MM:SS
+    File_Size: int
+        File size in Gb
     """
     try:
         # Launches a subprocess to decode audio while down-mixing and resampling as necessary.
@@ -100,8 +103,11 @@ def load_audio(file: str, sr: int = SAMPLE_RATE):
     duration_pattern = re.compile(r"time=(\d{2}:\d{2}:\d{2})")
     durations = duration_pattern.findall(str(out.stderr))
 
+    #Estimate the file size in Gb
+    file_size = sys.getsizeof(audio) / 1024 / 1024 / 1024 
+
     if durations:
-        return audio, durations[-1]
+        return audio, durations[-1], math.ceil(file_size)
     else:
         raise RuntimeError(f"Failed to get audio duration from {file}")
 

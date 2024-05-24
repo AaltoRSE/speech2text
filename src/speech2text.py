@@ -413,7 +413,7 @@ def main():
     )
     t0 = time.time()
     try:
-        input_file_wav, _ = load_audio(args.INPUT_FILE)
+        input_file_wav, _, _ = load_audio(args.INPUT_FILE)
     except Exception as e:
         logger.error(f".. .. Input file could not be converted: {args.INPUT_FILE}")
         raise (e)

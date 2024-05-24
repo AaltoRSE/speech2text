@@ -41,12 +41,6 @@ def get_argument_parser():
         help="Temporary folder. If not given, can be set as an environment variable. Optional, defaults to: /scratch/work/$USER/.speech2text/",
     )
     parser.add_argument(
-        "--SPEECH2TEXT_MEM",
-        type=str,
-        default=os.getenv("SPEECH2TEXT_MEM"),
-        help="Requested memory per job. If not given, should be set as an environment variable.",
-    )
-    parser.add_argument(
         "--SPEECH2TEXT_CPUS_PER_TASK",
         type=int,
         default=os.getenv("SPEECH2TEXT_CPUS_PER_TASK"),
@@ -206,7 +200,7 @@ def create_array_input_file(
     return tmp_file_array
 
 
-def estimate_job_time(input_path: PosixPath) -> str:
+def estimate_job_requirements(input_path: PosixPath) -> (str, int):
     """
     Estimate total run time based on input file/folder.
 
@@ -219,12 +213,17 @@ def estimate_job_time(input_path: PosixPath) -> str:
     -------
     Duration: str
         Total estimate time in HH:MM:SS format.
+    str: int
+        Maximum required memory in "X"G format.
     """
     # Loading time for whisperx + diarization + diarization pipeline
     PIPELINE_LOADING_TIME = "00:08:00"
     # Loading a 60 minute audio file takes ~5 seconds. This is an upper limit (equivalent to
     # loading a 24h file) to ensure sufficient time.
     AUDIO_LOADING_TIME = "00:01:00"
+
+    #Whisper and Pyannote models require 3.5Gb of memory each
+    PIPELINE_REQ_RAM = 7
 
     total_duration = "00:00:00"
     total_loading = "00:00:00"
@@ -236,8 +235,11 @@ def estimate_job_time(input_path: PosixPath) -> str:
     else:
         input_files.append(str(input_path))
 
+    audio_sizes = []
+    results_seconds = []
     for audio_file in input_files:
-        _, duration = load_audio(audio_file)
+        _, duration, file_size = load_audio(audio_file)
+        audio_sizes.append(file_size)
 
         hours, minutes, seconds = map(int, duration.split(":"))
         total_seconds = hours * 3600 + minutes * 60 + seconds
@@ -246,18 +248,22 @@ def estimate_job_time(input_path: PosixPath) -> str:
         if result_seconds < 60:
             result_seconds = 60
 
-        result_hours, remainder = divmod(result_seconds, 3600)
-        result_minutes, result_seconds = divmod(remainder, 60)
+        results_seconds.append(result_seconds)
 
-        duration = "{:02}:{:02}:{:02}".format(
-            int(result_hours), int(result_minutes), int(result_seconds)
+    max_durration = max(results_seconds)
+    max_hours, remainder = divmod(max_durration, 3600)
+    max_minutes, max_seconds = divmod(remainder, 60)
+
+    duration = "{:02}:{:02}:{:02}".format(
+            int(max_hours), int(max_minutes), int(max_seconds)
         )
 
-        total_duration = add_durations(total_duration, duration)
-        total_loading = add_durations(total_loading, AUDIO_LOADING_TIME)
+    audio_processing_time = add_durations(duration, AUDIO_LOADING_TIME)
 
-    audio_processing_time = add_durations(total_duration, total_loading)
-    return add_durations(PIPELINE_LOADING_TIME, audio_processing_time)
+    # Whisper and Pyannote uses 12x of file size for the RAM
+    # Transcription and Diarization tasks run in parallel, x2 memory is required
+    req_ram =  PIPELINE_REQ_RAM + max(audio_sizes) * 12 * 2
+    return add_durations(PIPELINE_LOADING_TIME, audio_processing_time), f"{req_ram}G"
 
 
 def create_sbatch_script_for_array_job(
@@ -340,13 +346,13 @@ def submit_dir(args: Namespace, job_name: Path):
         )
         return
 
-    estimated_time = estimate_job_time(tmp_file_array)
+    est_time, req_ram = estimate_job_requirements(tmp_file_array)
     tmp_file_sh = create_sbatch_script_for_array_job(
         tmp_file_array,
         job_name,
-        args.SPEECH2TEXT_MEM,
+        req_ram,
         args.SPEECH2TEXT_CPUS_PER_TASK,
-        estimated_time,
+        est_time,
         args.SPEECH2TEXT_EMAIL,
         args.SPEECH2TEXT_TMP,
     )
@@ -410,13 +416,13 @@ def submit_file(args: Namespace, job_name: Path):
             f"Submission not necessary as expected result files already exist:\n{' '.join([str(f) for f in existing_result_files])}"
         )
         return
-    estimated_time = estimate_job_time(args.INPUT)
+    est_time, req_ram = estimate_job_requirements(args.INPUT)
     tmp_file_sh = create_sbatch_script_for_single_file(
         args.INPUT,
         job_name,
-        args.SPEECH2TEXT_MEM,
+        req_ram,
         args.SPEECH2TEXT_CPUS_PER_TASK,
-        estimated_time,
+        est_time,
         args.SPEECH2TEXT_EMAIL,
         args.SPEECH2TEXT_TMP,
     )
