@@ -308,7 +308,6 @@ def create_sbatch_script_for_array_job(
 #SBATCH --mail-type=FAIL
 export OMP_NUM_THREADS={cpus_per_task}
 export KMP_AFFINITY=granularity=fine,compact
-module load cuda
 python3 {python_source_dir}/speech2text.py {input_file}
 """
     tmp_file_sh = (Path(tmp_dir) / str(job_name)).with_suffix(".sh")
@@ -377,7 +376,6 @@ def create_sbatch_script_for_single_file(
 #SBATCH --mail-user={email}
 #SBATCH --mail-type=END
 #SBATCH --mail-type=FAIL
-module load cuda
 python3 {python_source_dir}/speech2text.py {input_file}
 """
 
