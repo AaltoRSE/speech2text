@@ -4,9 +4,20 @@ usage() {
      cat << EOF
 Deploy a new speech2text version on Triton.
 
-Example:
+Usage:
 
-    deploy
+    Deploy the command line interface (CLI) module:
+
+    $ deploy cli
+    
+    Deploy the Open OnDemand (OOD) app:
+
+    $ deploy ood
+    
+    Deploy both the CLI and OOD app:
+
+    $ deploy cli ood
+
 EOF
 }
 
@@ -30,67 +41,109 @@ MPLCONFIGDIR="/tmp"
 SPEECH2TEXT_MEM="24G"
 SPEECH2TEXT_CPUS_PER_TASK="6"
 
+
+# --------------------------------------------------
+# Parse arguments
+
+CLI=false
+OOD=false
+
+if [ "$#" -gt 0 ]; then
+  for arg in "$@"; do
+    if [[ "$arg" == "cli" ]]; then
+      CLI=true
+    fi
+    if [[ "$arg" == "ood" ]]; then
+      OOD=true
+    fi
+  done
+else
+  echo "Provide at least one argument: cli or ood"
+  exit 1
+fi
+
+
+
 # --------------------------------------------------
 # Deploy as a module
 
-SCRIPT="$SCRIPT_DIR"/deploy-data/module/module.lua
+if [ "$CLI" = true ]
+then
 
-sed -i "s|<VERSION>|$VERSION|g" $SCRIPT
-sed -i "s|<SPEECH2TEXT>|$SPEECH2TEXT|g" $SCRIPT
-sed -i "s|<CONDA_ENV>|$CONDA_ENV|g" $SCRIPT
-sed -i "s|<HF_HOME>|$HF_HOME|g" $SCRIPT
-sed -i "s|<PYANNOTE_CACHE>|$PYANNOTE_CACHE|g" $SCRIPT
-sed -i "s|<TORCH_HOME>|$TORCH_HOME|g" $SCRIPT
-sed -i "s|<PYANNOTE_CONFIG>|$PYANNOTE_CONFIG|g" $SCRIPT
-sed -i "s|<NUMBA_CACHE_DIR>|$NUMBA_CACHE_DIR|g" $SCRIPT
-sed -i "s|<MPLCONFIGDIR>|$MPLCONFIGDIR|g" $SCRIPT
-sed -i "s|<SPEECH2TEXT_MEM>|$SPEECH2TEXT_MEM|g" $SCRIPT
-sed -i "s|<SPEECH2TEXT_CPUS_PER_TASK>|$SPEECH2TEXT_CPUS_PER_TASK|g" $SCRIPT
+  echo "Deploy the command line interface (CLI) module"
 
-# Copy 
-cp "$SCRIPT" /appl/manual_installations/modules/speech2text/"$VERSION".lua
+  SCRIPT="$SCRIPT_DIR/deploy-data/module/module.lua"
+
+  sed -i "s|<VERSION>|$VERSION|g" $SCRIPT
+  sed -i "s|<SPEECH2TEXT>|$SPEECH2TEXT|g" $SCRIPT
+  sed -i "s|<CONDA_ENV>|$CONDA_ENV|g" $SCRIPT
+  sed -i "s|<HF_HOME>|$HF_HOME|g" $SCRIPT
+  sed -i "s|<PYANNOTE_CACHE>|$PYANNOTE_CACHE|g" $SCRIPT
+  sed -i "s|<TORCH_HOME>|$TORCH_HOME|g" $SCRIPT
+  sed -i "s|<PYANNOTE_CONFIG>|$PYANNOTE_CONFIG|g" $SCRIPT
+  sed -i "s|<NUMBA_CACHE_DIR>|$NUMBA_CACHE_DIR|g" $SCRIPT
+  sed -i "s|<MPLCONFIGDIR>|$MPLCONFIGDIR|g" $SCRIPT
+  sed -i "s|<SPEECH2TEXT_MEM>|$SPEECH2TEXT_MEM|g" $SCRIPT
+  sed -i "s|<SPEECH2TEXT_CPUS_PER_TASK>|$SPEECH2TEXT_CPUS_PER_TASK|g" $SCRIPT
+
+  TARGET="/appl/manual_installations/modules/speech2text/$VERSION.lua"
+  cp "$SCRIPT" "$TARGET"
+
+  echo ".. New module created to: $TARGET"
+
+fi
+
 
 # --------------------------------------------------
 # Deploy as an Open OnDemand app
 
-SCRIPT="$SCRIPT_DIR"/deploy-data/ood/template/script.sh
+if [ "$OOD" = true ]
+then
 
-sed -i "s|<VERSION>|$VERSION|g" $SCRIPT
-sed -i "s|<SPEECH2TEXT>|$SPEECH2TEXT|g" $SCRIPT
-sed -i "s|<CONDA_ENV>|$CONDA_ENV|g" $SCRIPT
-sed -i "s|<HF_HOME>|$HF_HOME|g" $SCRIPT
-sed -i "s|<PYANNOTE_CACHE>|$PYANNOTE_CACHE|g" $SCRIPT
-sed -i "s|<TORCH_HOME>|$TORCH_HOME|g" $SCRIPT
-sed -i "s|<PYANNOTE_CONFIG>|$PYANNOTE_CONFIG|g" $SCRIPT
-sed -i "s|<NUMBA_CACHE_DIR>|$NUMBA_CACHE_DIR|g" $SCRIPT
-sed -i "s|<MPLCONFIGDIR>|$MPLCONFIGDIR|g" $SCRIPT
-sed -i "s|<SPEECH2TEXT_MEM>|$SPEECH2TEXT_MEM|g" $SCRIPT
-sed -i "s|<SPEECH2TEXT_CPUS_PER_TASK>|$SPEECH2TEXT_CPUS_PER_TASK|g" $SCRIPT
+  echo "Deploy the Open OnDemand (OOD) app"
 
-# Deploy to Github for ondemand installation
-REPO_URL="https://github.com/AaltoSciComp/speech2text-ood-ansible.git"
-TEMP_DIR=$(mktemp -d)
-git clone "$REPO_URL" "$TEMP_DIR"
+  SCRIPT="$SCRIPT_DIR"/deploy-data/ood/template/script.sh
 
-# Check if clone was successful
-if [ $? -ne 0 ]; then
-  echo "Failed to clone the repository $TARGET_REPO_URL"
-  exit 1
+  sed -i "s|<VERSION>|$VERSION|g" $SCRIPT
+  sed -i "s|<SPEECH2TEXT>|$SPEECH2TEXT|g" $SCRIPT
+  sed -i "s|<CONDA_ENV>|$CONDA_ENV|g" $SCRIPT
+  sed -i "s|<HF_HOME>|$HF_HOME|g" $SCRIPT
+  sed -i "s|<PYANNOTE_CACHE>|$PYANNOTE_CACHE|g" $SCRIPT
+  sed -i "s|<TORCH_HOME>|$TORCH_HOME|g" $SCRIPT
+  sed -i "s|<PYANNOTE_CONFIG>|$PYANNOTE_CONFIG|g" $SCRIPT
+  sed -i "s|<NUMBA_CACHE_DIR>|$NUMBA_CACHE_DIR|g" $SCRIPT
+  sed -i "s|<MPLCONFIGDIR>|$MPLCONFIGDIR|g" $SCRIPT
+  sed -i "s|<SPEECH2TEXT_MEM>|$SPEECH2TEXT_MEM|g" $SCRIPT
+  sed -i "s|<SPEECH2TEXT_CPUS_PER_TASK>|$SPEECH2TEXT_CPUS_PER_TASK|g" $SCRIPT
+
+  # Deploy to Github for ondemand installation
+  REPO_URL="https://github.com/AaltoSciComp/speech2text-ood-ansible.git"
+  TEMP_DIR=$(mktemp -d)
+  git clone "$REPO_URL" "$TEMP_DIR"
+
+  # Check if clone was successful
+  if [ $? -ne 0 ]; then
+    echo "Failed to clone the repository $TARGET_REPO_URL"
+    exit 1
+  fi
+
+  cp -r bin/deploy-data/ood/*  "$TEMP_DIR"
+  cd "$TEMP_DIR"
+  git add .
+  git commit -m "Update to $VERSION"
+  git push --force "$REPO_URL"
+
+  # Print status
+  if [ $? -eq 0 ]; then
+    echo "Successfully force pushed $VERSION to $REPO_URL."
+  else
+    echo "Failed to force push to $REPO_URL."
+  fi
+
+  # Cleanup
+  cd ..
+  rm -rf "$TEMP_DIR"
+
+  echo ".. OOD files pushed to: $REPO_URL. (Do not forget to run the ansible scripts!)"
+
 fi
-
-cp -r bin/deploy-data/ood/*  "$TEMP_DIR"
-cd "$TEMP_DIR"
-git add .
-git commit -m "Update to $VERSION"
-git push --force "$REPO_URL"
-
-# Print status
-if [ $? -eq 0 ]; then
-  echo "Successfully force pushed $VERSION to $REPO_URL."
-else
-  echo "Failed to force push to $REPO_URL."
-fi
-
-# Cleanup
-cd ..
-rm -rf "$TEMP_DIR"

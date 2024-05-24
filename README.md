@@ -48,12 +48,13 @@ module load mamba
 mamba env create --file env.yml --prefix env/
 ```
 
-Run 
+To deploy both command line interface (CLI) module and the Open On Demand (OOD) app, run 
 
 ```bash
-module load model-huggingface
-bin/deploy
+bin/deploy cli ood
 ```
+
+or only the other if only one needs updating.
 
 Check the contents of the script for details.
 
