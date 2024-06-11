@@ -76,6 +76,7 @@ wav2vec_models = {
     "sl": "infinitejoy/wav2vec2-large-xls-r-300m-slovenian",
     "sv": "KBLab/wav2vec2-large-xlsr-53-swedish",
     "th": "sakares/wav2vec2-large-xlsr-thai-demo",
+    "fi": "Finnish-NLP/wav2vec2-xlsr-1b-finnish-lm-v2",
 }
 
 # Whisper models
