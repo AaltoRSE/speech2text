@@ -10,5 +10,12 @@ batch_connect:
     %s
 
 script:
-  # Requesting 2Gb for each file
-  native: ["--mem", <%= (Dir.glob("#{audio_path}/*").select { |f| File.file?(f) }.count * 2).to_s + "G" %>]
+  # Request 2Gb per file
+  <% if File.directory?(audio_path) %>
+    native: ["--mem", <%= (Dir.glob("#{audio_path}/*").select { |f| File.file?(f) }.count * 2).to_s + "G" %>]
+  <% elsif File.file?(audio_path) %>
+    native: ["--mem", "2G"]
+  <% else %>
+    raise "Invalid audio_path: #{audio_path} is neither a file nor a directory."
+  <% end %>
+  
