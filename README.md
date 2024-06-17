@@ -1,6 +1,6 @@
 # speech2text
 
->*_NOTE:_* The non-technical user guide for the Open On Demand web interface can be found [here](https://aaltorse.github.io/speech2text/).
+>*_NOTE:_* The user guide for the Open On Demand web interface can be found [here](https://scicomp.aalto.fi/triton/apps/speech2text/).
 
 This repo contains instructions for setting up and applying the speech2text app on Aalto Triton cluster. The app utilizes
 
@@ -63,7 +63,7 @@ Check the contents of the script for details.
 
 ### OnDemand
 
-The non-technical user guide for the On Demand web interface can be found [here](https://aaltorse.github.io/speech2text/).
+The user guide for the Open On Demand web interface can be found [here](https://scicomp.aalto.fi/triton/apps/speech2text/).
 
 ### Command line
 

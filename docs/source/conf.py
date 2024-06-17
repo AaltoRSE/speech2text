@@ -7,7 +7,7 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = 'speech2text'
-copyright = '2023, Teemu Ruokolainen, AaltoRSE'
+copyright = '2024, AaltoRSE'
 author = 'Teemu Ruokolainen, AaltoRSE'
 
 # -- General configuration ---------------------------------------------------
