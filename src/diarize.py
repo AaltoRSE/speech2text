@@ -7,7 +7,7 @@ import torch
 import pandas as pd
 from pyannote.audio import Pipeline
 
-from utils import load_audio, SAMPLE_RATE
+from .utils import load_audio, SAMPLE_RATE
 
 logger = logging.getLogger("__name__")
 

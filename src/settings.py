@@ -80,5 +80,5 @@ wav2vec_models = {
 
 # Whisper models
 available_whisper_models = ["large-v2", "large-v3"]
-default_whisper_model = "large-v3"
-default_compute_device = "cuda"
+DEFAULT_WHISPER_MODEL = "large-v3"
+DEFAULT_COMPUTE_DEVICE = "cuda"

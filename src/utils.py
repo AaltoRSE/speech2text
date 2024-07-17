@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 import numpy as np
 import torch
 
-import settings
+from .settings import supported_languages
 
 SAMPLE_RATE = 16000
 
@@ -177,11 +177,11 @@ def convert_language_to_abbreviated_form(language: str) -> str:
         return None
 
     # Language is given in OK long form: convert to short form (two-letter abbreviation)
-    elif language.lower() in settings.supported_languages.keys():
-        return settings.supported_languages[language.lower()]
+    elif language.lower() in supported_languages.keys():
+        return supported_languages[language.lower()]
 
     # Language is given in OK short form (two-letter abbreviation)
-    elif language.lower() in settings.supported_languages.values():
+    elif language.lower() in supported_languages.values():
         return language.lower()
 
     # Conversion cannot be made

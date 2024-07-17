@@ -15,9 +15,12 @@ import subprocess
 from argparse import Namespace
 from pathlib import Path, PosixPath
 
-import settings
-from utils import (add_durations, convert_language_to_abbreviated_form,
-                   load_audio)
+from .settings import (DEFAULT_WHISPER_MODEL,
+                       available_whisper_models,
+                       supported_languages_pretty)
+from .utils import (add_durations, 
+                    convert_language_to_abbreviated_form,
+                    load_audio)
 
 # This is the speedup to realtime for transcribing the audio file.
 # The real number is higher than 15 (close to 25), this is just to make sure the job has enough time to complete.
@@ -68,7 +71,7 @@ def get_argument_parser():
         "--SPEECH2TEXT_WHISPER_MODEL",
         type=str,
         default=os.getenv("SPEECH2TEXT_WHISPER_MODEL"),
-        help=f"Whisper model. Default is {settings.default_whisper_model}.",
+        help=f"Whisper model. Default is {DEFAULT_WHISPER_MODEL}.",
     )
 
     return parser
@@ -487,16 +490,16 @@ def check_whisper_model(name: str) -> bool:
     """
     if name is None:
         print(
-            f"Whisper model not given, using default '{settings.default_whisper_model}'.\n"
+            f"Whisper model not given, using default '{DEFAULT_WHISPER_MODEL}'.\n"
         )
         return True
 
-    elif name in settings.available_whisper_models:
+    elif name in available_whisper_models:
         print(f"Given Whisper model '{name}' is available.\n")
         return True
 
     print(
-        f"Submission failed: Given Whisper model '{name}' is not among available models:\n\n{' '.join(settings.available_whisper_models)}.\n"
+        f"Submission failed: Given Whisper model '{name}' is not among available models:\n\n{' '.join(available_whisper_models)}.\n"
     )
 
     return False
@@ -532,7 +535,7 @@ export SPEECH2TEXT_LANGUAGE=mylanguage
 
 where 'mylanguage' is one of the supported languages:
 
-{settings.supported_languages_pretty}
+{supported_languages_pretty}
 """
         )
         return

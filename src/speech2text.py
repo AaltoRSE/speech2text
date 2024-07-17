@@ -18,14 +18,20 @@ from numba.core.errors import (NumbaDeprecationWarning,
                                NumbaPendingDeprecationWarning)
 from whisperx.types import TranscriptionResult
 
-import settings
-from submit import parse_output_dir
-from utils import (DiarizationPipeline, assign_word_speakers,
-                   calculate_max_batch_size,
-                   convert_language_to_abbreviated_form, load_audio,
-                   seconds_to_human_readable_format)
-from writer import (write_result_to_csv_file,
-                    write_result_to_txt_file)
+from .settings import (available_whisper_models,
+                       wav2vec_models,
+                       supported_languages_pretty,
+                       DEFAULT_WHISPER_MODEL, 
+                       DEFAULT_COMPUTE_DEVICE)
+from .submit import parse_output_dir
+from .utils import (DiarizationPipeline, 
+                    assign_word_speakers,
+                    calculate_max_batch_size,
+                    convert_language_to_abbreviated_form, 
+                    load_audio,
+                    seconds_to_human_readable_format)
+from .writer import (write_result_to_csv_file,
+                     write_result_to_txt_file)
 
 # https://numba.pydata.org/numba-doc/dev/reference/deprecation.html
 warnings.simplefilter("ignore", category=NumbaDeprecationWarning)
@@ -83,8 +89,8 @@ def get_argument_parser():
         "--SPEECH2TEXT_WHISPER_MODEL",
         type=str,
         default=os.getenv("SPEECH2TEXT_WHISPER_MODEL"),
-        choices=settings.available_whisper_models,
-        help=f"Whisper model. Defaults to {settings.default_whisper_model}.",
+        choices=available_whisper_models,
+        help=f"Whisper model. Defaults to {DEFAULT_WHISPER_MODEL}.",
     )
 
     return parser
@@ -126,13 +132,13 @@ def combine_transcription_and_diarization(
 
     # Convert transcription segments so that each segment corresponds to a word
     wav2vec_model_name = (
-        settings.wav2vec_models[language]
-        if language in settings.wav2vec_models
+        wav2vec_models[language]
+        if language in wav2vec_models
         else None
     )
 
     align_model, align_metadata = whisperx.load_align_model(
-        language, settings.compute_device, model_name=wav2vec_model_name
+        language, DEFAULT_COMPUTE_DEVICE, model_name=wav2vec_model_name
     )
 
     transcription_segments = whisperx.align(
@@ -140,7 +146,7 @@ def combine_transcription_and_diarization(
         align_model,
         align_metadata,
         file,
-        settings.compute_device,
+        DEFAULT_COMPUTE_DEVICE,
     )
 
     # Assign speaker to transcribed word segments
@@ -175,7 +181,7 @@ def parse_output_file_stem(output_dir: str, input_file: str) -> Path:
 def load_whisperx_model(
     name: str,
     language: Optional[str] = None,
-    device: Optional[Union[str, torch.device]] = settings.compute_device,
+    device: Optional[Union[str, torch.device]] = DEFAULT_COMPUTE_DEVICE,
 ):
     """
     Load a Whisper model on GPU.
@@ -190,11 +196,11 @@ def load_whisperx_model(
             + subprocess.check_output(["hostname"]).decode()
         )
 
-    if name not in settings.available_whisper_models:
+    if name not in available_whisper_models:
         logger.warning(
-            f"Specified model '{name}' not among available models: {settings.available_whisper_models}. Opting to use the default model '{settings.default_whisper_model}' instead"
+            f"Specified model '{name}' not among available models: {available_whisper_models}. Opting to use the default model '{DEFAULT_WHISPER_MODEL}' instead"
         )
-        name = settings.default_whisper_model
+        name = DEFAULT_WHISPER_MODEL
 
     compute_type = "float16"
     try:
@@ -324,7 +330,7 @@ def main():
     if not language:
         error_message = f"\
             Language not given or not supported. Supported languages:\
-            {settings.supported_languages_pretty}"
+            {supported_languages_pretty}"
         logger.error(error_message)
         raise ValueError(error_message)
 
@@ -345,14 +351,14 @@ def main():
     model_name = args.SPEECH2TEXT_WHISPER_MODEL
     if model_name is None:
         logger.info(
-            f"Whisper model not given. Opting to use the default model '{settings.default_whisper_model}'"
+            f"Whisper model not given. Opting to use the default model '{DEFAULT_WHISPER_MODEL}'"
         )
-        model_name = settings.default_whisper_model
-    elif model_name not in settings.available_whisper_models:
+        model_name = DEFAULT_WHISPER_MODEL
+    elif model_name not in available_whisper_models:
         logger.warning(
-            f"Given Whisper model '{model_name}' not among available models: {settings.available_whisper_models}. Opting to use the default model '{settings.default_whisper_model}' instead"
+            f"Given Whisper model '{model_name}' not among available models: {available_whisper_models}. Opting to use the default model '{DEFAULT_WHISPER_MODEL}' instead"
         )
-        model_name = settings.default_whisper_model
+        model_name = DEFAULT_WHISPER_MODEL
 
     # Creating two separate processes for transcription and diarization based on torch multiprocessing
     with mp.Manager() as manager:
