@@ -28,8 +28,8 @@ from .utils import (DiarizationPipeline,
                     assign_word_speakers,
                     calculate_max_batch_size,
                     convert_language_to_abbreviated_form, 
-                    load_audio,
                     seconds_to_human_readable_format)
+from .audio import load_audio
 from .writer import (write_result_to_csv_file,
                      write_result_to_txt_file)
 

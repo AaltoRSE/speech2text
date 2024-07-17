@@ -19,8 +19,8 @@ from .settings import (DEFAULT_WHISPER_MODEL,
                        available_whisper_models,
                        supported_languages_pretty)
 from .utils import (add_durations, 
-                    convert_language_to_abbreviated_form,
-                    load_audio)
+                    convert_language_to_abbreviated_form)
+from .audio import load_audio
 
 # This is the speedup to realtime for transcribing the audio file.
 # The real number is higher than 15 (close to 25), this is just to make sure the job has enough time to complete.
