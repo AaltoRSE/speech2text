@@ -56,7 +56,6 @@ supported_languages_pretty = ", ".join(
 
 
 # Wav2Vec models
-
 wav2vec_models = {
     "hy": "infinitejoy/wav2vec2-large-xls-r-300m-armenian",
     "bg": "infinitejoy/wav2vec2-large-xls-r-300m-bulgarian",
@@ -80,7 +79,6 @@ wav2vec_models = {
 }
 
 # Whisper models
-
 available_whisper_models = ["large-v2", "large-v3"]
 default_whisper_model = "large-v3"
 compute_device = "cuda"
