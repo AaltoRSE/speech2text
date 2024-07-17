@@ -1,6 +1,7 @@
 import logging
 from pathlib import Path
 from typing import Optional, Union
+import time
 
 import numpy as np
 import torch
@@ -122,3 +123,24 @@ def assign_word_speakers(diarize_df, transcript_segments):
 
     return transcript_segments
 
+
+def diarize(file: str, config: str, token: str, result_list: dict):
+    """
+    Diarize audio file using Pyannote.
+
+    Parameters
+    ----------
+    file : str
+        The input audio file.
+    config : str
+        Configuration for the Pyannote model.
+    token : str
+        Access token for the the Hugging Face model if the config file is not available.
+    result_list : dict
+        The dictionary to store the result.
+    """
+    diarization_pipeline = DiarizationPipeline(config_file=config, auth_token=token)
+    diarization_segments = diarization_pipeline(file)
+
+    result_list["diarization_segments"] = diarization_segments
+    result_list["diarization_done_time"] = time.time()
