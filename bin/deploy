@@ -47,6 +47,7 @@ SPEECH2TEXT_CPUS_PER_TASK="6"
 
 CLI=false
 OOD=false
+OOD_DEV=false
 
 if [ "$#" -gt 0 ]; then
   for arg in "$@"; do
@@ -56,9 +57,12 @@ if [ "$#" -gt 0 ]; then
     if [[ "$arg" == "ood" ]]; then
       OOD=true
     fi
+    if [[ "$arg" == "ood-dev" ]]; then
+      OOD_DEV=true
+    fi
   done
 else
-  echo "Provide at least one argument: cli or ood"
+  echo "Provide at least one argument: cli or ood or ood-dev"
   exit 1
 fi
 
@@ -145,5 +149,45 @@ then
   rm -rf "$TEMP_DIR"
 
   echo ".. OOD files pushed to: $REPO_URL. (Do not forget to run the ansible scripts!)"
+
+fi
+
+
+# --------------------------------------------------
+# Deploy a sanbox OOD app for testing
+
+if [ "$OOD_DEV" = true ]
+then
+
+  echo "Deploy a sanbox OOD app for testing"
+
+  SCRIPT="$SCRIPT_DIR"/deploy-data/ood/template/script.sh
+
+  sed -i "s|<VERSION>|$VERSION|g" $SCRIPT
+  sed -i "s|<SPEECH2TEXT>|$SPEECH2TEXT|g" $SCRIPT
+  sed -i "s|<CONDA_ENV>|$CONDA_ENV|g" $SCRIPT
+  sed -i "s|<HF_HOME>|$HF_HOME|g" $SCRIPT
+  sed -i "s|<PYANNOTE_CACHE>|$PYANNOTE_CACHE|g" $SCRIPT
+  sed -i "s|<TORCH_HOME>|$TORCH_HOME|g" $SCRIPT
+  sed -i "s|<PYANNOTE_CONFIG>|$PYANNOTE_CONFIG|g" $SCRIPT
+  sed -i "s|<NUMBA_CACHE_DIR>|$NUMBA_CACHE_DIR|g" $SCRIPT
+  sed -i "s|<MPLCONFIGDIR>|$MPLCONFIGDIR|g" $SCRIPT
+  sed -i "s|<SPEECH2TEXT_MEM>|$SPEECH2TEXT_MEM|g" $SCRIPT
+  sed -i "s|<SPEECH2TEXT_CPUS_PER_TASK>|$SPEECH2TEXT_CPUS_PER_TASK|g" $SCRIPT
+
+  # copy files to local ondemand folder
+  SANDBOX_DIR="/scratch/work/$USER/.ondemand/dev/speech2text-dev"
+  mkdir -p "$SANDBOX_DIR"
+  
+  cp -r bin/deploy-data/ood/*  "$SANDBOX_DIR"
+  
+  # Print status
+  if [ $? -eq 0 ]; then
+    echo "Successfully copied files to sandbox OOD for $USER."
+  else
+    echo "Failed to copy to $SANDBOX_DIR."
+  fi
+
+  echo ".. OOD files copied to: $SANDBOX_DIR. Test the app before pushing it to ansible script."
 
 fi

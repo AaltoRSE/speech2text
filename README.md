@@ -48,10 +48,10 @@ module load mamba
 mamba env create --file env.yml --prefix env/
 ```
 
-To deploy both command line interface (CLI) module and the Open On Demand (OOD) app, run 
+To deploy both command line interface (CLI) module, Open On Demand (OOD) app, and the OOD sandbox for testing, run 
 
 ```bash
-bin/deploy cli ood
+bin/deploy cli ood [ood-dev]
 ```
 
 or only the other if only one needs updating.
