@@ -568,7 +568,7 @@ where 'mylanguage' is one of the supported languages:
     else:
         print(
             f".. Submission failed: First argument needs to be an existing audio file or a directory with audio files.\n \
-            The input was set to {args.INPUT}"
+            The input was set to '{args.INPUT}'"
         )
 
 
