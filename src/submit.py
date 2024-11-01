@@ -118,7 +118,7 @@ def parse_job_name(input_path: str) -> str:
     str
         The job name extracted from the input path.
     """
-    return Path(input_path).name.replace(" ", "_")
+    return "speech2text_" + Path(input_path).name.replace(" ", "_")
 
 
 def parse_output_dir(input_path: str, create_if_not_exists: bool = True) -> str:
