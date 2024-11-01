@@ -14,4 +14,4 @@ export SPEECH2TEXT_CPUS_PER_TASK="<SPEECH2TEXT_CPUS_PER_TASK>"
 export HF_HUB_OFFLINE="1"
 
 module load speech2text
-speech2text $audio_path
+speech2text "$audio_path"
