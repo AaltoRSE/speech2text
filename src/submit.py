@@ -367,7 +367,7 @@ def submit_dir(args: Namespace, job_name: Path):
     )
 
     # Log
-    print(f"Results will be written to folder: {output_dir}\n")
+    print(f"Results will be written to folder: '{output_dir}'\n")
 
     # Submit
     cmd = f"sbatch {tmp_file_sh.absolute()}"
@@ -440,7 +440,7 @@ def submit_file(args: Namespace, job_name: Path):
     )
 
     # Log
-    print(f"Results will be written to folder: {output_dir}\n")
+    print(f"Results will be written to folder: '{output_dir}'\n")
 
     # Submit
     cmd = f"sbatch {tmp_file_sh.absolute()}"
@@ -515,7 +515,7 @@ def main():
     
     print(f"\nSubmit speech2text jobs with arguments:")
     for key, value in vars(args).items():
-        print(f"\t{key}: {value}")
+        print(f"\t{key}: '{value}'")
     print()
 
     # Check temporary folder
@@ -553,17 +553,17 @@ where 'mylanguage' is one of the supported languages:
 
     # Notify about temporary folder location
     print(
-        f"Log files (.out) and batch submit scripts (.sh) will be written to: {args.SPEECH2TEXT_TMP}\n"
+        f"Log files (.out) and batch submit scripts (.sh) will be written to: '{args.SPEECH2TEXT_TMP}'\n"
     )
 
     # Submit file or directory
     args.INPUT = Path(args.INPUT).absolute()
     job_name = parse_job_name(args.INPUT)
     if Path(args.INPUT).is_file():
-        print(f"Input file: {args.INPUT}\n")
+        print(f"Input file: '{args.INPUT}'\n")
         submit_file(args, job_name)
     elif Path(args.INPUT).is_dir():
-        print(f"Input directory: {args.INPUT}\n")
+        print(f"Input directory: '{args.INPUT}'\n")
         submit_dir(args, job_name)
     else:
         print(
