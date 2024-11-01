@@ -567,7 +567,8 @@ where 'mylanguage' is one of the supported languages:
         submit_dir(args, job_name)
     else:
         print(
-            ".. Submission failed: First argument needs to be an existing audio file or a directory with audio files.\n"
+            f".. Submission failed: First argument needs to be an existing audio file or a directory with audio files.\n \
+            The input was set to {args.INPUT}"
         )
 
 
