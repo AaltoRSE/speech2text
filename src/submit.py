@@ -115,7 +115,7 @@ def parse_job_name(input_path: str) -> str:
 
     Returns
     -------
-    Path
+    str
         The job name extracted from the input path.
     """
     return Path(input_path).name.replace(" ", "_")
