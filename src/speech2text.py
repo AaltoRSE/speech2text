@@ -54,12 +54,6 @@ def get_argument_parser():
         help="Input audio file OR a text file with a single input audio file on every line. Mandatory.",
     )
     parser.add_argument(
-        "--SPEECH2TEXT_TMP",
-        type=str,
-        default=os.getenv("SPEECH2TEXT_TMP"),
-        help="Temporary folder. If not given, should be set as an environment variable.",
-    )
-    parser.add_argument(
         "--AUTH_TOKEN",
         type=str,
         default=os.getenv("AUTH_TOKEN"),

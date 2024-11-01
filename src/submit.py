@@ -17,7 +17,7 @@ from pathlib import Path, PosixPath
 
 import settings
 from utils import (add_durations, convert_language_to_abbreviated_form,
-                   load_audio)
+                   load_audio, get_tmp_folder)
 
 # This is the speedup to realtime for transcribing the audio file.
 # The real number is higher than 15 (close to 25), this is just to make sure the job has enough time to complete.
@@ -37,7 +37,7 @@ def get_argument_parser():
     parser.add_argument(
         "--SPEECH2TEXT_TMP",
         type=str,
-        default=os.getenv("SPEECH2TEXT_TMP"),
+        default=get_tmp_folder(),
         help="Temporary folder. If not given, can be set as an environment variable. Optional, defaults to: /scratch/work/$USER/.speech2text/",
     )
     parser.add_argument(

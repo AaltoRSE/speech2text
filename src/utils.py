@@ -1,5 +1,6 @@
 import logging
 import math
+import os
 import re
 import subprocess
 import sys
@@ -51,6 +52,11 @@ def seconds_to_human_readable_format(seconds: int) -> str:
         hours += 1
 
     return f"{hours:02}:{minutes:02}:{seconds:02}"
+
+
+def get_tmp_folder():
+    current_folder = os.getcwd()
+    return current_folder if 'ondemand' in current_folder else os.getenv("SPEECH2TEXT_TMP")
 
 
 def load_audio(file: str, sr: int = SAMPLE_RATE):
