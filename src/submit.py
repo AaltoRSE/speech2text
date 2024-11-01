@@ -104,9 +104,9 @@ def get_existing_result_files(input_file: str, output_dir: str) -> "tuple[list, 
     return existing_result_files, missing_result_files
 
 
-def parse_job_name(input_path: str) -> Path:
+def parse_job_name(input_path: str) -> str:
     """
-    Convert input file/folder to path object.
+    Convert input file/folder to str and replace spaces with underscore.
 
     Parameters
     ----------
@@ -118,7 +118,7 @@ def parse_job_name(input_path: str) -> Path:
     Path
         The job name extracted from the input path.
     """
-    return Path(input_path).name
+    return Path(input_path).name.replace(" ", "_")
 
 
 def parse_output_dir(input_path: str, create_if_not_exists: bool = True) -> str:
@@ -505,7 +505,14 @@ def check_whisper_model(name: str) -> bool:
 def main():
     # Parse arguments
     parser = get_argument_parser()
-    args = parser.parse_args()
+    args, unknown = parser.parse_known_args()
+
+    # Join all parts of the INPUT argument to handle spaces
+    if unknown:
+        args.INPUT = ' '.join([args.INPUT] + unknown)
+    else:
+        args.INPUT = args.INPUT
+    
     print(f"\nSubmit speech2text jobs with arguments:")
     for key, value in vars(args).items():
         print(f"\t{key}: {value}")
