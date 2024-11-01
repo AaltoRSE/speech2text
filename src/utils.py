@@ -56,7 +56,7 @@ def seconds_to_human_readable_format(seconds: int) -> str:
 
 def get_tmp_folder():
     ood_folder = os.getcwd()
-    return ood_folder if os.getenv('SPEECH2TEXT_ONDEMAND') is True else os.getenv("SPEECH2TEXT_TMP")
+    return ood_folder if os.getenv('SPEECH2TEXT_ONDEMAND') else os.getenv("SPEECH2TEXT_TMP")
 
 
 def load_audio(file: str, sr: int = SAMPLE_RATE):
