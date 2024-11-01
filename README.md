@@ -54,7 +54,7 @@ To deploy both command line interface (CLI) module and the Open On Demand (OOD) 
 bin/deploy cli ood
 ```
 
-or only the other if only one needs updating.
+or only the other if only one needs updating. To test the OOD app, you can install using `ood-dev` to install the OOD sandbox app.
 
 Check the contents of the script for details.
 

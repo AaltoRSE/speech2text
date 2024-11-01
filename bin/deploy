@@ -14,9 +14,11 @@ Usage:
 
     $ deploy ood
     
-    Deploy both the CLI and OOD app:
+    Deploy the Open Ondemand (OOD) sandbox app:
 
-    $ deploy cli ood
+    $ deploy ood-dev
+
+    These options could be used together.
 
 EOF
 }
@@ -47,6 +49,7 @@ SPEECH2TEXT_CPUS_PER_TASK="6"
 
 CLI=false
 OOD=false
+OODDEV=false
 
 if [ "$#" -gt 0 ]; then
   for arg in "$@"; do
@@ -55,6 +58,9 @@ if [ "$#" -gt 0 ]; then
     fi
     if [[ "$arg" == "ood" ]]; then
       OOD=true
+    fi
+    if [[ "$arg" == "ood-dev" ]]; then
+      OODDEV=true
     fi
   done
 else
@@ -145,5 +151,37 @@ then
   rm -rf "$TEMP_DIR"
 
   echo ".. OOD files pushed to: $REPO_URL. (Do not forget to run the ansible scripts!)"
+
+fi
+
+
+# --------------------------------------------------
+# Deploy as an Open OnDemand app sandbox app
+
+if [ "$OODDEV" = true ]
+then
+
+  echo "Deploy the Open OnDemand (OOD) sandbox"
+
+  SCRIPT="$SCRIPT_DIR"/deploy-data/ood/template/script.sh
+
+  sed -i "s|<VERSION>|$VERSION|g" $SCRIPT
+  sed -i "s|<SPEECH2TEXT>|$SPEECH2TEXT|g" $SCRIPT
+  sed -i "s|<CONDA_ENV>|$CONDA_ENV|g" $SCRIPT
+  sed -i "s|<HF_HOME>|$HF_HOME|g" $SCRIPT
+  sed -i "s|<PYANNOTE_CACHE>|$PYANNOTE_CACHE|g" $SCRIPT
+  sed -i "s|<TORCH_HOME>|$TORCH_HOME|g" $SCRIPT
+  sed -i "s|<PYANNOTE_CONFIG>|$PYANNOTE_CONFIG|g" $SCRIPT
+  sed -i "s|<NUMBA_CACHE_DIR>|$NUMBA_CACHE_DIR|g" $SCRIPT
+  sed -i "s|<MPLCONFIGDIR>|$MPLCONFIGDIR|g" $SCRIPT
+  sed -i "s|<SPEECH2TEXT_MEM>|$SPEECH2TEXT_MEM|g" $SCRIPT
+  sed -i "s|<SPEECH2TEXT_CPUS_PER_TASK>|$SPEECH2TEXT_CPUS_PER_TASK|g" $SCRIPT
+
+  
+  USERNAME=$(whoami)
+  mkdir -p /scratch/work/$USERNAME/.ondemand/dev/speech2text-dev
+  cp -r bin/deploy-data/ood/* /scratch/work/$USERNAME/.ondemand/dev/speech2text-dev
+
+  echo ".. OOD sandbox app is installed!"
 
 fi
