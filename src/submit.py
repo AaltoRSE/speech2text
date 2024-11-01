@@ -206,7 +206,7 @@ def create_array_input_file(
     return tmp_file_array
 
 
-def estimate_job_requirements(input_path: PosixPath) -> (str, int):
+def estimate_job_requirements(input_path: PosixPath) -> tuple[str, int]:
     """
     Estimate total run time based on input file/folder.
 
