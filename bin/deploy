@@ -15,10 +15,10 @@ Usage:
     $ deploy ood
     
     Deploy the Open Ondemand (OOD) sandbox app:
-
+/
     $ deploy ood-dev
 
-    These options could be used together.
+    These options can be used together.
 
 EOF
 }
@@ -27,8 +27,8 @@ EOF
 # https://stackoverflow.com/questions/39340169/dir-cd-dirname-bash-source0-pwd-how-does-that-work
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 
-# Version variables is the second to last path component
-# e.g. /path/to/speech2text/20240314/bin/ -> version = 20240314
+# Version variable is the second to last path component
+# e.g. /path/to/speech2text/123456/bin/ -> version = 123456
 VERSION=$(basename "$(dirname "$SCRIPT_DIR")")
 
 # Other variables
@@ -64,7 +64,7 @@ if [ "$#" -gt 0 ]; then
     fi
   done
 else
-  echo "Provide at least one argument: cli or ood"
+  echo "Provide at least one argument: cli, ood, ood-dev"
   exit 1
 fi
 
@@ -156,12 +156,12 @@ fi
 
 
 # --------------------------------------------------
-# Deploy as an Open OnDemand app sandbox app
+# Deploy as an Open OnDemand sandbox app
 
 if [ "$OODDEV" = true ]
 then
 
-  echo "Deploy the Open OnDemand (OOD) sandbox"
+  echo "Deploy the Open OnDemand (OOD) sandbox app"
 
   SCRIPT="$SCRIPT_DIR"/deploy-data/ood/template/script.sh
 
