@@ -23,7 +23,7 @@ Supported languages are:
 arabic (ar), armenian (hy), bulgarian (bg), catalan (ca), chinese (zh), czech (cs), danish (da), dutch (nl), english (en), estonian (et), finnish (fi), french (fr), galician (gl), german (de), greek (el), hebrew (he), hindi (hi), hungarian (hu), icelandic (is), indonesian (id), italian (it), japanese (ja), kazakh (kk), korean (ko), latvian (lv), lithuanian (lt), malay (ms), marathi (mr), nepali (ne), norwegian (no), persian (fa), polish (pl), portuguese (pt), romanian (ro), russian (ru), serbian (sr), slovak (sk), slovenian (sl), spanish (es), swedish (sv), thai (th), turkish (tr), ukrainian (uk), urdu (ur), vietnamese (vi)
 
 
-## Deploy on Aalto Triton
+## Deploy on Aalto Triton (production)
 
 Create a base folder for the app if haven't been created
 
@@ -54,7 +54,7 @@ To deploy both command line interface (CLI) module and the Open On Demand (OOD) 
 bin/deploy cli ood
 ```
 
-or only the other if only one needs updating. To test the OOD app, you can install using `ood-dev` to install the OOD sandbox app.
+or only the other if only one needs updating.
 
 Check the contents of the script for details.
 
@@ -205,9 +205,11 @@ test-data/fi/test1.mp3
 ```
 
 
-## Tests and linting
+## Development
 
-Create development environment
+### Local development
+
+Create a development conda environment
 ```bash
 mamba create --file env_dev.yml --prefix env-dev/
 mamba activate env-dev/
@@ -223,9 +225,63 @@ Lint code in `src/`
 black src && isort src
 ```
 
+### Deploy on Aalto Triton (development and testing) 
+
+Create a base folder for the app if haven't been created
+
+```
+mkdir /appl/manual_installations/software/speech2text
+```
+
+Clone git repo and change directory
+
+```bash
+cd /appl/manual_installations/software/speech2text
+git clone https://github.com/AaltoRSE/speech2text.git 0000-0
+cd 0000-0
+```
+
+For development and testing, use folder names `0000-0`, `0000-1`, etc. to distinguish them from the production folders.
+
+Create a conda environment to `env/`
+
+```bash
+module load mamba
+mamba env create --file env.yml --prefix env/
+```
+
+Deploy the command line interface (CLI) module and the Open On Demand (OOD) sandbox app with
+
+```bash
+bin/deploy cli ood-dev
+```
+
+or only the other if only one needs updating.
+
+To test the command line app, load the command line module with
+
+```
+module load speech2text/0000-0
+```
+
+and check its [Usage](#usage).
+
+To test the OOD app, start the speech2text sandbox app from OOD.
+
+To clean up:
+
+- purge loaded modules with `module purge`
+- remove the local development repo folders `0000-0`, `0000-1`, etc. 
+- remove the OOD sandbox app folder `/scratch/work/$USERNAME/.ondemand/dev/speech2text-dev`
+
+
 ## Build and run with Singularity
 
->**__IMPORTANT:__** This is out of date!
+>**__IMPORTANT:__**
+>
+> This is out of date! 
+>
+> The software is currently installed to a conda environment. The Singularity definition file is included here as a future reference if needed.
 
 Although currently not needed, the repo also contains a Singularity definition file `speech2text.def` in project root. 
 
