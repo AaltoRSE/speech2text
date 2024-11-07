@@ -26,7 +26,7 @@ attributes:
     display: true
     help: |
       Select the language for the audio file(s).
-    options: #Will be filled with bin/deploy-data/update_supported_lang.py
+    options: # Will be filled with bin/deploy-data/update_ood_form_values.py
     
   
   email_field:
@@ -45,4 +45,4 @@ attributes:
     display: true
     help: |
       (Optional) Select the whisper model.
-    options: #Will be filled with bin/deploy-data/update_supported_lang.py
+    options: # Will be filled with bin/deploy-data/update_ood_form_values.py
