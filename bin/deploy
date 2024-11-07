@@ -107,6 +107,9 @@ if [ "$OOD" = true ]
 then
 
   echo "Deploy the Open OnDemand (OOD) app"
+  
+  #Update supported languages
+  python3 deploy-data/update_ood_form_values.py
 
   SCRIPT="$SCRIPT_DIR"/deploy-data/ood/template/script.sh
 
