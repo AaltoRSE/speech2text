@@ -109,7 +109,7 @@ then
   echo "Deploy the Open OnDemand (OOD) app"
   
   # Update supported languages and models
-  python3 deploy-data/update_ood_form_values.py
+  python3 bin/deploy-data/update_ood_form_values.py
 
   SCRIPT="$SCRIPT_DIR"/deploy-data/ood/template/script.sh
 
@@ -167,7 +167,7 @@ then
   echo "Deploy the Open OnDemand (OOD) sandbox app"
 
   # Update supported languages and models
-  python3 deploy-data/update_ood_form_values.py
+  python3 bin/deploy-data/update_ood_form_values.py
 
   SCRIPT="$SCRIPT_DIR"/deploy-data/ood/template/script.sh
 
