@@ -107,6 +107,9 @@ if [ "$OOD" = true ]
 then
 
   echo "Deploy the Open OnDemand (OOD) app"
+  
+  # Update supported languages and models
+  python3 bin/deploy-data/update_ood_form_values.py
 
   SCRIPT="$SCRIPT_DIR"/deploy-data/ood/template/script.sh
 
@@ -163,6 +166,9 @@ then
 
   echo "Deploy the Open OnDemand (OOD) sandbox app"
 
+  # Update supported languages and models
+  python3 bin/deploy-data/update_ood_form_values.py
+
   SCRIPT="$SCRIPT_DIR"/deploy-data/ood/template/script.sh
 
   sed -i "s|<VERSION>|$VERSION|g" $SCRIPT
@@ -176,7 +182,6 @@ then
   sed -i "s|<MPLCONFIGDIR>|$MPLCONFIGDIR|g" $SCRIPT
   sed -i "s|<SPEECH2TEXT_MEM>|$SPEECH2TEXT_MEM|g" $SCRIPT
   sed -i "s|<SPEECH2TEXT_CPUS_PER_TASK>|$SPEECH2TEXT_CPUS_PER_TASK|g" $SCRIPT
-
   
   USERNAME=$(whoami)
   mkdir -p /scratch/work/$USERNAME/.ondemand/dev/speech2text-dev

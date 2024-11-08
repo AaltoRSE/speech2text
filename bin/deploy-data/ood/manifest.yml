@@ -4,6 +4,7 @@ category: Interactive Apps
 subcategory: Speech2text
 role: batch_connect
 description: |
-    This is a form to submit a speech2text job request.
+    This is a form to submit a speech2text job request.      
+    [Link to the documentation.](https://scicomp.aalto.fi/triton/apps/speech2text/)
 # metadata:
 #   field_of_science: botany
