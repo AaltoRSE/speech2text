@@ -8,7 +8,7 @@ from src.settings import (supported_languages,
                           default_whisper_model)
 
 # Path to the form.yml file
-form_yml_path = 'bin/deploy-data/ood/form1.yml'
+form_yml_path = 'bin/deploy-data/ood/form.yml'
 
 # Load the existing form.yml
 with open(form_yml_path, 'r') as file:
