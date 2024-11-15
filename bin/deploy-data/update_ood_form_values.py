@@ -26,4 +26,4 @@ form_data['attributes']['model_selector']['options'] = [
 with open(form_yml_path, 'w') as file:
     yaml.dump(form_data, file, default_flow_style=False, sort_keys=False)
 
-print("form.yml has been updated with supported languages and Whisper models from settings.py.")
+print(".. form.yml has been updated with supported languages and Whisper models from settings.py.")
