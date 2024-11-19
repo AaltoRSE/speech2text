@@ -24,7 +24,9 @@ def sendemail(to: str,
         body += f"<p>Your job ID (for diagnosis) was {job_id}.</p>"
     
     body += """
-            <p>If you want to contact our team, please visit our <a href="https://scicomp.aalto.fi/help/garage/">daily garage</a>, every day at 13:00 EET.</p>
+            <p>If you any questions or feedbacks, please reply to this email or visit our <a href="https://scicomp.aalto.fi/help/garage/">daily garage</a>, every day at 13:00 EET.</p>
+            <p>Best,</p>
+            <p>Aalto Scientific Computing</p>
         </body>
     </html>
     """
