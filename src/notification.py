@@ -35,9 +35,13 @@ def sendemail(to: str,
     msg['From'] = sender
     msg['To'] = to
     
-    smtp = smtplib.SMTP(AALTO_SMTP_SERVER)
-    smtp.send_message(msg)
-    smtp.quit()
+    try:
+        smtp = smtplib.SMTP(AALTO_SMTP_SERVER)
+        smtp.send_message(msg)
+    except smtplib.SMTPException as e:
+        print(f"Failed to send email. Error {e}")
+    finally:
+        smtp.quit()
 
 
 def get_job_details():
