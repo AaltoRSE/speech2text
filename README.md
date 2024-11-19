@@ -273,6 +273,7 @@ To clean up:
 - purge loaded modules with `module purge`
 - remove the local development repo folders `0000-0`, `0000-1`, etc. 
 - remove the OOD sandbox app folder `/scratch/work/$USERNAME/.ondemand/dev/speech2text-dev`
+- remove the version-specific module file (`0000-0.lua`, `0000-1.lua`, etc.) at `/appl/manual_installations/modules/speech2text/`
 
 
 ## Build and run with Singularity

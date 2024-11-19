@@ -26,52 +26,8 @@ attributes:
     display: true
     help: |
       Select the language for the audio file(s).
-    options:
-    - arabic
-    - armenian
-    - bulgarian
-    - catalan
-    - chinese
-    - czech
-    - danish
-    - dutch
-    - english
-    - estonian
-    - finnish
-    - french
-    - galician
-    - german
-    - greek
-    - hebrew
-    - hindi
-    - hungarian
-    - icelandic
-    - indonesian
-    - italian
-    - japanese
-    - kazakh
-    - korean
-    - latvian
-    - lithuanian
-    - malay
-    - marathi
-    - nepali
-    - norwegian
-    - persian
-    - polish
-    - portuguese
-    - romanian
-    - russian
-    - serbian
-    - slovak
-    - slovenian
-    - spanish
-    - swedish
-    - thai
-    - turkish
-    - ukrainian
-    - urdu
-    - vietnamese
+    options: # Will be filled with bin/deploy-data/update_ood_form_values.py
+    
   
   email_field:
     label: Email
@@ -89,7 +45,4 @@ attributes:
     display: true
     help: |
       (Optional) Select the whisper model.
-    options:
-    - [ "default",  "large-v3" ]
-    - [ "v2",  "large-v2" ]
-    - [ "v3",  "large-v3" ]
+    options: # Will be filled with bin/deploy-data/update_ood_form_values.py
