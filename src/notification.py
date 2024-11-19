@@ -3,7 +3,7 @@ from email.mime.text import MIMEText
 
 
 AALTO_SMTP_SERVER = 'smtp.aalto.fi'
-
+RSE_EAMIL = 'rse-group@aalto.fi'
 
 def sendemail(to: str, 
               file_name: str,
@@ -24,7 +24,7 @@ def sendemail(to: str,
         body += f"<p>Your job ID (for diagnosis) was {job_id}.</p>"
     
     body += """
-            <p>This is an auto-generated email. Please do not reply to this. If you want to contact our team, please visit our <a href="https://scicomp.aalto.fi/help/garage/">daily garage</a>, every day at 13:00 EET.</p>
+            <p>If you want to contact our team, please visit our <a href="https://scicomp.aalto.fi/help/garage/">daily garage</a>, every day at 13:00 EET.</p>
         </body>
     </html>
     """
@@ -62,7 +62,7 @@ def main():
     parser.add_argument('--file_name', type=str, required=True, help='The audio file name to include in the email.')
     parser.add_argument('--file_path', type=str, required=True, help='The file path for creating ondemand url to the result folder.')
     parser.add_argument('--email_subject', type=str, default='Transcription job is completed', help='Email subject')
-    parser.add_argument('--sender', type=str, default='no-reply@aalto.fi', help='The sender email address.')
+    parser.add_argument('--sender', type=str, default=RSE_EAMIL, help='The sender email address.')
     parser.add_argument('--job_id', type=str, required=False, help='The job ID to include in the email.')
     args = parser.parse_args()
 
