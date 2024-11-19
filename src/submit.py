@@ -291,9 +291,12 @@ def create_sbatch_script_for_single_file(
 #SBATCH --gres=gpu:1
 #SBATCH --time={time}
 #SBATCH --mail-user={email}
-#SBATCH --mail-type=END
 #SBATCH --mail-type=FAIL
 python3 {python_source_dir}/speech2text.py {input_file}
+
+wait
+
+python3 src/notification.py --to {email} --file_name {Path(input_file).name} --file_path {Path(input_file).parent / 'results'}
 """
 
     tmp_file_sh = (Path(tmp_dir) / str(job_name)).with_suffix(".sh")
