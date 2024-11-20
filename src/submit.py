@@ -368,7 +368,7 @@ def check_email(email: str):
         The email to check.
     """
     pattern = r"^[A-Za-z]+\.+[A-Za-z]+@aalto.fi$"
-    if email is not None:
+    if email:
         if re.match(pattern, email):
             print(f"Email notifications will be sent to: {email}\n")
         else:
