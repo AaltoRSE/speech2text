@@ -370,10 +370,9 @@ def main():
     logger.info(f"Parsed arguments: {args}")
 
     logger.info(f"Start processing input file: {args.INPUT_FILE}")
-
+    
     if not Path(args.INPUT_FILE).is_file():
-        logger.error(f".. Given input file '{args.INPUT_FILE}' does not exist!")
-        return
+        raise FileNotFoundError(f"Given input file '{args.INPUT_FILE}' does not exist!")
 
     # Check mandatory language argument
     language = args.SPEECH2TEXT_LANGUAGE
