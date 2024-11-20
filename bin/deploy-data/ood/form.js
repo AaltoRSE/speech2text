@@ -12,14 +12,14 @@ function toggle_data_warning(isChecked) {
     // Select the label associated with the checkbox
     const label = $("label[for='batch_connect_session_context_send_attachments']");
     const warningMessage = `
-            <div id="confidential-warning" style="color: red; margin-top: 5px;">
-                Warning: We don't recommend sending confidential data via email.
+            <div id="confidential-warning" style="color: blue; margin-top: 5px;">
+                We recommed this only if your audio files do not include any confidential data.
             </div>
     `;
     if (isChecked) {
         // Add a border box around the form group
         label.closest('.form-group').css({
-            "border": "1px solid red",
+            "border": "1px solid blue",
             "padding": "2px"
         });
         $("#batch_connect_session_context_send_attachments")
