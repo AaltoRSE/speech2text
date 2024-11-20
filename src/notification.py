@@ -31,12 +31,12 @@ def sendemail(to: str,
             <body>
                 <p>Hi,</p>
                 <p>Your transcription job for file '{file_name}' is now completed.</p>
-                <p>Transcripted files are available inside the <a href="{get_ood_url(file_path)}">results folder</a>.</p>
-        """
+                <p>Transcripted files are available inside the <a href="{get_ood_url(file_path)}">results folder</a>.</p>"""
         
         if send_attachments:
-            body += f"""
-            <p>Transcripted results are also attached to this email.</p>
+            # Remove the last </p>
+            body = body[:-4] + f"""
+             Transcripted results are also attached to this email.</p>
             """
             attachments = get_result_files(file_name, file_path)
 
