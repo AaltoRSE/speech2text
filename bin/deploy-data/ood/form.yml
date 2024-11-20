@@ -8,9 +8,9 @@ cacheable: false
 form:
   - audio_path
   - email_field
+  - send_attachments
   - language_field
   - model_selector
-  - send_attachments
 
 attributes:
   audio_path:
@@ -42,7 +42,7 @@ attributes:
 
 
   send_attachments:
-    label: "Send results via email?"
+    label: "Receive transcirpted files as email attachments?"
     display: true
     widget: check_box
     checked_value: True
