@@ -57,7 +57,7 @@ def sendemail(to: str,
             <body>
                 <p>Hi,</p>
                 <p>Your transcription job #{job_id} for file '{file_name}' has been failed :(</p>
-                <p>Log files are available inside the <a href="{get_ood_url(file_path)}">log folder</a> and also attached to this email.</p>
+                <p>Log files are available inside the <a href="{get_ood_url(file_path)}">log folder</a> and are also attached to this email.</p>
                 <p>Please reply to this email so our team can investigate the issue or visit our <a href="https://scicomp.aalto.fi/help/garage/">daily garage</a>, every day at 13:00 EET.</p>
                 <p>Best,</p>
                 <p>Aalto Scientific Computing</p>
