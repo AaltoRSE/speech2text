@@ -41,6 +41,12 @@ def get_argument_parser():
         help="Temporary folder. If not given, can be set as an environment variable. Optional, defaults to: /scratch/work/$USER/.speech2text/",
     )
     parser.add_argument(
+        "--SPEECH2TEXT_EMAIL_ATTACHMENTS",
+        type=str,
+        default=os.getenv("SPEECH2TEXT_EMAIL_ATTACHMENTS"),
+        help="Send results via email.",
+    )
+    parser.add_argument(
         "--SPEECH2TEXT_MEM",
         type=str,
         default=None,
@@ -264,21 +270,68 @@ def submit_job(args: Namespace, audio_files: list[PosixPath]):
             est_time,
             args.SPEECH2TEXT_EMAIL,
             args.SPEECH2TEXT_TMP,
+            args.SPEECH2TEXT_EMAIL_ATTACHMENTS,
         )
 
         # Log
         print(f".. {f}: Submit.")
+        
         # Submit
         cmd = f"sbatch {tmp_file_sh.absolute()}"
         cmd = shlex.split(cmd)
         subprocess.run(cmd)
+        # output = subprocess.run(cmd, capture_output=True, check=True, text=True)
+        # job_number = output.stdout.split()[3]
+        
+        # tmp_file_sh = create_failed_job_email(f, job_number, args.SPEECH2TEXT_EMAIL, args.SPEECH2TEXT_TMP)
+        # cmd = f"sbatch {tmp_file_sh.absolute()}"
+        # cmd = shlex.split(cmd)
+        # subprocess.run(cmd)
     
     # Log
     print(f"Results will be written to folder: '{output_dir}'\n")
 
 
+def create_email_notification_sbatch_script(email: str, input_file: PosixPath, log_folder: str, job_id, send_attachments: bool):
+    script=f"""
+# If the job succeeded (exit status 0)
+if [ $? -eq 0 ]; then
+    python3 src/notification.py --to {email} --email_subject 'Transcription job is completed' --file_name {Path(input_file).name} --file_path {Path(input_file).parent / 'results'} --attachment {send_attachments}     
+# If the job failed (non-zero exit status)
+else
+    python3 src/notification.py --to {email} --email_subject 'Transcription job is failed' --file_name {Path(input_file).name} --file_path {Path(log_folder)} --job_id {job_id}
+    exit 1
+fi
+    """
+
+    return script
+
+def create_failed_job_email(input_file: PosixPath, job_id: int, email: str, log_folder: str):
+
+    script = f"""
+#SBATCH --job-name=speech2text_fail_email
+#SBATCH --dependency=afternotok:{job_id}
+
+python3 src/notification.py --to {email} --email_subject 'Transcription job is failed' --file_name {Path(input_file).name} --file_path {Path(log_folder)} --job_id {job_id}
+"""
+
+    tmp_file_sh = (Path(log_folder) / str(f'{input_file}_failed_email')).with_suffix(".sh")
+    Path(tmp_file_sh).parent.mkdir(parents=True, exist_ok=True)
+    with open(tmp_file_sh, "w") as fout:
+        fout.write(script)
+
+    return tmp_file_sh
+
+
 def create_sbatch_script_for_single_file(
-    input_file, job_name, mem, cpus_per_task, time, email, tmp_dir
+        input_file: PosixPath, 
+        job_name: str, 
+        mem: str, 
+        cpus_per_task: int, 
+        time: str, 
+        email: str, 
+        tmp_dir: str, 
+        send_attachments: bool
 ):
     python_source_dir = Path(__file__).absolute().parent
 
@@ -291,12 +344,10 @@ def create_sbatch_script_for_single_file(
 #SBATCH --gres=gpu:1
 #SBATCH --time={time}
 #SBATCH --mail-user={email}
-#SBATCH --mail-type=FAIL
 python3 {python_source_dir}/speech2text.py {input_file}
 
-wait
-
-python3 src/notification.py --to {email} --file_name {Path(input_file).name} --file_path {Path(input_file).parent / 'results'}
+echo "Sending email notification"
+{create_email_notification_sbatch_script(email, input_file, tmp_dir, "$SLURM_JOB_ID", send_attachments)}
 """
 
     tmp_file_sh = (Path(tmp_dir) / str(job_name)).with_suffix(".sh")
