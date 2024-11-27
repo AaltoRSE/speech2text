@@ -126,7 +126,7 @@ then
   sed -i "s|<SPEECH2TEXT_CPUS_PER_TASK>|$SPEECH2TEXT_CPUS_PER_TASK|g" $SCRIPT
 
   # Deploy to Github for ondemand installation
-  REPO_URL="https://github.com/AaltoSciComp/speech2text-ood-ansible.git"
+  REPO_URL="git@github.com:AaltoSciComp/speech2text-ood-ansible.git"
   TEMP_DIR=$(mktemp -d)
   git clone "$REPO_URL" "$TEMP_DIR"
 
