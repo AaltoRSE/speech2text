@@ -31,6 +31,7 @@ def get_argument_parser():
     )
     parser.add_argument(
         "INPUT",
+        nargs='+',
         type=str,
         help="Input audio file or folder containing audio files. Mandatory.",
     )
@@ -414,14 +415,13 @@ def check_whisper_model(name: str) -> bool:
 
 def main():
     # Parse arguments
+    
     parser = get_argument_parser()
-    args, unknown = parser.parse_known_args()
-
+    args = parser.parse_args()
+    
     # Join all parts of the INPUT argument to handle spaces
-    if unknown:
-        args.INPUT = ' '.join([args.INPUT] + unknown)
-    else:
-        args.INPUT = args.INPUT
+    input_as_str = ' '.join(args.INPUT)
+    args.input = input_as_str.split(', ')
     
     print(f"\nSubmit speech2text jobs with arguments:")
     for key, value in vars(args).items():
