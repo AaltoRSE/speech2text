@@ -1,4 +1,50 @@
-## Submission is done!
-Your job has been submitted successfully. You will get an email when transcirption is done. <br>
-To access the log folder, click in the session id. <br>
-The results will be in the Path folder you selected.
+<%-
+  fs_base_url = "https://ondemand.triton.aalto.fi/pun/sys/dashboard/files/fs"
+%>
+
+<%-
+  # Define the path to the connection.yml file
+  connection_file_path = "#{staged_root}/connection.yml"
+
+  # Parse the YAML file to get the value of the key 'audio_path'
+  require 'yaml'
+  connection_file_content = YAML.load_file(connection_file_path)
+  audio_path = connection_file_content['audio_path']
+  if File.file?(audio_path)
+    audio_path = File.dirname(audio_path)
+  end
+  audio_path = File.join(audio_path, 'results')
+%>
+
+### Submission is done!
+
+<body>
+  Your job has been submitted successfully. You will get an email when transcription is done. <br>
+  
+  <div class="btn-group btn-group-toggle" data-toggle="buttons" style="display: flex; justify-content: space-between; gap: 10px;">
+    <label class="btn btn-info" style="flex-grow: 1;">
+        <input type="radio" name="options" id="results" autocomplete="off" onclick="window.open('<%= "#{fs_base_url}/#{audio_path}" %>', '_blank')">
+        <i class="fa fa-folder"></i> Results Folder
+    </label>
+    <label class="btn btn-warning" style="flex-grow: 1;">
+        <input type="radio" name="options" id="logs" autocomplete="off" onclick="window.open('<%= "#{fs_base_url}/#{staged_root}" %>', '_blank')">
+        <i class="fa fa-folder"></i> Log Folder
+    </label>
+    <label class="btn btn-dark" style="margin-left: auto;">
+        <input type="radio" name="options" id="contact" autocomplete="off" onclick="window.open('mailto:rse@aalto.fi', '_blank')">
+        <i class="fa fa-envelope"></i> Contact Support
+    </label>
+  </div>
+
+  <div>
+    <details class="abstract">
+      <summary>Script Log (Debug)</summary>
+      <div class="highlight" style="overflow: auto; max-width: 100%;">
+        <pre><span></span>
+          <iframe src="<%= "#{fs_base_url}#{staged_root}/output.log" %>" width="100%" height="300" frameBorder="0" style="border: none;"></iframe>
+        </pre>
+      </div>
+    </details>
+  </div>
+
+</body>

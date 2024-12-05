@@ -2,11 +2,15 @@
 ---
 batch_connect:
   template: "basic"
+  conn_file: "connection.yml"
+  conn_params:
+    - audio_path
   script_wrapper: |
     export SPEECH2TEXT_LANGUAGE=<%= language_field %>
     export SPEECH2TEXT_EMAIL=<%= email_field %>
     export audio_path="<%= audio_path %>"
     export SPEECH2TEXT_WHISPER_MODEL=<%= model_selector %>
+    export SPEECH2TEXT_EMAIL_ATTACHMENTS=<%= send_attachments %>
     export SPEECH2TEXT_ONDEMAND=True
     %s
 
