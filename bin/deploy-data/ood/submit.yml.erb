@@ -2,6 +2,9 @@
 ---
 batch_connect:
   template: "basic"
+  conn_file: "connection.yml"
+  conn_params:
+    - audio_path
   script_wrapper: |
     export SPEECH2TEXT_LANGUAGE=<%= language_field %>
     export SPEECH2TEXT_EMAIL=<%= email_field %>
