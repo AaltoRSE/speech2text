@@ -1,10 +1,26 @@
 /**
  *  Decode the audio_path to replace '%20' with space
  */
-function decode_audio_path() {
-    let audio_path = $("#batch_connect_session_context_audio_path");
 
-    audio_path.val(decodeURIComponent(audio_path.val()))
+// File path in OOD has a prefix
+const OOD_PREFIX_PATH = "/pun/sys/dashboard/files/fs/";
+
+function decode_audio_path() {
+    let selectedFiles = [];
+
+    // Find all rows with the 'selected' class
+    $("#batch_connect_session_context_audio_path_path_selector_table tr.selected").each(function() {
+        // Extract the file path from the data attribute
+        let filePath = $(this).data("api-url");
+        if (filePath) {
+            let absolutePath = filePath.replace(OOD_PREFIX_PATH, ''); // Remove the prefix from the path
+            selectedFiles.push(decodeURIComponent(absolutePath));
+        }
+    });
+
+    // Join paths with a separator, e.g., comma
+    $("#batch_connect_session_context_audio_path").val(selectedFiles.join('; '));
+
 }
 
 
@@ -47,6 +63,18 @@ function validate_AudioPath(event) {
 }
 
 
+function toggle_visibilty_of_form_group(form_id, show) {
+    let form_element = $(form_id);
+    let parent = form_element.parent();
+    console.log("Show value:", show);
+    if(show == true) {
+      parent.show();
+    } else {
+      parent.hide();
+    }
+}
+
+
 /**
  * Sets the event handler for file selector button.
  * Triggering the handler based on the field change doesn't work
@@ -67,6 +95,13 @@ function add_event_handlers() {
 
     let submit_button = $("input[type='submit'][name='commit']");
     submit_button.click(validate_AudioPath);
+
+    let advance_settings = $("#batch_connect_session_context_advance_options");
+    advance_settings.change(function() {
+        toggle_visibilty_of_form_group(
+            "#batch_connect_session_context_model_selector", 
+            advance_settings.is(':checked'))
+    });
 }
 
 
@@ -75,4 +110,7 @@ function add_event_handlers() {
  */
 $(document).ready(function () {
     add_event_handlers();
+
+    // Hide the advance settings at the beggining
+    toggle_visibilty_of_form_group("#batch_connect_session_context_model_selector", 'false')
 });
