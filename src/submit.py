@@ -296,10 +296,10 @@ def create_email_notification_sbatch_script(email: str, input_file: PosixPath, l
     script=f"""
 # If the job succeeded (exit status 0)
 if [ $? -eq 0 ]; then
-    python3 src/notification.py --to {email} --email_subject 'Transcription job is completed' --file_name {Path(input_file).name} --file_path {Path(input_file).parent / 'results'} --attachment {send_attachments}     
+    python3 src/email_notification.py --to {email} --email_subject 'Transcription job is completed' --file_name {Path(input_file).name} --file_path {Path(input_file).parent / 'results'} --attachment {send_attachments}     
 # If the job failed (non-zero exit status)
 else
-    python3 src/notification.py --to {email} --email_subject 'Transcription job is failed' --file_name {Path(input_file).name} --file_path {Path(log_folder)} --job_id {job_id}
+    python3 src/email_notification.py --to {email} --email_subject 'Transcription job is failed' --file_name {Path(input_file).name} --file_path {Path(log_folder)} --job_id {job_id}
     exit 1
 fi
     """
@@ -312,7 +312,7 @@ def create_failed_job_email(input_file: PosixPath, job_id: int, email: str, log_
 #SBATCH --job-name=speech2text_fail_email
 #SBATCH --dependency=afternotok:{job_id}
 
-python3 src/notification.py --to {email} --email_subject 'Transcription job is failed' --file_name {Path(input_file).name} --file_path {Path(log_folder)} --job_id {job_id}
+python3 src/email_notification.py --to {email} --email_subject 'Transcription job is failed' --file_name {Path(input_file).name} --file_path {Path(log_folder)} --job_id {job_id}
 """
 
     tmp_file_sh = (Path(log_folder) / str(f'{input_file}_failed_email')).with_suffix(".sh")
