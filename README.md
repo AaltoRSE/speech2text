@@ -45,7 +45,7 @@ Create a conda environment to `env/`
 
 ```bash
 module load mamba
-mamba env create --file env.yml --prefix env/
+mamba env create --file env.yml --prefix $PWD/env/
 ```
 
 To deploy both command line interface (CLI) module and the Open On Demand (OOD) app, run 
@@ -247,7 +247,7 @@ Create a conda environment to `env/`
 
 ```bash
 module load mamba
-mamba env create --file env.yml --prefix env/
+mamba env create --file env.yml --prefix $PWD/env/
 ```
 
 Deploy the command line interface (CLI) module and the Open On Demand (OOD) sandbox app with
