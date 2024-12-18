@@ -421,7 +421,7 @@ def main():
     
     # Join all parts of the INPUT argument to handle spaces
     input_as_str = ' '.join(args.INPUT)
-    args.input = input_as_str.split(', ')
+    input_file_list = input_as_str.split(', ')
     
     print(f"\nSubmit speech2text jobs with arguments:")
     for key, value in vars(args).items():
@@ -464,22 +464,25 @@ where 'mylanguage' is one of the supported languages:
     )
 
     # Submit file or directory
-    args.INPUT = Path(args.INPUT).absolute()
 
-    if args.INPUT.is_file():
-        print(f"Input file: '{args.INPUT}'\n")
-        files_to_submit = [args.INPUT]
-    elif args.INPUT.is_dir():
-        print(f"Input directory: '{args.INPUT}'\n")
-        files_to_submit = list(args.INPUT.glob("*.*")) 
-    else:
-        print(
-            f".. Submission failed: First argument needs to be an existing audio file or a directory with audio files.\n \
-            The input was set to '{args.INPUT}'"
-        )
-        return
-    
-    submit_job(args, files_to_submit)
+    for input_file in input_file_list:
+        
+        args.INPUT = Path(input_file).absolute()
+
+        if args.INPUT.is_file():
+            print(f"Input file: '{args.INPUT}'\n")
+            files_to_submit = [args.INPUT]
+        elif args.INPUT.is_dir():
+            print(f"Input directory: '{args.INPUT}'\n")
+            files_to_submit = list(args.INPUT.glob("*.*")) 
+        else:
+            print(
+                f".. Submission failed: First argument needs to be an existing audio file or a directory with audio files.\n \
+                The input was set to '{args.INPUT}'"
+            )
+            return
+        
+        submit_job(args, files_to_submit)
 
 
 if __name__ == "__main__":

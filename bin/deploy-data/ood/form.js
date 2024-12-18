@@ -19,7 +19,7 @@ function decode_audio_path() {
     });
 
     // Join paths with a separator, e.g., comma
-    $("#batch_connect_session_context_audio_path").val(selectedFiles.join('; '));
+    $("#batch_connect_session_context_audio_path").val(selectedFiles.join(', '));
 
 }
 

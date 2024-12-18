@@ -359,13 +359,7 @@ def diarize(file: str, config: str, token: str, result_list: dict):
 
 def main():
     parser = get_argument_parser()
-    args, unknown = parser.parse_known_args()
-
-    # Join all parts of the INPUT argument to handle spaces
-    if unknown:
-        args.INPUT_FILE = ' '.join([args.INPUT_FILE] + unknown)
-    else:
-        args.INPUT_FILE = args.INPUT_FILE
+    args = parser.parse_args()
         
     logger.info(f"Parsed arguments: {args}")
 
