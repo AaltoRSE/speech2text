@@ -6,7 +6,7 @@ from email.mime.application import MIMEApplication
 from pathlib import Path, PosixPath
 
 AALTO_SMTP_SERVER = 'smtp.aalto.fi'
-RSE_EAMIL = 'rse-group@aalto.fi'
+RSE_EMAIL = 'rse@aalto.fi'
 
 def sendemail(to: str, 
               file_name: PosixPath,
@@ -134,7 +134,7 @@ def main():
     parser.add_argument('--file_name', type=str, required=True, help='The audio file name to include in the email.')
     parser.add_argument('--file_path', type=str, required=True, help='The file path for creating ondemand url to the result folder.')
     parser.add_argument('--email_subject', type=str, required=True, help='Email subject')
-    parser.add_argument('--sender', type=str, default=RSE_EAMIL, help='The sender email address.')
+    parser.add_argument('--sender', type=str, default=RSE_EMAIL, help='The sender email address.')
     parser.add_argument('--attachment', type=bool, default=False, help='Send results via email.')
     parser.add_argument('--job_id', type=str, required=False, help='The job ID to include in the email.')
     args = parser.parse_args()
