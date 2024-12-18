@@ -104,7 +104,7 @@ Alternatively, process multiple audio files in a folder
 speech2text audio-files/
 ```
 
-Using the latter option submits the files as an [array job](https://scicomp.aalto.fi/triton/tut/array/). See [src/submit.py](src/submit.py) for details about the submissions.
+See [src/submit.py](src/submit.py) for details about the submissions.
 
 The audio file(s) can be in any common audio (.wav, .mp3, .aff, etc.) or video (.mp4, .mov, etc.) format. 
 

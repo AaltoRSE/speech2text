@@ -290,22 +290,6 @@ def load_whisperx_model(
     return model
 
 
-def read_input_file_from_array_file(input_file: str, slurm_array_task_id: str):
-    """
-    Read a single audio path from a JSON file with an array of audio paths.
-
-    Returns the audio path at the given index.
-    """
-    logger.info(f".. Read item {slurm_array_task_id} from {input_file}")
-    input_files = []
-    with open(input_file, "r") as fin:
-        input_files = json.load(fin)
-    logger.info(f".. .. Read items: {input_files}")
-    new_input_file = input_files[int(slurm_array_task_id)]
-    logger.info(f".. Return: {new_input_file}")
-    return new_input_file
-
-
 def transcribe(
     file: str, model_name: str, language: str, result: dict
 ) -> TranscriptionResult:
@@ -375,28 +359,14 @@ def diarize(file: str, config: str, token: str, result_list: dict):
 
 def main():
     parser = get_argument_parser()
-    args, unknown = parser.parse_known_args()
-
-    # Join all parts of the INPUT argument to handle spaces
-    if unknown:
-        args.INPUT_FILE = ' '.join([args.INPUT_FILE] + unknown)
-    else:
-        args.INPUT_FILE = args.INPUT_FILE
+    args = parser.parse_args()
         
     logger.info(f"Parsed arguments: {args}")
 
     logger.info(f"Start processing input file: {args.INPUT_FILE}")
-
+    
     if not Path(args.INPUT_FILE).is_file():
-        logger.error(f".. Given input file '{args.INPUT_FILE}' does not exist!")
-        return
-
-    # Parse input file
-    slurm_array_task_id = os.getenv("SLURM_ARRAY_TASK_ID")
-    if Path(args.INPUT_FILE).suffix == ".json" and slurm_array_task_id is not None:
-        args.INPUT_FILE = read_input_file_from_array_file(
-            args.INPUT_FILE, slurm_array_task_id
-        )
+        raise FileNotFoundError(f"Given input file '{args.INPUT_FILE}' does not exist!")
 
     # Check mandatory language argument
     language = args.SPEECH2TEXT_LANGUAGE

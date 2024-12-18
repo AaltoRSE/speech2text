@@ -31,6 +31,7 @@ def get_argument_parser():
     )
     parser.add_argument(
         "INPUT",
+        nargs='+',
         type=str,
         help="Input audio file or folder containing audio files. Mandatory.",
     )
@@ -39,6 +40,12 @@ def get_argument_parser():
         type=str,
         default=get_tmp_folder(),
         help="Temporary folder. If not given, can be set as an environment variable. Optional, defaults to: /scratch/work/$USER/.speech2text/",
+    )
+    parser.add_argument(
+        "--SPEECH2TEXT_EMAIL_ATTACHMENTS",
+        type=str,
+        default=os.getenv("SPEECH2TEXT_EMAIL_ATTACHMENTS"),
+        help="Send results via email.",
     )
     parser.add_argument(
         "--SPEECH2TEXT_MEM",
@@ -149,30 +156,25 @@ def parse_output_dir(input_path: str, create_if_not_exists: bool = True) -> str:
 
 
 def create_array_input_file(
-    input_dir: str, output_dir: str, job_name: Path, tmp_dir
-) -> str:
+    input_list: list[PosixPath], output_dir: str) -> list[str]:
     """
-    Process the input directory and create a json file with the list of audio files to process.
+    Process the input list and create a list of audio files which needs transcribing.
 
     Parameters
     ----------
-    input_dir: str
-        The input directory for the audio files.
+    input_dir: list[PosixPath]
+        A list of audio files.
     output_dir: str
         The output directory for the results.
-    job_name: Path
-        The job name extracted from the input path.
-    tmp_dir: str
-        The temporary directory for saving the json file.
 
     Returns
     -------
-    tmp_file_array: str
-        The temporary json file with the list of audio files to process.
+    input_files: list[str]
+        The list of audio files needs transcribing.
     """
-    print(f"Scan input audio files from: {input_dir}\n")
     input_files = []
-    for input_file in Path(input_dir).glob("*.*"):
+    
+    for input_file in input_list:
         try:
             result = subprocess.run(
                 ["ffmpeg", "-i", str(input_file)],
@@ -180,7 +182,7 @@ def create_array_input_file(
                 stderr=subprocess.PIPE,
             )
         except subprocess.CalledProcessError as e:
-            print(f"Error processing {input_file}: {e}")
+            print(f"Warning! Error processing {input_file}: {e}")
             continue
         if "Audio:" not in str(result.stderr):
             print(f".. {input_file}: Skip since it's not an audio file.")
@@ -188,32 +190,22 @@ def create_array_input_file(
         existing, missing = get_existing_result_files(input_file, output_dir)
         if existing and not missing:
             print(
-                f".. {input_file}: Skip since result files {[str(f) for f in existing]} exist"
+                f".. {input_file}: Skip since result files {[str(f) for f in existing]} exist."
             )
             continue
-        print(f".. {input_file}: Submit")
         input_files.append(str(input_file))
-    print()
 
-    if not input_files:
-        return
-
-    tmp_file_array = (Path(tmp_dir) / str(job_name)).with_suffix(".json")
-    Path(tmp_file_array).parent.mkdir(parents=True, exist_ok=True)
-    with open(tmp_file_array, "w") as fout:
-        json.dump(input_files, fout)
-
-    return tmp_file_array
+    return input_files
 
 
 def estimate_job_requirements(input_path: PosixPath) -> tuple[str, int]:
     """
-    Estimate total run time based on input file/folder.
+    Estimate total run time based on input file.
 
     Parameters
     ----------
     input_path: PosixPath
-        Input audio file or folder containing audio files.
+        Input audio file .
 
     Returns
     -------
@@ -230,107 +222,18 @@ def estimate_job_requirements(input_path: PosixPath) -> tuple[str, int]:
 
     #Whisper and Pyannote models require 3.5Gb of memory each
     PIPELINE_REQ_RAM = 7
-
-    total_duration = "00:00:00"
-    total_loading = "00:00:00"
-
-    input_files = []
-    if Path(input_path).suffix == ".json":
-        with open(input_path, "r") as fin:
-            input_files = json.load(fin)
-    else:
-        input_files.append(str(input_path))
-
-    audio_sizes = []
-    results_seconds = []
-    for audio_file in input_files:
-        _, duration, file_size = load_audio(audio_file)
-        audio_sizes.append(file_size)
-
-        hours, minutes, seconds = map(int, duration.split(":"))
-        total_seconds = hours * 3600 + minutes * 60 + seconds
-        result_seconds = total_seconds / REALTIME_SPEEDUP
-
-        if result_seconds < 60:
-            result_seconds = 60
-
-        results_seconds.append(result_seconds)
-
-    max_durration = max(results_seconds)
-    max_hours, remainder = divmod(max_durration, 3600)
-    max_minutes, max_seconds = divmod(remainder, 60)
-
-    duration = "{:02}:{:02}:{:02}".format(
-            int(max_hours), int(max_minutes), int(max_seconds)
-        )
+    
+    _, duration, file_size = load_audio(str(input_path))
 
     audio_processing_time = add_durations(duration, AUDIO_LOADING_TIME)
 
     # Whisper and Pyannote uses 12x of file size for the RAM
     # Transcription and Diarization tasks run in parallel, x2 memory is required
-    req_ram =  PIPELINE_REQ_RAM + max(audio_sizes) * 12 * 2
+    req_ram =  PIPELINE_REQ_RAM + file_size * 12 * 2
     return add_durations(PIPELINE_LOADING_TIME, audio_processing_time), f"{req_ram}G"
 
 
-def create_sbatch_script_for_array_job(
-    input_file: str,
-    job_name: Path,
-    mem: str,
-    cpus_per_task: int,
-    time: str,
-    email: str,
-    tmp_dir: str,
-) -> str:
-    """
-    Create the sbatch script for the array job.
-
-    Parameters
-    ----------
-    input_file: str
-        The json file with the list of audio files to process.
-    job_name: Path
-        The job name extracted from the input path.
-    mem: str
-        Requested memory per job. Default is 24GB.
-    cpus_per_task: int
-        Requested cpus per task. Default is 6.
-    time: str
-        Requested time per job in HH:MM:SS format.
-    email: str
-        Send job notifications to this email. Optional.
-    tmp_dir: str
-        The temporary directory for saving the sbatch script.
-    """
-    with open(input_file, "r") as fin:
-        array_length = len(json.load(fin))
-
-    python_source_dir = Path(__file__).absolute().parent
-
-    script = f"""#!/bin/bash
-#SBATCH --array=0-{array_length-1}
-#SBATCH --output="{tmp_dir}/{job_name}_%A_%a.out"
-#SBATCH --error="{tmp_dir}/{job_name}_%A_%a.err"
-#SBATCH --job-name={job_name}
-#SBATCH --mem={mem}
-#SBATCH --cpus-per-task={cpus_per_task}
-#SBATCH --gres=gpu:1
-#SBATCH --time={time}
-#SBATCH --mail-user={email}
-#SBATCH --mail-type=END
-#SBATCH --mail-type=FAIL
-export OMP_NUM_THREADS={cpus_per_task}
-export KMP_AFFINITY=granularity=fine,compact
-python3 {python_source_dir}/speech2text.py {input_file}
-"""
-    tmp_file_sh = (Path(tmp_dir) / str(job_name)).with_suffix(".sh")
-    Path(tmp_file_sh).parent.mkdir(parents=True, exist_ok=True)
-    with open(tmp_file_sh, "w") as fout:
-        fout.write(script)
-
-    return tmp_file_sh
-
-
-def submit_dir(args: Namespace, job_name: Path):
+def submit_job(args: Namespace, audio_files: list[PosixPath]):
     """
     Run sbatch command to submit the job to the cluster.
 
@@ -338,45 +241,98 @@ def submit_dir(args: Namespace, job_name: Path):
     ----------
     args: Namespace
         The arguments for the submit script.
-    job_name: Path
-        The job name extracted from the input path.
+    audio_files: list[PosixPath]
+        A list of audio files to be processed.
     """
     # Prepare submission scripts
     output_dir = parse_output_dir(args.INPUT)
-    tmp_file_array = create_array_input_file(
-        args.INPUT, output_dir, job_name, args.SPEECH2TEXT_TMP
-    )
-    if tmp_file_array is None:
+
+    audio_files = create_array_input_file(audio_files, output_dir)
+    
+    if not audio_files:
         print(
             f"Submission not necessary since no files in {args.INPUT} need processing\n"
         )
         return
 
-    est_time, req_ram = estimate_job_requirements(tmp_file_array)
-    # For debugging
-    if args.SPEECH2TEXT_MEM:
-        req_ram = args.SPEECH2TEXT_MEM
-    tmp_file_sh = create_sbatch_script_for_array_job(
-        tmp_file_array,
-        job_name,
-        req_ram,
-        args.SPEECH2TEXT_CPUS_PER_TASK,
-        est_time,
-        args.SPEECH2TEXT_EMAIL,
-        args.SPEECH2TEXT_TMP,
-    )
 
+    for f in audio_files:
+        est_time, req_ram = estimate_job_requirements(f)
+        
+        # For debugging
+        if args.SPEECH2TEXT_MEM:
+            req_ram = args.SPEECH2TEXT_MEM
+        
+        tmp_file_sh = create_sbatch_script_for_single_file(
+            f,
+            parse_job_name(f),
+            req_ram,
+            args.SPEECH2TEXT_CPUS_PER_TASK,
+            est_time,
+            args.SPEECH2TEXT_EMAIL,
+            args.SPEECH2TEXT_TMP,
+            args.SPEECH2TEXT_EMAIL_ATTACHMENTS,
+        )
+
+        # Log
+        print(f".. {f}: Submit.")
+        
+        # Submit
+        cmd = f"sbatch {tmp_file_sh.absolute()}"
+        cmd = shlex.split(cmd)
+        subprocess.run(cmd)
+        # output = subprocess.run(cmd, capture_output=True, check=True, text=True)
+        # job_number = output.stdout.split()[3]
+        
+        # tmp_file_sh = create_failed_job_email(f, job_number, args.SPEECH2TEXT_EMAIL, args.SPEECH2TEXT_TMP)
+        # cmd = f"sbatch {tmp_file_sh.absolute()}"
+        # cmd = shlex.split(cmd)
+        # subprocess.run(cmd)
+    
     # Log
     print(f"Results will be written to folder: '{output_dir}'\n")
 
-    # Submit
-    cmd = f"sbatch {tmp_file_sh.absolute()}"
-    cmd = shlex.split(cmd)
-    subprocess.run(cmd)
+
+def create_email_notification_sbatch_script(email: str, input_file: PosixPath, log_folder: str, job_id, send_attachments: bool):
+    script=f"""
+# If the job succeeded (exit status 0)
+if [ $? -eq 0 ]; then
+    python3 src/email_notification.py --to {email} --email_subject 'Transcription job is completed' --file_name {Path(input_file).name} --file_path {Path(input_file).parent / 'results'} --attachment {send_attachments}     
+# If the job failed (non-zero exit status)
+else
+    python3 src/email_notification.py --to {email} --email_subject 'Transcription job is failed' --file_name {Path(input_file).name} --file_path {Path(log_folder)} --job_id {job_id}
+    exit 1
+fi
+    """
+
+    return script
+
+def create_failed_job_email(input_file: PosixPath, job_id: int, email: str, log_folder: str):
+
+    script = f"""
+#SBATCH --job-name=speech2text_fail_email
+#SBATCH --dependency=afternotok:{job_id}
+
+python3 src/email_notification.py --to {email} --email_subject 'Transcription job is failed' --file_name {Path(input_file).name} --file_path {Path(log_folder)} --job_id {job_id}
+"""
+
+    tmp_file_sh = (Path(log_folder) / str(f'{input_file}_failed_email')).with_suffix(".sh")
+    Path(tmp_file_sh).parent.mkdir(parents=True, exist_ok=True)
+    with open(tmp_file_sh, "w") as fout:
+        fout.write(script)
+
+    return tmp_file_sh
 
 
 def create_sbatch_script_for_single_file(
-    input_file, job_name, mem, cpus_per_task, time, email, tmp_dir
+        input_file: PosixPath, 
+        job_name: str, 
+        mem: str, 
+        cpus_per_task: int, 
+        time: str, 
+        email: str, 
+        tmp_dir: str, 
+        send_attachments: bool
 ):
     python_source_dir = Path(__file__).absolute().parent
 
@@ -389,9 +345,10 @@ def create_sbatch_script_for_single_file(
 #SBATCH --gres=gpu:1
 #SBATCH --time={time}
 #SBATCH --mail-user={email}
-#SBATCH --mail-type=END
-#SBATCH --mail-type=FAIL
 python3 {python_source_dir}/speech2text.py {input_file}
+
+echo "Sending email notification"
+{create_email_notification_sbatch_script(email, input_file, tmp_dir, "$SLURM_JOB_ID", send_attachments)}
 """
 
     tmp_file_sh = (Path(tmp_dir) / str(job_name)).with_suffix(".sh")
@@ -400,52 +357,6 @@ python3 {python_source_dir}/speech2text.py {input_file}
         fout.write(script)
 
     return tmp_file_sh
-
-
-def submit_file(args: Namespace, job_name: Path):
-    """
-    Run sbatch command to submit the job to the cluster.
-
-    Parameters
-    ----------
-    args: Namespace
-        The arguments for the submit script.
-    job_name: Path
-        The job name extracted from the input path.
-    """
-    # Prepare submission scripts
-    output_dir = parse_output_dir(args.INPUT)
-
-    # Check if expected result files exist already
-    existing_result_files, missing_result_files = get_existing_result_files(
-        args.INPUT, output_dir
-    )
-    if existing_result_files and not missing_result_files:
-        print(
-            f"Submission not necessary as expected result files already exist:\n{' '.join([str(f) for f in existing_result_files])}"
-        )
-        return
-    est_time, req_ram = estimate_job_requirements(args.INPUT)
-    # For debugging
-    if args.SPEECH2TEXT_MEM:
-        req_ram = args.SPEECH2TEXT_MEM
-    tmp_file_sh = create_sbatch_script_for_single_file(
-        args.INPUT,
-        job_name,
-        req_ram,
-        args.SPEECH2TEXT_CPUS_PER_TASK,
-        est_time,
-        args.SPEECH2TEXT_EMAIL,
-        args.SPEECH2TEXT_TMP,
-    )
-
-    # Log
-    print(f"Results will be written to folder: '{output_dir}'\n")
-
-    # Submit
-    cmd = f"sbatch {tmp_file_sh.absolute()}"
-    cmd = shlex.split(cmd)
-    subprocess.run(cmd)
 
 
 def check_email(email: str):
@@ -458,7 +369,7 @@ def check_email(email: str):
         The email to check.
     """
     pattern = r"^[A-Za-z]+\.+[A-Za-z]+@aalto.fi$"
-    if email is not None:
+    if email:
         if re.match(pattern, email):
             print(f"Email notifications will be sent to: {email}\n")
         else:
@@ -504,14 +415,13 @@ def check_whisper_model(name: str) -> bool:
 
 def main():
     # Parse arguments
+    
     parser = get_argument_parser()
-    args, unknown = parser.parse_known_args()
-
+    args = parser.parse_args()
+    
     # Join all parts of the INPUT argument to handle spaces
-    if unknown:
-        args.INPUT = ' '.join([args.INPUT] + unknown)
-    else:
-        args.INPUT = args.INPUT
+    input_as_str = ' '.join(args.INPUT)
+    input_file_list = input_as_str.split(', ')
     
     print(f"\nSubmit speech2text jobs with arguments:")
     for key, value in vars(args).items():
@@ -519,10 +429,7 @@ def main():
     print()
 
     # Check temporary folder
-    if args.SPEECH2TEXT_TMP is None:
-        user = os.getenv("USER")
-        args.SPEECH2TEXT_TMP = f"/scratch/work/{user}/.speech2text/"
-        Path(args.SPEECH2TEXT_TMP).mkdir(parents=True, exist_ok=True)
+    Path(args.SPEECH2TEXT_TMP).mkdir(parents=True, exist_ok=True)
     print(f"Temporary folder: {args.SPEECH2TEXT_TMP}\n")
 
     # Check mandatory language argument
@@ -557,19 +464,25 @@ where 'mylanguage' is one of the supported languages:
     )
 
     # Submit file or directory
-    args.INPUT = Path(args.INPUT).absolute()
-    job_name = parse_job_name(args.INPUT)
-    if Path(args.INPUT).is_file():
-        print(f"Input file: '{args.INPUT}'\n")
-        submit_file(args, job_name)
-    elif Path(args.INPUT).is_dir():
-        print(f"Input directory: '{args.INPUT}'\n")
-        submit_dir(args, job_name)
-    else:
-        print(
-            f".. Submission failed: First argument needs to be an existing audio file or a directory with audio files.\n \
-            The input was set to '{args.INPUT}'"
-        )
+
+    for input_file in input_file_list:
+        
+        args.INPUT = Path(input_file).absolute()
+
+        if args.INPUT.is_file():
+            print(f"Input file: '{args.INPUT}'\n")
+            files_to_submit = [args.INPUT]
+        elif args.INPUT.is_dir():
+            print(f"Input directory: '{args.INPUT}'\n")
+            files_to_submit = list(args.INPUT.glob("*.*")) 
+        else:
+            print(
+                f".. Submission failed: First argument needs to be an existing audio file or a directory with audio files.\n \
+                The input was set to '{args.INPUT}'"
+            )
+            return
+        
+        submit_job(args, files_to_submit)
 
 
 if __name__ == "__main__":

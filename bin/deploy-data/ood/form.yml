@@ -8,9 +8,10 @@ cacheable: false
 form:
   - audio_path
   - email_field
+  - send_attachments
   - language_field
+  - advance_options
   - model_selector
-
 
 attributes:
   audio_path:
@@ -20,6 +21,7 @@ attributes:
     help: |
       Select the file for transcription OR a folder containing mutiple audio files.
     
+
   language_field:
     label: Language
     widget: select
@@ -38,6 +40,27 @@ attributes:
     help: |
       Only works with aalto email.
       You will get an email when the transcription is done.
+
+
+  send_attachments:
+    label: "Receive transcirpted files as email attachments?"
+    display: true
+    widget: check_box
+    checked_value: True
+    unchecked_value: False
+    help: |
+      Select this option to recieve the transcripted files to your email.
+
+
+    advance_options:
+    label: "Advance Settings"
+    display: false
+    widget: check_box
+    checked_value: true
+    unchecked_value: false
+    help: |
+      Show advance settings.
+
 
   model_selector:
     label: Model
