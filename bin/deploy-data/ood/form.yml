@@ -52,7 +52,7 @@ attributes:
       Select this option to recieve the transcripted files to your email.
 
 
-    advance_options:
+  advance_options:
     label: "Advance Settings"
     display: false
     widget: check_box
