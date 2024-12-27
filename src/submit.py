@@ -293,14 +293,14 @@ def submit_job(args: Namespace, audio_files: list[PosixPath]):
     print(f"Results will be written to folder: '{output_dir}'\n")
 
 
-def create_email_notification_sbatch_script(email: str, input_file: PosixPath, log_folder: str, job_id, send_attachments: bool):
+def create_email_notification_sbatch_script(email: str, input_file: PosixPath, log_folder: str, source_path: PosixPath, job_id, send_attachments: bool):
     script=f"""
 # If the job succeeded (exit status 0)
 if [ $? -eq 0 ]; then
-    python3 src/email_notification.py --to {email} --email_subject 'Transcription job is completed' --file_name {Path(input_file).name} --file_path {Path(input_file).parent / 'results'} --attachment {send_attachments}     
+    python3 {source_path}/email_notification.py --to {email} --email_subject 'Transcription job is completed' --file_name {Path(input_file).name} --file_path {Path(input_file).parent / 'results'} --attachment {send_attachments}     
 # If the job failed (non-zero exit status)
 else
-    python3 src/email_notification.py --to {email} --email_subject 'Transcription job is failed' --file_name {Path(input_file).name} --file_path {Path(log_folder)} --job_id {job_id}
+    python3 {source_path}/email_notification.py --to {email} --email_subject 'Transcription job is failed' --file_name {Path(input_file).name} --file_path {Path(log_folder)} --job_id {job_id}
     exit 1
 fi
     """
@@ -348,7 +348,7 @@ def create_sbatch_script_for_single_file(
 python3 {python_source_dir}/speech2text.py {input_file}
 
 echo "Sending email notification"
-{create_email_notification_sbatch_script(email, input_file, tmp_dir, "$SLURM_JOB_ID", send_attachments)}
+{create_email_notification_sbatch_script(email, input_file, tmp_dir, python_source_dir, "$SLURM_JOB_ID", send_attachments)}
 """
 
     tmp_file_sh = (Path(tmp_dir) / str(job_name)).with_suffix(".sh")
