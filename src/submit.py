@@ -294,6 +294,7 @@ def submit_job(args: Namespace, audio_files: list[PosixPath]):
 
 
 def create_email_notification_sbatch_script(email: str, input_file: PosixPath, log_folder: str, source_path: PosixPath, job_id, send_attachments: bool):
+    send_attachments = (send_attachments=='true')
     script=f"""
 # If the job succeeded (exit status 0)
 if [ $? -eq 0 ]; then

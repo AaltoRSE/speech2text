@@ -21,7 +21,7 @@ def sendemail(to: str,
     msg['Subject'] = subject
     msg['From'] = sender
     msg['To'] = to
-
+    print(send_attachments)
     attachments: list[MIMEApplication]
 
     # Job successful
@@ -69,7 +69,7 @@ def sendemail(to: str,
 
         attachments = get_log_files(file_name, file_path, job_id)
     
-    if send_attachments:
+    if send_attachments==True:
         for attachment in attachments:
             msg.attach(attachment)
     
@@ -135,7 +135,7 @@ def main():
     parser.add_argument('--file_path', type=str, required=True, help='The file path for creating ondemand url to the result folder.')
     parser.add_argument('--email_subject', type=str, required=True, help='Email subject')
     parser.add_argument('--sender', type=str, default=RSE_EMAIL, help='The sender email address.')
-    parser.add_argument('--attachment', type=bool, default=False, help='Send results via email.')
+    parser.add_argument('--attachment', type=lambda x: x.lower() == 'true', default=False, help='Send results via email.')
     parser.add_argument('--job_id', type=str, required=False, help='The job ID to include in the email.')
     args = parser.parse_args()
 
