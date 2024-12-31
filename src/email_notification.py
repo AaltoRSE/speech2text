@@ -21,7 +21,7 @@ def sendemail(to: str,
     msg['Subject'] = subject
     msg['From'] = sender
     msg['To'] = to
-    print(send_attachments)
+    
     attachments: list[MIMEApplication]
 
     # Job successful
