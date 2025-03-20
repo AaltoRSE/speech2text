@@ -6,9 +6,12 @@
 const OOD_PREFIX_PATH = "/pun/sys/dashboard/files/fs/";
 
 function decode_audio_path() {
+    // Do nothing if a folder is selected (no files are selected)
+    if ($("#batch_connect_session_context_audio_path_path_selector_table tr.selected").length === 0) {
+        return; 
+    }
+    
     let selectedFiles = [];
-
-    // Find all rows with the 'selected' class
     $("#batch_connect_session_context_audio_path_path_selector_table tr.selected").each(function() {
         // Extract the file path from the data attribute
         let filePath = $(this).data("api-url");
