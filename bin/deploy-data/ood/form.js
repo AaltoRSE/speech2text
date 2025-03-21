@@ -32,7 +32,7 @@ function toggle_data_warning(isChecked) {
     const label = $("label[for='batch_connect_session_context_send_attachments']");
     const warningMessage = `
             <div id="confidential-warning" style="color: blue; margin-top: 5px;">
-                We recommed this only if your audio files do not include any confidential data.
+                We recommend this only if your audio files do not include any confidential data.
             </div>
     `;
     if (isChecked) {
@@ -99,11 +99,11 @@ function add_event_handlers() {
     let submit_button = $("input[type='submit'][name='commit']");
     submit_button.click(validate_AudioPath);
 
-    let advance_settings = $("#batch_connect_session_context_advance_options");
-    advance_settings.change(function() {
+    let advanced_settings = $("#batch_connect_session_context_advanced_options");
+    advanced_settings.change(function() {
         toggle_visibilty_of_form_group(
             "#batch_connect_session_context_model_selector", 
-            advance_settings.is(':checked'))
+            advanced_settings.is(':checked'))
     });
 }
 
@@ -114,6 +114,6 @@ function add_event_handlers() {
 $(document).ready(function () {
     add_event_handlers();
 
-    // Hide the advance settings at the beggining
+    // Hide the advanced settings at the beggining
     toggle_visibilty_of_form_group("#batch_connect_session_context_model_selector", 'false')
 });

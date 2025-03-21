@@ -10,7 +10,7 @@ form:
   - email_field
   - send_attachments
   - language_field
-  - advance_options
+  - advanced_options
   - model_selector
 
 attributes:
@@ -43,23 +43,23 @@ attributes:
 
 
   send_attachments:
-    label: "Receive transcirpted files as email attachments?"
+    label: "Receive transcripted files as email attachments?"
     display: true
     widget: check_box
     checked_value: True
     unchecked_value: False
     help: |
-      Select this option to recieve the transcripted files to your email.
+      Select this option to receive the transcripted files to your email.
 
 
-  advance_options:
-    label: "Advance Settings"
+  advanced_options:
+    label: "Advanced Settings"
     display: false
     widget: check_box
     checked_value: true
     unchecked_value: false
     help: |
-      Show advance settings.
+      Show advanced settings.
 
 
   model_selector:
