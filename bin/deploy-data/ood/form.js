@@ -6,12 +6,12 @@
 const OOD_PREFIX_PATH = "/pun/sys/dashboard/files/fs/";
 
 function decode_audio_path() {
-    // Do nothing if a folder is selected (no files are selected)
     if ($("#batch_connect_session_context_audio_path_path_selector_table tr.selected").length === 0) {
-        return; 
+        return; // Do nothing if no files are selected
     }
     
     let selectedFiles = [];
+    // Find all rows with the 'selected' class
     $("#batch_connect_session_context_audio_path_path_selector_table tr.selected").each(function() {
         // Extract the file path from the data attribute
         let filePath = $(this).data("api-url");
@@ -32,7 +32,7 @@ function toggle_data_warning(isChecked) {
     const label = $("label[for='batch_connect_session_context_send_attachments']");
     const warningMessage = `
             <div id="confidential-warning" style="color: blue; margin-top: 5px;">
-                We recommend this only if your audio files do not include any confidential data.
+                We recommed this only if your audio files do not include any confidential data.
             </div>
     `;
     if (isChecked) {
@@ -78,6 +78,21 @@ function toggle_visibilty_of_form_group(form_id, show) {
 }
 
 
+function updateButtonText() {
+
+    const button = $("#batch_connect_session_context_audio_path_path_selector_button");
+    const selectedRows = $("#batch_connect_session_context_audio_path_path_selector_table tr.selected").length;
+
+    if (selectedRows === 0) {
+        button.text("Select Folder");
+    } else if (selectedRows === 1) {
+        button.text("Select File");
+    } else {
+        button.text("Select Files");
+    }
+}
+
+
 /**
  * Sets the event handler for file selector button.
  * Triggering the handler based on the field change doesn't work
@@ -99,14 +114,20 @@ function add_event_handlers() {
     let submit_button = $("input[type='submit'][name='commit']");
     submit_button.click(validate_AudioPath);
 
-    let advanced_settings = $("#batch_connect_session_context_advanced_options");
-    advanced_settings.change(function() {
+    let advance_settings = $("#batch_connect_session_context_advance_options");
+    advance_settings.change(function() {
         toggle_visibilty_of_form_group(
             "#batch_connect_session_context_model_selector", 
-            advanced_settings.is(':checked'))
+            advance_settings.is(':checked'))
+    });
+
+    // Update button text on selection change
+    $("#batch_connect_session_context_audio_path_path_selector_table").on('click', 'tr', function() {
+        $(this).toggleClass('selected'); // Toggle selection class
+        console.log("Row clicked. Current class:", $(this).attr('class')); // Debugging log
+        updateButtonText(); // Update button text based on selection
     });
 }
-
 
 /**
  *  Install event handlers
@@ -114,6 +135,8 @@ function add_event_handlers() {
 $(document).ready(function () {
     add_event_handlers();
 
-    // Hide the advanced settings at the beggining
+    updateButtonText();
+
+    // Hide the advance settings at the beggining
     toggle_visibilty_of_form_group("#batch_connect_session_context_model_selector", 'false')
 });
