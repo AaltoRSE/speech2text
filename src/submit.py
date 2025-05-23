@@ -369,7 +369,7 @@ def check_email(email: str):
     email: str
         The email to check.
     """
-    pattern = r"^[A-Za-z]+\.+[A-Za-z]+@aalto.fi$"
+    pattern = r"(^[A-Za-z]+\.+[A-Za-z]+@aalto\.fi$)|(^[A-Za-z0-9]+@aaltofi\.mail\.onmicrosoft\.com$)"
     if email:
         if re.match(pattern, email):
             print(f"Email notifications will be sent to: {email}\n")
