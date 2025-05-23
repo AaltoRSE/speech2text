@@ -13,5 +13,11 @@ export SPEECH2TEXT_CPUS_PER_TASK="<SPEECH2TEXT_CPUS_PER_TASK>"
 
 export HF_HUB_OFFLINE="1"
 
+export OOD_USER=$(whoami)
+export SPEECH2TEXT_EMAIL="${OOD_USER}@aaltofi.mail.onmicrosoft.com"
+
+echo "Username: $OOD_USER"
+echo "Email: $SPEECH2TEXT_EMAIL"
+
 module load speech2text/<VERSION>
 speech2text "$audio_path"

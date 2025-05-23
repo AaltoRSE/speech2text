@@ -7,7 +7,6 @@ cacheable: false
 # the account and the number of cores they want to request for this job.
 form:
   - audio_path
-  - email_field
   - send_attachments
   - language_field
   - advanced_options
@@ -29,17 +28,6 @@ attributes:
     help: |
       Select the language for the audio file(s).
     options: # Will be filled with bin/deploy-data/update_ood_form_values.py
-    
-  
-  email_field:
-    label: Email
-    cacheable: true
-    display: true
-    widget: "email_field"
-    pattern: ".+[.].+@aalto.fi"  
-    help: |
-      Only works with aalto email.
-      You will get an email when the transcription is done.
 
 
   send_attachments:
