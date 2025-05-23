@@ -34,8 +34,9 @@ attributes:
     label: "Receive transcripted files as email attachments?"
     display: true
     widget: check_box
-    checked_value: True
-    unchecked_value: False
+    default: false
+    checked_value: true
+    unchecked_value: false
     help: |
       Select this option to receive the transcripted files to your email.
 
