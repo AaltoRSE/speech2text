@@ -6,8 +6,11 @@
 const OOD_PREFIX_PATH = "/pun/sys/dashboard/files/fs/";
 
 function decode_audio_path() {
+    if ($("#batch_connect_session_context_audio_path_path_selector_table tr.selected").length === 0) {
+        return; // Do nothing if no files are selected
+    }
+    
     let selectedFiles = [];
-
     // Find all rows with the 'selected' class
     $("#batch_connect_session_context_audio_path_path_selector_table tr.selected").each(function() {
         // Extract the file path from the data attribute
@@ -75,6 +78,53 @@ function toggle_visibilty_of_form_group(form_id, show) {
 }
 
 
+function updateButtonText() {
+
+    const button = $("#batch_connect_session_context_audio_path_path_selector_button");
+    const selectedRows = $("#batch_connect_session_context_audio_path_path_selector_table tr.selected").length;
+
+    if (selectedRows === 0) {
+        button.text("Select Folder");
+    } else if (selectedRows === 1) {
+        button.text("Select File");
+    } else {
+        button.text("Select Files");
+    }
+}
+
+/**
+ * Ensure a modal has full height and wide width when opened.
+ * - Adds h-100 to the modal container
+ * - Expands dialog width (vw) and content height (vh)
+ */
+function setModalFullSize(modalSelector, opts = {}) {
+    const {
+      heightClass = 'h-100',  // Bootstrap height utility
+      widthVW = 95,           // dialog width in viewport width
+      contentVH = 85          // modal-content height in viewport height
+    } = opts;
+  
+    const $modal = $(modalSelector);
+    if ($modal.length === 0) return;
+  
+    // Ensure full height class on the modal container
+    $modal.removeClass('h-25 h-50 h-75 h-100').addClass(heightClass);
+  
+    // Widen the dialog and make content tall
+    const $dialog = $modal.find('.modal-dialog');
+    const $content = $modal.find('.modal-content');
+  
+    $dialog.css({
+      maxWidth: `${widthVW}vw`,
+      width: `${widthVW}vw`
+    });
+  
+    $content.css({
+      height: `${contentVH}vh`
+    });
+  }
+
+
 /**
  * Sets the event handler for file selector button.
  * Triggering the handler based on the field change doesn't work
@@ -96,14 +146,20 @@ function add_event_handlers() {
     let submit_button = $("input[type='submit'][name='commit']");
     submit_button.click(validate_AudioPath);
 
-    let advance_settings = $("#batch_connect_session_context_advance_options");
+    let advance_settings = $("#batch_connect_session_context_advanced_options");
     advance_settings.change(function() {
         toggle_visibilty_of_form_group(
             "#batch_connect_session_context_model_selector", 
             advance_settings.is(':checked'))
     });
-}
 
+    // Update button text on selection change
+    $("#batch_connect_session_context_audio_path_path_selector_table").on('click', 'tr', function() {
+        $(this).toggleClass('selected'); // Toggle selection class
+        console.log("Row clicked. Current class:", $(this).attr('class')); // Debugging log
+        updateButtonText(); // Update button text based on selection
+    });
+}
 
 /**
  *  Install event handlers
@@ -111,6 +167,14 @@ function add_event_handlers() {
 $(document).ready(function () {
     add_event_handlers();
 
+    updateButtonText();
+
     // Hide the advance settings at the beggining
     toggle_visibilty_of_form_group("#batch_connect_session_context_model_selector", 'false')
+
+    // Apply full size on show (Bootstrap v4/v5 event)
+    const modalSel = "#batch_connect_session_context_audio_path_path_selector";
+    $(modalSel).on('show.bs.modal', function () {
+        setModalFullSize(modalSel, { heightClass: 'h-100', widthVW: 95, contentVH: 85 });
+    });
 });

@@ -92,7 +92,7 @@ then
   sed -i "s|<SPEECH2TEXT_MEM>|$SPEECH2TEXT_MEM|g" $SCRIPT
   sed -i "s|<SPEECH2TEXT_CPUS_PER_TASK>|$SPEECH2TEXT_CPUS_PER_TASK|g" $SCRIPT
 
-  TARGET="/appl/manual_installations/modules/speech2text/$VERSION.lua"
+  TARGET="/appl/manual_installations/modules/Core/speech2text/$VERSION.lua"
   cp "$SCRIPT" "$TARGET"
 
   echo ".. New module created to: $TARGET"

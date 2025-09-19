@@ -51,6 +51,7 @@ mamba env create --file env.yml --prefix $PWD/env/
 To deploy both command line interface (CLI) module and the Open On Demand (OOD) app, run 
 
 ```bash
+source activate ./env
 bin/deploy cli ood
 ```
 

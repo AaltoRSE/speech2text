@@ -7,10 +7,9 @@ cacheable: false
 # the account and the number of cores they want to request for this job.
 form:
   - audio_path
-  - email_field
   - send_attachments
   - language_field
-  - advance_options
+  - advanced_options
   - model_selector
 
 attributes:
@@ -29,37 +28,27 @@ attributes:
     help: |
       Select the language for the audio file(s).
     options: # Will be filled with bin/deploy-data/update_ood_form_values.py
-    
-  
-  email_field:
-    label: Email
-    cacheable: true
-    display: true
-    widget: "email_field"
-    pattern: ".+[.].+@aalto.fi"  
-    help: |
-      Only works with aalto email.
-      You will get an email when the transcription is done.
 
 
   send_attachments:
-    label: "Receive transcirpted files as email attachments?"
+    label: "Receive transcripted files as email attachments?"
     display: true
     widget: check_box
-    checked_value: True
-    unchecked_value: False
-    help: |
-      Select this option to recieve the transcripted files to your email.
+    default: false
+    checked_value: true
+    unchecked_value: false
+    help: Check this box to receive the transcripted files to your Aalto email.
 
 
-  advance_options:
-    label: "Advance Settings"
+
+  advanced_options:
+    label: "Advanced Settings"
     display: false
     widget: check_box
     checked_value: true
     unchecked_value: false
     help: |
-      Show advance settings.
+      Show advanced settings.
 
 
   model_selector:
