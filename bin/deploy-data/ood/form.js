@@ -146,7 +146,7 @@ function add_event_handlers() {
     let submit_button = $("input[type='submit'][name='commit']");
     submit_button.click(validate_AudioPath);
 
-    let advance_settings = $("#batch_connect_session_context_advance_options");
+    let advance_settings = $("#batch_connect_session_context_advanced_options");
     advance_settings.change(function() {
         toggle_visibilty_of_form_group(
             "#batch_connect_session_context_model_selector", 
