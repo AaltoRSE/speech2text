@@ -6,5 +6,7 @@ role: batch_connect
 description: |
     This is a form to submit a speech2text job request.      
     [Link to the documentation.](https://scicomp.aalto.fi/triton/apps/speech2text/)
+
+    [**Send feedback & feature requests.**](https://version.aalto.fi/gitlab/AaltoScienceIT/triton/-/issues/new)
 # metadata:
 #   field_of_science: botany
