@@ -92,6 +92,38 @@ function updateButtonText() {
     }
 }
 
+/**
+ * Ensure a modal has full height and wide width when opened.
+ * - Adds h-100 to the modal container
+ * - Expands dialog width (vw) and content height (vh)
+ */
+function setModalFullSize(modalSelector, opts = {}) {
+    const {
+      heightClass = 'h-100',  // Bootstrap height utility
+      widthVW = 95,           // dialog width in viewport width
+      contentVH = 85          // modal-content height in viewport height
+    } = opts;
+  
+    const $modal = $(modalSelector);
+    if ($modal.length === 0) return;
+  
+    // Ensure full height class on the modal container
+    $modal.removeClass('h-25 h-50 h-75 h-100').addClass(heightClass);
+  
+    // Widen the dialog and make content tall
+    const $dialog = $modal.find('.modal-dialog');
+    const $content = $modal.find('.modal-content');
+  
+    $dialog.css({
+      maxWidth: `${widthVW}vw`,
+      width: `${widthVW}vw`
+    });
+  
+    $content.css({
+      height: `${contentVH}vh`
+    });
+  }
+
 
 /**
  * Sets the event handler for file selector button.
@@ -139,4 +171,10 @@ $(document).ready(function () {
 
     // Hide the advance settings at the beggining
     toggle_visibilty_of_form_group("#batch_connect_session_context_model_selector", 'false')
+
+    // Apply full size on show (Bootstrap v4/v5 event)
+    const modalSel = "#batch_connect_session_context_audio_path_path_selector";
+    $(modalSel).on('show.bs.modal', function () {
+        setModalFullSize(modalSel, { heightClass: 'h-100', widthVW: 95, contentVH: 85 });
+    });
 });
