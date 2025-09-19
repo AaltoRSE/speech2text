@@ -1,6 +1,9 @@
 # Supported languages
 
 supported_languages = {
+    "english": "en",
+    "finnish": "fi",
+    "swedish": "sv",
     "arabic": "ar",
     "armenian": "hy",
     "bulgarian": "bg",
@@ -9,9 +12,7 @@ supported_languages = {
     "czech": "cs",
     "danish": "da",
     "dutch": "nl",
-    "english": "en",
     "estonian": "et",
-    "finnish": "fi",
     "french": "fr",
     "galician": "gl",
     "german": "de",
@@ -40,7 +41,6 @@ supported_languages = {
     "slovak": "sk",
     "slovenian": "sl",
     "spanish": "es",
-    "swedish": "sv",
     "thai": "th",
     "turkish": "tr",
     "ukrainian": "uk",
