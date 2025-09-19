@@ -37,7 +37,7 @@ attributes:
     default: false
     checked_value: true
     unchecked_value: false
-    help: 'Check this box to receive the transcripted files to your Aalto email.
+    help: Check this box to receive the transcripted files to your Aalto email.
 
 
 
