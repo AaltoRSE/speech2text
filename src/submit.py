@@ -187,9 +187,9 @@ def create_array_input_file(
         except subprocess.CalledProcessError as e:
             print(f"Warning! Error processing {input_file}: {e}")
             continue
-        if "Audio:" not in str(result.stderr):
-            print(f".. {input_file}: Skip since it's not an audio file.")
-            continue
+        #if "Audio:" not in str(result.stderr):
+        #    print(f".. {input_file}: Skip since it's not an audio file.")
+        #    continue
         existing, missing = get_existing_result_files(input_file, output_dir)
         if existing and not missing:
             print(
