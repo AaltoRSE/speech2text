@@ -177,7 +177,7 @@ def create_array_input_file(
     for input_file in input_list:
         try:
             result = subprocess.run(
-                ["ffmpeg", "-i", str(input_file)],
+                ["module load ffmpeg/7.02 ffmpeg", "-i", str(input_file)],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
             )
@@ -346,6 +346,9 @@ def create_sbatch_script_for_single_file(
 #SBATCH --gres=gpu:1
 #SBATCH --time={time}
 #SBATCH --mail-user={email}
+
+module load triton/2025.1-gcc ffmpeg/7.0.2 cuda/12.6.2
+
 python3 {python_source_dir}/speech2text.py '{input_file}'
 
 echo "Sending email notification"
