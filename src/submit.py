@@ -176,10 +176,13 @@ def create_array_input_file(
     
     for input_file in input_list:
         try:
+            cmd = f"module load ffmpeg/7.0.2 && ffmpeg -i {shlex.quote(str(input_file))}"
             result = subprocess.run(
-                ["module load ffmpeg/7.02 ffmpeg", "-i", str(input_file)],
+                ["bash", "-lc", cmd],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
+                text=True,      # get str instead of bytes
+                check=False,    # ffmpeg -i (without output) often exits non-zero
             )
         except subprocess.CalledProcessError as e:
             print(f"Warning! Error processing {input_file}: {e}")
