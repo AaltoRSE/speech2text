@@ -346,9 +346,6 @@ def create_sbatch_script_for_single_file(
 #SBATCH --gres=gpu:1
 #SBATCH --time={time}
 #SBATCH --mail-user={email}
-
-module load triton/2025.1-gcc ffmpeg/7.0.2 cuda/12.6.2
-
 python3 {python_source_dir}/speech2text.py '{input_file}'
 
 echo "Sending email notification"
