@@ -165,8 +165,16 @@ class DiarizationPipeline:
             min_speakers=min_speakers,
             max_speakers=max_speakers,
         )
+        # Handle both old and new pyannote API versions
+        if hasattr(segments, 'itertracks'):
+            # Old API (pyannote < 3.0)
+            tracks_data = segments.itertracks(yield_label=True)
+        else:
+            # New API (pyannote >= 3.0) - iterate directly over segments
+            tracks_data = [(segment, track, label) for segment, track, label in segments]
+        
         diarize_df = pd.DataFrame(
-            segments.itertracks(yield_label=True),
+            tracks_data,
             columns=["segment", "label", "speaker"],
         )
         diarize_df["start"] = diarize_df["segment"].apply(lambda x: x.start)
