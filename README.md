@@ -133,9 +133,9 @@ test2.txt
 Example of `.csv` output format (computer-friendly format):
 ```
 start,end,speaker,transcription
-00:00:00,00:00:05,SPEAKER_00,"This is the first sentence of the first speaker."
-00:00:06,00:00:10,SPEAKER_00,"This is the second sentence of the first speaker."
-00:00:11,00:00:15,SPEAKER_01,"This is a sentence from the second speaker."
+00:00:00,00:00:05,"This is the first sentence of the first speaker.",SPEAKER_00
+00:00:06,00:00:10,"This is the second sentence of the first speaker.",SPEAKER_00
+00:00:11,00:00:15,"This is a sentence from the second speaker.",SPEAKER_01
 ```
 
 Corresponding example of `.txt` output format (human-friendly format):
@@ -149,6 +149,7 @@ This is the first sentence of the first speaker. This is the second sentence of 
 This is a sentence from the second speaker.
 ```
 
+>NOTE: The speaker labels are arbitrary and do not correspond to any specific speaker i.e. the numbers do not correspond to the number or order of speakers in the audio file. The labels are only used to distinguish between different speakers.
 
 ## Models
 
