@@ -12,6 +12,7 @@ import numpy as np
 import pandas as pd
 import torch
 from pyannote.audio import Pipeline
+from pyannote.core import Segment
 
 import settings
 
@@ -168,10 +169,21 @@ class DiarizationPipeline:
         # Handle both old and new pyannote API versions
         if hasattr(segments, 'itertracks'):
             # Old API (pyannote < 3.0)
-            tracks_data = segments.itertracks(yield_label=True)
+            tracks_data = list(segments.itertracks(yield_label=True))
+        elif hasattr(segments, 'speaker_diarization'):
+            # New API (pyannote >= 3.0) - speaker_diarization iterates as (turn, speaker)
+            # Convert to same format as old API: (segment, label, speaker)
+            tracks_data = [
+                (turn, speaker, speaker)
+                for turn, speaker in segments.speaker_diarization
+            ]
         else:
-            # New API (pyannote >= 3.0) - iterate directly over segments
-            tracks_data = [(segment, track, label) for segment, track, label in segments]
+            # Fallback: try to_dict() conversion
+            segments_dict = segments.to_dict()
+            tracks_data = [
+                (Segment(s['start'], s['end']), s['label'], s['label'])
+                for s in segments_dict['segments']
+            ]
         
         diarize_df = pd.DataFrame(
             tracks_data,
