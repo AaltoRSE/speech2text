@@ -166,24 +166,10 @@ class DiarizationPipeline:
             min_speakers=min_speakers,
             max_speakers=max_speakers,
         )
-        # Handle both old and new pyannote API versions
-        if hasattr(segments, 'itertracks'):
-            # Old API (pyannote < 3.0)
-            tracks_data = list(segments.itertracks(yield_label=True))
-        elif hasattr(segments, 'speaker_diarization'):
-            # New API (pyannote >= 3.0) - speaker_diarization iterates as (turn, speaker)
-            # Convert to same format as old API: (segment, label, speaker)
-            tracks_data = [
-                (turn, speaker, speaker)
-                for turn, speaker in segments.speaker_diarization
-            ]
-        else:
-            # Fallback: try to_dict() conversion
-            segments_dict = segments.to_dict()
-            tracks_data = [
-                (Segment(s['start'], s['end']), s['label'], s['label'])
-                for s in segments_dict['segments']
-            ]
+        tracks_data = [
+            (turn, speaker, speaker)
+            for turn, speaker in segments.speaker_diarization
+        ]
         
         diarize_df = pd.DataFrame(
             tracks_data,
