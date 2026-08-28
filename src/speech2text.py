@@ -16,7 +16,8 @@ import torch.multiprocessing as mp
 import whisperx
 from numba.core.errors import (NumbaDeprecationWarning,
                                NumbaPendingDeprecationWarning)
-from whisperx.types import TranscriptionResult
+#from whisperx.types import TranscriptionResult
+from typing import Dict, Any
 
 import settings
 from submit import parse_output_dir
@@ -292,7 +293,7 @@ def load_whisperx_model(
 
 def transcribe(
     file: str, model_name: str, language: str, result: dict
-) -> TranscriptionResult:
+) -> Dict[str, Any]:
     """
     Transcribe audio file using WhisperX.
 

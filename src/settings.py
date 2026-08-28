@@ -78,6 +78,7 @@ wav2vec_models = {
     "th": "sakares/wav2vec2-large-xlsr-thai-demo",
     "fi": "Finnish-NLP/wav2vec2-xlsr-1b-finnish-lm-v2",
     "pt": "rlimonta/wav2vec2-large-xlsr-53-portuguese",
+    "nl": "jonatasgrosman/wav2vec2-large-xlsr-53-dutch",
 }
 
 # Whisper models

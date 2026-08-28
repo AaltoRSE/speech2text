@@ -12,6 +12,7 @@ import numpy as np
 import pandas as pd
 import torch
 from pyannote.audio import Pipeline
+from pyannote.core import Segment
 
 import settings
 
@@ -165,8 +166,13 @@ class DiarizationPipeline:
             min_speakers=min_speakers,
             max_speakers=max_speakers,
         )
+        tracks_data = [
+            (turn, speaker, speaker)
+            for turn, speaker in segments.speaker_diarization
+        ]
+        
         diarize_df = pd.DataFrame(
-            segments.itertracks(yield_label=True),
+            tracks_data,
             columns=["segment", "label", "speaker"],
         )
         diarize_df["start"] = diarize_df["segment"].apply(lambda x: x.start)
